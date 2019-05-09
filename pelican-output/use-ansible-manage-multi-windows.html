@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="在windows上安装winrm组件, Ansible通过winrm实现对windows的批量管理. 包括: 批量创建下发删除文件及目录、执行脚本、重启机器、管理用户、管理服务..." />
+<meta name="keywords" content="ansible, windows, devops">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="使用 Ansible 批量管理 Windows"/>
+<meta property="og:description" content="在windows上安装winrm组件, Ansible通过winrm实现对windows的批量管理. 包括: 批量创建下发删除文件及目录、执行脚本、重启机器、管理用户、管理服务..."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/use-ansible-manage-multi-windows.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-03-30 19:37:41.078693+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="ansible"/>
+<meta property="article:tag" content="windows"/>
+<meta property="article:tag" content="devops"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 使用 Ansible 批量管理 Windows</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="use-ansible-manage-multi-windows">使用 Ansible 批量管理 Windows</h1>
+    <p>
+      在 2019-03-30 Saturday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">安装指南</a><ul>
+<li><a href="#_3">服务器端的要求</a></li>
+<li><a href="#ansible">服务器端安装Ansible</a></li>
+</ul>
+</li>
+<li><a href="#windows">Windows 指南</a><ul>
+<li><a href="#windows_1">设置Windows主机</a></li>
+</ul>
+</li>
+<li><a href="#ansiblewindows">Ansible服务器端配置并管理Windows</a><ul>
+<li><a href="#ping-windows">ping 远程windows主机</a></li>
+<li><a href="#_4">创建目录</a></li>
+<li><a href="#_5">下发文件</a></li>
+<li><a href="#_6">删除文件</a></li>
+<li><a href="#_7">删除目录</a></li>
+<li><a href="#cmd">执行cmd命令</a></li>
+<li><a href="#windows_2">重启windows</a></li>
+<li><a href="#_8">创建用户</a></li>
+<li><a href="#windows_3">windows服务管理</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="_1">概述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>Ansible是自动化运维工具，基于Python开发，实现了批量系统配置、批量程序部署、批量运行命令等功能。Ansible是基于模块(module)和剧本(playbook)工作。</p>
+<h2 id="_2">安装指南<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>本次在Ubuntu上安装Ansible 2.7 . 更详细安装方式参见: <a href="https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html">Ansible 安装指南</a></p>
+</blockquote>
+<h3 id="_3">服务器端的要求<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>目前Ansible可以从安装了Python 2（2.7版）或Python 3（3.5及更高版本）的任何机器上运行。控制计算机<strong>不支持Windows</strong>。</p>
+<p>这包括Red Hat，Debian，CentOS，macOS，任何BSD等等。</p>
+<h3 id="ansible">服务器端安装Ansible<a class="headerlink" href="#ansible" title="Permanent link">&para;</a></h3>
+<h4>通过Apt (Ubuntu)安装最新版本</h4>
+<p>这里有<a href="https://launchpad.net/~ansible/+archive/ubuntu/ansible">一个PPA</a>版本的Ubuntu源。</p>
+<p>要在您的计算机上配置PPA并安装ansible，请运行以下命令：</p>
+<div class="highlight"><pre><span></span>sudo apt-get update
+sudo apt-get install software-properties-common
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt-get install ansible
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px">注意:</p>
+<p>在较旧的Ubuntu发行版中，“software-properties-common”被称为“python-software-properties”。</p>
+</blockquote>
+<h2 id="windows">Windows 指南<a class="headerlink" href="#windows" title="Permanent link">&para;</a></h2>
+<h3 id="windows_1">设置Windows主机<a class="headerlink" href="#windows_1" title="Permanent link">&para;</a></h3>
+<h4>主机要求</h4>
+<p>要使Ansible与Windows主机通信并使用Windows模块，Windows主机必须满足以下要求：</p>
+<ul>
+<li>Ansible支持的Windows版本通常与Microsoft当前和扩展支持下的版本相匹配。支持的桌面操作系统包括<strong>Windows 7,8.1和10</strong>，受支持的服务器操作系统包括<strong>Windows Server 2008,2008 R2,2012,2012 R2和2016</strong>。</li>
+<li>Ansible需要<strong>PowerShell 3.0</strong>或更高版本，并且至少要在Windows主机上安装<strong>.NET 4.0</strong>。</li>
+<li>应创建并激活<strong>WinRM listener </strong>。更多细节可以在下面找到。</li>
+</ul>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px">注意:</p>
+<p>虽然这些是Ansible连接的基本要求，但是一些Ansible模块还有其他要求，例如较新的OS或PowerShell版本。请参阅模块的文档页面以确定主机是否满足这些要求。</p>
+</blockquote>
+<h4>升级PowerShell和.NET框架</h4>
+<blockquote>
+<p>升级powershell需要<strong>重启服务器</strong>才能生效。</p>
+</blockquote>
+<p>Ansible需要PowerShell 3.0版和.NET Framework 4.0或更高版本才能在较旧的操作系统（如Server 2008和Windows 7）上运行。基本OS镜像不符合此要求。您可以使用<a href="https://github.com/jborean93/ansible-windows/blob/master/scripts/Upgrade-PowerShell.ps1">Upgrade-PowerShell.ps1</a>脚本来更新这些脚本。</p>
+<p>这是如何从PowerShell运行此脚本的示例：</p>
+<div class="highlight"><pre><span></span><span class="nv">$url</span> <span class="p">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Upgrade-PowerShell.ps1&quot;</span>
+<span class="nv">$file</span> <span class="p">=</span> <span class="s2">&quot;$env:temp\Upgrade-PowerShell.ps1&quot;</span>
+<span class="nv">$username</span> <span class="p">=</span> <span class="s2">&quot;Administrator&quot;</span>
+<span class="nv">$password</span> <span class="p">=</span> <span class="s2">&quot;Password&quot;</span>
+
+<span class="p">(</span><span class="nb">New-Object</span> <span class="n">-TypeName</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">).</span><span class="n">DownloadFile</span><span class="p">(</span><span class="nv">$url</span><span class="p">,</span> <span class="nv">$file</span><span class="p">)</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">-ExecutionPolicy</span> <span class="n">Unrestricted</span> <span class="n">-Force</span>
+
+<span class="c"># version can be 3.0, 4.0 or 5.1</span>
+<span class="p">&amp;</span><span class="nv">$file</span> <span class="n">-Version</span> <span class="n">5</span><span class="p">.</span><span class="n">1</span> <span class="n">-Username</span> <span class="nv">$username</span> <span class="n">-Password</span> <span class="nv">$password</span> <span class="n">-Verbose</span>
+</pre></div>
+
+
+<p>完成后，您将需要删除自动登录并将执行策略设置回默认值<code>Restricted</code>。您可以使用以下PowerShell命令执行此操作：</p>
+<div class="highlight"><pre><span></span><span class="c"># this isn&#39;t needed but is a good security practice to complete</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">-ExecutionPolicy</span> <span class="n">Restricted</span> <span class="n">-Force</span>
+
+<span class="nv">$reg_winlogon_path</span> <span class="p">=</span> <span class="s2">&quot;HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon&quot;</span>
+<span class="nb">Set-ItemProperty</span> <span class="n">-Path</span> <span class="nv">$reg_winlogon_path</span> <span class="n">-Name</span> <span class="n">AutoAdminLogon</span> <span class="n">-Value</span> <span class="n">0</span>
+<span class="nb">Remove-ItemProperty</span> <span class="n">-Path</span> <span class="nv">$reg_winlogon_path</span> <span class="n">-Name</span> <span class="n">DefaultUserName</span> <span class="n">-ErrorAction</span> <span class="n">SilentlyContinue</span>
+<span class="nb">Remove-ItemProperty</span> <span class="n">-Path</span> <span class="nv">$reg_winlogon_path</span> <span class="n">-Name</span> <span class="n">DefaultPassword</span> <span class="n">-ErrorAction</span> <span class="n">SilentlyContinue</span>
+</pre></div>
+
+
+<p>该脚本的工作原理是检查需要安装哪些程序（例如.NET Framework 4.5.2）以及需要什么样的PowerShell版本。如果<strong>需要重新启动</strong>并且设置了<code>username</code>和<code>password</code>参数，则脚本将在重新启动时自动重新启动并登录。该脚本将继续，直到不再需要执行任何操作且PowerShell版本与目标版本匹配为止。如果未设置<code>username</code>和 <code>password</code>参数，脚本将提示用户手动重新引导并在需要时登录。当用户下次登录时，脚本将从停止的位置继续，并且该过程将继续，直到不再需要其他操作为止。</p>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px">注意:</p>
+<ul>
+<li>如果在Server 2008上运行，则必须安装SP2。如果在Server 2008 R2或Windows 7上运行，则必须安装SP1。</li>
+<li>Windows Server 2008只能安装PowerShell 3.0; 指定较新的版本将导致脚本失败。</li>
+<li><code>username</code>和<code>password</code>参数都是存储在注册表中的纯文本。确保在脚本完成后运行清理命令，以确保主机上仍未存储凭据。</li>
+</ul>
+</blockquote>
+<h4>WinRM内存补丁</h4>
+<p>在PowerShell v3.0上运行时，WinRM服务存在一个错误，它限制了WinRM可用的内存量。如果未安装此补丁，Ansible将无法在Windows主机上执行某些命令。这些补丁应作为系统引导或映像过程的一部分安装。<a href="https://github.com/jborean93/ansible-windows/blob/master/scripts/Install-WMF3Hotfix.ps1">Install-WMF3Hotfix.ps1</a>脚本可用于在受影响的主机上安装此修补程序。</p>
+<p>以下PowerShell命令将安装此修补程序：</p>
+<div class="highlight"><pre><span></span><span class="nv">$url</span> <span class="p">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Install-WMF3Hotfix.ps1&quot;</span>
+<span class="nv">$file</span> <span class="p">=</span> <span class="s2">&quot;$env:temp\Install-WMF3Hotfix.ps1&quot;</span>
+
+<span class="p">(</span><span class="nb">New-Object</span> <span class="n">-TypeName</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">).</span><span class="n">DownloadFile</span><span class="p">(</span><span class="nv">$url</span><span class="p">,</span> <span class="nv">$file</span><span class="p">)</span>
+<span class="n">powershell</span><span class="p">.</span><span class="n">exe</span> <span class="n">-ExecutionPolicy</span> <span class="n">ByPass</span> <span class="o">-File</span> <span class="nv">$file</span> <span class="n">-Verbose</span>
+</pre></div>
+
+
+<h4>WinRM设置</h4>
+<p>一旦Powershell升级到至少3.0版本，最后一步是配置WinRM服务，以便Ansible可以连接到它。WinRM服务有两个主要组件，用于管理Ansible如何与Windows主机连接：<code>listener</code>和<code>service</code>配置设置。</p>
+<p>可以在下面阅读有关每个组件的详细信息，也可以使用脚本<a href="https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1">ConfigureRemotingForAnsible.ps1</a>来进行基本设置。此脚本使用自签名证书设置HTTP和HTTPS侦听器，并在服务上启用<code>Basic</code> 身份验证选项。</p>
+<p>要使用此脚本，请在PowerShell中运行以下命令：</p>
+<div class="highlight"><pre><span></span><span class="nv">$url</span> <span class="p">=</span> <span class="s2">&quot;https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1&quot;</span>
+<span class="nv">$file</span> <span class="p">=</span> <span class="s2">&quot;$env:temp\ConfigureRemotingForAnsible.ps1&quot;</span>
+
+<span class="p">(</span><span class="nb">New-Object</span> <span class="n">-TypeName</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">).</span><span class="n">DownloadFile</span><span class="p">(</span><span class="nv">$url</span><span class="p">,</span> <span class="nv">$file</span><span class="p">)</span>
+
+<span class="n">powershell</span><span class="p">.</span><span class="n">exe</span> <span class="n">-ExecutionPolicy</span> <span class="n">ByPass</span> <span class="o">-File</span> <span class="nv">$file</span>
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px">注意:</p>
+<p>ConfigureRemotingForAnsible.ps1脚本仅用于培训和开发目的，不应在生产环境中使用，因为它启用了<code>Basic</code> 这本质上不安全（如身份验证）。</p>
+</blockquote>
+<h4>WinRM Listener</h4>
+<p>WinRM服务侦听一个或多个端口上的请求。每个端口都必须创建并配置一个侦听器。</p>
+<p>要查看在WinRM服务上运行的当前侦听器，请运行以下命令：</p>
+<div class="highlight"><pre><span></span><span class="n">winrm</span> <span class="n">quickconfig</span>
+<span class="n">winrm</span> <span class="n">enumerate</span> <span class="n">winrm</span><span class="p">/</span><span class="n">config</span><span class="p">/</span><span class="n">Listener</span>
+</pre></div>
+
+
+<p>运行后输出如下:</p>
+<div class="highlight"><pre><span></span><span class="n">Listener</span>
+    <span class="n">Address</span> <span class="p">=</span> <span class="p">*</span>
+    <span class="n">Transport</span> <span class="p">=</span> <span class="n">HTTP</span>
+    <span class="n">Port</span> <span class="p">=</span> <span class="n">5985</span>
+    <span class="n">Hostname</span>
+    <span class="n">Enabled</span> <span class="p">=</span> <span class="n">true</span>
+    <span class="n">URLPrefix</span> <span class="p">=</span> <span class="n">wsman</span>
+    <span class="n">CertificateThumbprint</span>
+    <span class="n">ListeningOn</span> <span class="p">=</span> <span class="n">10</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">15</span><span class="p">,</span> <span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">,</span> <span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">56</span><span class="p">.</span><span class="n">155</span><span class="p">,</span> <span class="p">::</span><span class="n">1</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">5efe</span><span class="err">:</span><span class="n">10</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">15</span><span class="k">%</span><span class="n">6</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">5efe</span><span class="err">:</span><span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">56</span><span class="p">.</span><span class="n">155</span><span class="k">%</span><span class="n">8</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span>
+<span class="n">ffff</span><span class="err">:</span><span class="n">ffff</span><span class="err">:</span><span class="n">fffe</span><span class="k">%</span><span class="n">2</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">203d</span><span class="err">:</span><span class="n">7d97</span><span class="err">:</span><span class="n">c2ed</span><span class="err">:</span><span class="n">ec78</span><span class="k">%</span><span class="n">3</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">e8ea</span><span class="err">:</span><span class="n">d765</span><span class="err">:</span><span class="n">2c69</span><span class="err">:</span><span class="n">7756</span><span class="k">%</span><span class="n">7</span>
+
+<span class="n">Listener</span>
+    <span class="n">Address</span> <span class="p">=</span> <span class="p">*</span>
+    <span class="n">Transport</span> <span class="p">=</span> <span class="n">HTTPS</span>
+    <span class="n">Port</span> <span class="p">=</span> <span class="n">5986</span>
+    <span class="n">Hostname</span> <span class="p">=</span> <span class="n">SERVER2016</span>
+    <span class="n">Enabled</span> <span class="p">=</span> <span class="n">true</span>
+    <span class="n">URLPrefix</span> <span class="p">=</span> <span class="n">wsman</span>
+    <span class="n">CertificateThumbprint</span> <span class="p">=</span> <span class="n">E6CDAA82EEAF2ECE8546E05DB7F3E01AA47D76CE</span>
+    <span class="n">ListeningOn</span> <span class="p">=</span> <span class="n">10</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">15</span><span class="p">,</span> <span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">,</span> <span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">56</span><span class="p">.</span><span class="n">155</span><span class="p">,</span> <span class="p">::</span><span class="n">1</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">5efe</span><span class="err">:</span><span class="n">10</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">15</span><span class="k">%</span><span class="n">6</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">5efe</span><span class="err">:</span><span class="n">192</span><span class="p">.</span><span class="n">168</span><span class="p">.</span><span class="n">56</span><span class="p">.</span><span class="n">155</span><span class="k">%</span><span class="n">8</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span>
+<span class="n">ffff</span><span class="err">:</span><span class="n">ffff</span><span class="err">:</span><span class="n">fffe</span><span class="k">%</span><span class="n">2</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">203d</span><span class="err">:</span><span class="n">7d97</span><span class="err">:</span><span class="n">c2ed</span><span class="err">:</span><span class="n">ec78</span><span class="k">%</span><span class="n">3</span><span class="p">,</span> <span class="n">fe80</span><span class="p">::</span><span class="n">e8ea</span><span class="err">:</span><span class="n">d765</span><span class="err">:</span><span class="n">2c69</span><span class="err">:</span><span class="n">7756</span><span class="k">%</span><span class="n">7</span>
+</pre></div>
+
+
+<p>修改winrm配置，启用远程连接认证</p>
+<div class="highlight"><pre><span></span><span class="n">winrm</span> <span class="nb">set </span><span class="n">winrm</span><span class="p">/</span><span class="n">config</span><span class="p">/</span><span class="n">service</span><span class="p">/</span><span class="n">auth</span> <span class="s1">&#39;@{Basic=&quot;true&quot;}&#39;</span>
+<span class="n">winrm</span> <span class="nb">set </span><span class="n">winrm</span><span class="p">/</span><span class="n">config</span><span class="p">/</span><span class="n">service</span> <span class="s1">&#39;@{AllowUnencrypted=&quot;true&quot;}&#39;</span>
+</pre></div>
+
+
+<h4>windows 防火墙配置</h4>
+<p>配置防火墙:</p>
+<ol>
+<li>添加防火墙信任规则，允许5985-5986端口通过</li>
+<li>打开防火墙高级配置，选择<strong>入站规则</strong>，在点击新建规则</li>
+<li>填写一下信息<ol>
+<li><strong>TCP</strong></li>
+<li>信任端口<strong>5985-5986</strong></li>
+</ol>
+</li>
+<li>填写新建规则名称</li>
+</ol>
+<h2 id="ansiblewindows">Ansible服务器端配置并管理Windows<a class="headerlink" href="#ansiblewindows" title="Permanent link">&para;</a></h2>
+<p>添加windows客户端连接信息: 编辑<code>/etc/ansible/hosts</code>, 添加客户端主机信息(ansible服务端的配置)</p>
+<div class="highlight"><pre><span></span><span class="k">[windows]</span>
+
+<span class="na">192.168.2.2 ansible_user</span><span class="o">=</span><span class="s">&quot;Administrator&quot; ansible_password=&quot;Password&quot; ansible_port=5986 ansible_connection=&quot;winrm&quot; ansible_winrm_server_cert_validation=ignore ansible_winrm_transport=basic</span>
+</pre></div>
+
+
+<h3 id="ping-windows">ping 远程windows主机<a class="headerlink" href="#ping-windows" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span>$ ansible <span class="m">192</span>.168.2.2 -m win_ping
+<span class="m">192</span>.168.2.2 <span class="p">|</span> <span class="nv">SUCCESS</span> <span class="o">=</span>&gt; <span class="o">{</span>
+    <span class="s2">&quot;changed&quot;</span>: false,
+    <span class="s2">&quot;ping&quot;</span>: <span class="s2">&quot;pong&quot;</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h3 id="_4">创建目录<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span>$ ansible <span class="m">192</span>.168.2.2 -m win_file -a <span class="s1">&#39;path=D:\\test state=directory&#39;</span>
+<span class="m">192</span>.168.2.2 <span class="p">|</span> <span class="nv">CHANGED</span> <span class="o">=</span>&gt; <span class="o">{</span>
+    <span class="s2">&quot;changed&quot;</span>: <span class="nb">true</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h3 id="_5">下发文件<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span>$ ansible <span class="m">192</span>.168.2.2 -m win_copy -a <span class="s1">&#39;src=/etc/hosts dest=D:\\hosts.txt&#39;</span>
+<span class="m">192</span>.168.2.2 <span class="p">|</span> <span class="nv">CHANGED</span> <span class="o">=</span>&gt; <span class="o">{</span>
+    <span class="s2">&quot;changed&quot;</span>: true,
+    <span class="s2">&quot;checksum&quot;</span>: <span class="s2">&quot;f6d471689e1233342a8e43a130ff40a6ea0b9f51&quot;</span>,
+    <span class="s2">&quot;dest&quot;</span>: <span class="s2">&quot;D:\\hosts.txt&quot;</span>,
+    <span class="s2">&quot;operation&quot;</span>: <span class="s2">&quot;file_copy&quot;</span>,
+    <span class="s2">&quot;original_basename&quot;</span>: <span class="s2">&quot;hosts&quot;</span>,
+    <span class="s2">&quot;size&quot;</span>: <span class="m">635</span>,
+    <span class="s2">&quot;src&quot;</span>: <span class="s2">&quot;/etc/hosts&quot;</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h3 id="_6">删除文件<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_file -a &#39;dest=d:\\config_dir\\hosts.txt state=absent&#39;</span>
+</pre></div>
+
+
+<h3 id="_7">删除目录<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_file -a &#39;dest=d:\\config_dir2 state=absent&#39;</span>
+</pre></div>
+
+
+<h3 id="cmd">执行cmd命令<a class="headerlink" href="#cmd" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_shell -a &#39;ipconfig&#39;</span>
+</pre></div>
+
+
+<h3 id="windows_2">重启windows<a class="headerlink" href="#windows_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_reboot</span>
+<span class="c1"># ansible 192.168.2.2 -m win_shell -a &#39;shutdown -r -t 0&#39;</span>
+</pre></div>
+
+
+<h3 id="_8">创建用户<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>远程在windows客户端上创建用户</p>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_user -a &quot;name=testuser1 passwd=123456&quot;</span>
+</pre></div>
+
+
+<h3 id="windows_3">windows服务管理<a class="headerlink" href="#windows_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c1"># ansible 192.168.2.2 -m win_shell -a “net stop|start zabbix_agent”</span>
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px">说明:</p>
+<p>完整的windows module见: <a href="https://docs.ansible.com/ansible/latest/modules/list_of_windows_modules.html">Windows modules</a></p>
+</blockquote>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/ansible.html">ansible</a>
+      <a href="https://www.EWhisper.cn/tag/windows.html">windows</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/https-101-chapter-1.html" title="HTTPS基础原理和配置 - 加密协议SSL和TLS">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/apple-ats-effect-on-web-server.html" title="苹果ATS合规对Web服务器的影响">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+    <div class="addthis_relatedposts_inline"></div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

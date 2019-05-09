@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - apache</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Sat, 30 Mar 2019 19:37:41 +0800</lastBuildDate><item><title>苹果ATS合规对Web服务器的影响</title><link>https://www.EWhisper.cn/apple-ats-effect-on-web-server.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;一 前言&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#11-ats"&gt;1.1 ATS要求&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;二 检查项&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#21-apache"&gt;2.1 Apache 检查项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#22-nginx"&gt;2.2 NGINX检查项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#23-weblogic"&gt;2.3 WebLogic 检查项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;三 修改配置项&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#31-apache"&gt;3.1 Apache 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#32-nginx"&gt;3.2 NGINX 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#33-weblogic"&gt;3.3 WebLogic 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;四 注意项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;一 前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;这篇文章是在太平保险期间, 我和同时Huang Wentao一起收集资料并实验后协作完成的.&lt;/p&gt;
+&lt;p&gt;本文写于2年前, 时至今日可能规范, 软件版本或配置项都发生变化. 如果要应用, 请应用前进行完善测试.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="11-ats"&gt;1.1 ATS要求&lt;a class="headerlink" href="#11-ats" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;协商的传输层安全（TLS）版本必须为TLS 1.2;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;连接必须使用AES-128或AES-256对称密码，协商的秘钥交换协议必须是以下之一：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Leaf server（设备服务器）证书必须使用以下类型的密钥之一签名&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Rivest-Shamir-Adleman (RSA)秘钥，长度至少为2048位&lt;/li&gt;
+&lt;li&gt;Elliptic-Curve Cryptography (ECC) 秘钥，长度至少为256位&lt;/li&gt;
+&lt;li&gt;此外，leaf server证书散列算法必须是具有至少256（即SHA-256或更大）的摘要长度（有时称为“指纹”）的安全散列算法2（SHA-2）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_2"&gt;二 检查项&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="21-apache"&gt;2.1 Apache 检查项&lt;a class="headerlink" href="#21-apache" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;OpenSSL版本: 需要大于 &lt;a href="https://www.openssl.org/news/changelog.txt"&gt;1.0.1&lt;/a&gt; (OpenSSL从1.0.1以后开始支持TLS 1.2)&lt;/li&gt;
+&lt;li&gt;当前加密套件使用的密钥交换协议.&lt;ol&gt;
+&lt;li&gt;查看当前加密套件支持的协议. 要保证支持的协议中有以上ATS 中所要求的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;当前密钥长度/指纹算法是否满足:&lt;ol&gt;
+&lt;li&gt;如果是RSA密钥, 则至少要为2048位;&lt;/li&gt;
+&lt;li&gt;如果是ECC密钥, 则至少为256位.&lt;/li&gt;
+&lt;li&gt;指纹安全散列算法要为 SHA-2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Apache版本:&lt;ol&gt;
+&lt;li&gt;&lt;a href="http://svn.apache.org/repos/asf/httpd/httpd/branches/2.2.x/CHANGES"&gt;Apache 2.2.23&lt;/a&gt; 或&lt;a href="http://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/CHANGES"&gt;2.4.0&lt;/a&gt; 以上版本都是支持的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="22-nginx"&gt;2.2 NGINX检查项&lt;a class="headerlink" href="#22-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;OpenSSL 版本: 需要大于1.0.1&lt;/li&gt;
+&lt;li&gt;当前加密套件使用的密钥交换协议.&lt;ol&gt;
+&lt;li&gt;查看当前加密套件支持的协议. 要保证支持的协议中有以上ATS 中所要求的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;当前密钥长度/指纹算法是否满足:&lt;ol&gt;
+&lt;li&gt;如果是RSA密钥, 则至少要为2048位;&lt;/li&gt;
+&lt;li&gt;如果是ECC密钥, 则至少为256位.&lt;/li&gt;
+&lt;li&gt;指纹安全散列算法要为 SHA-2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;NGINX版本: 建议使用&lt;a href="http://nginx.org/en/CHANGES-1.12"&gt;1.1.13&lt;/a&gt;以上版本.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="23-weblogic"&gt;2.3 WebLogic 检查项&lt;a class="headerlink" href="#23-weblogic" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;JDK版本: 需要版本为JDK 7 以上.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_3"&gt;三 修改配置项&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;除了以上检查项中版本不符合的需要升级、证书的算法、秘钥长度需要达到要求外，还有其他配置项要进行配置.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="31-apache"&gt;3.1 Apache 配置项&lt;a class="headerlink" href="#31-apache" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;示例: Apache版本2.2.23(~~待确定~~)，OpenSSL版本1.0.1e. (最大兼容性配置)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;VirtualHost&lt;/span&gt; &lt;span class="err"&gt;*:443&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    ...
+    SSLEngine on
+    SSLCertificateFile      /path/to/signed_certificate
+    SSLCertificateChainFile /path/to/intermediate_certificate
+    SSLCertificateKeyFile   /path/to/private/key
+
+    # Uncomment the following directive when using client certificate authentication
+    #SSLCACertificateFile    /path/to/ca_certs_for_client_authentication
+
+
+    # HSTS (mod_headers is required) (15768000 seconds = 6 months)
+    Header always set Strict-Transport-Security &amp;quot;max-age=15768000&amp;quot;
+    ...
+&lt;span class="nt"&gt;&amp;lt;/VirtualHost&amp;gt;&lt;/span&gt;
+
+# old configuration, tweak to your needs
+SSLProtocol             all -SSLv2
+SSLCipherSuite          ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:DES-CBC3-SHA:HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP
+SSLHonorCipherOrder     on
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="32-nginx"&gt;3.2 NGINX 配置项&lt;a class="headerlink" href="#32-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;举例：Nginx版本1.11.0，OpenSSL版本1.0.1e (最大兼容性配置)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# Redirect all HTTP requests to HTTPS with a 301 Moved Permanently response.&lt;/span&gt;
+    &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;301&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$host$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;443&lt;/span&gt; &lt;span class="s"&gt;ssl&lt;/span&gt; &lt;span class="s"&gt;http2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:443&lt;/span&gt; &lt;span class="s"&gt;ssl&lt;/span&gt; &lt;span class="s"&gt;http2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# certs sent to the client in SERVER HELLO are concatenated in ssl_certificate&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_certificate&lt;/span&gt; &lt;span class="s"&gt;/path/to/signed_cert_plus_intermediates&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_certificate_key&lt;/span&gt; &lt;span class="s"&gt;/path/to/private_key&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_timeout&lt;/span&gt; &lt;span class="s"&gt;1d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_cache&lt;/span&gt; &lt;span class="s"&gt;shared:SSL:50m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_tickets&lt;/span&gt; &lt;span class="no"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# Diffie-Hellman parameter for DHE ciphersuites, recommended 2048 bits&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_dhparam&lt;/span&gt; &lt;span class="s"&gt;/path/to/dhparam.pem&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# old configuration. tweak to your needs.&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_protocols&lt;/span&gt; &lt;span class="s"&gt;SSLv3&lt;/span&gt; &lt;span class="s"&gt;TLSv1&lt;/span&gt; &lt;span class="s"&gt;TLSv1.1&lt;/span&gt; &lt;span class="s"&gt;TLSv1.2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_ciphers&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:DES-CBC3-SHA:HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_prefer_server_ciphers&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)&lt;/span&gt;
+    &lt;span class="kn"&gt;add_header&lt;/span&gt; &lt;span class="s"&gt;Strict-Transport-Security&lt;/span&gt; &lt;span class="s"&gt;max-age=15768000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# OCSP Stapling ---&lt;/span&gt;
+    &lt;span class="c1"&gt;# fetch OCSP records from URL in ssl_certificate and cache them&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_stapling&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_stapling_verify&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;## verify chain of trust of OCSP response using Root CA and Intermediate certs&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_trusted_certificate&lt;/span&gt; &lt;span class="s"&gt;/path/to/root_CA_cert_plus_intermediates&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="kn"&gt;resolver&lt;/span&gt; &lt;span class="s"&gt;&amp;lt;IP&lt;/span&gt; &lt;span class="s"&gt;DNS&lt;/span&gt; &lt;span class="s"&gt;resolver&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="kn"&gt;....&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="33-weblogic"&gt;3.3 WebLogic 配置项&lt;a class="headerlink" href="#33-weblogic" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;需要在Oracle官网下载java 7相关的policyfile&lt;br&gt;
+解压后，替换&lt;code&gt;JAVA_HOME/jre/lib/security&lt;/code&gt;下的&lt;code&gt;local_policy.jar&lt;/code&gt;、&lt;code&gt;US_export_policy.jar&lt;/code&gt;文件。&lt;/p&gt;
+&lt;h2 id="_4"&gt;四 注意项&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;升级OpenSSL，可能会影响sftp、ssh等和ssl有关的协议，需谨慎操作。&lt;/li&gt;
+&lt;li&gt;考虑到旧的ssl版本漏洞，以及兼容性，建议都要禁用掉ssl V2及以下版本协议。(最新的建议是SSL v3也禁用)&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Sat, 30 Mar 2019 19:37:41 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-30:/apple-ats-effect-on-web-server.html</guid><category>ATS</category><category>apple</category><category>ssl</category><category>nginx</category><category>apache</category><category>tls</category><category>openssl</category></item></channel></rss>

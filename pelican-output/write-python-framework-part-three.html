@@ -1,0 +1,582 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="编写自己的Python Web框架, 实现: 测试客户端; 添加路径的替代方式（如类似Django的实现）; 支持模板" />
+<meta name="keywords" content="python, web框架">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="如何编写Python Web框架（三）"/>
+<meta property="og:description" content="编写自己的Python Web框架, 实现: 测试客户端; 添加路径的替代方式（如类似Django的实现）; 支持模板"/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/write-python-framework-part-three.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-03-06 11:03:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Python"/>
+<meta property="article:tag" content="python"/>
+<meta property="article:tag" content="web框架"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 如何编写Python Web框架（三）</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="write-python-framework-part-three">如何编写Python Web框架（三）</h1>
+    <p>
+      在 2019-03-06 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/python.html">Python</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <blockquote>
+<p>本文为译文</p>
+<p>原文链接: <a href="http://rahmonov.me/posts/write-python-framework-part-three/">How to write a Python web framework. Part III.</a></p>
+<p>作者: Jahongir Rahmonov</p>
+<p>Github仓库: <a href="https://github.com/rahmonov/alcazar">alcazar</a></p>
+</blockquote>
+<p>在本系列之前的博客文章中，我们开始编写自己的Python框架并实现以下功能：</p>
+<ul>
+<li>WSGI兼容</li>
+<li>请求处理程序</li>
+<li>路由：简单和参数化</li>
+<li>检查重复的路径</li>
+<li>基于类的处理程序</li>
+<li>单元测试</li>
+</ul>
+<p>在这部分中，我们将为列表添加一些很棒的功能：</p>
+<ul>
+<li>测试客户端</li>
+<li>添加路径的替代方式（如类似Django的实现）</li>
+<li>支持模板</li>
+</ul>
+<h2 id="_1">测试客户端<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>在第<a href="https://www.EWhisper.cn/write-python-framework-part-two.html">2部分中</a>，我们编写了几个单元测试。但是，当我们需要向处理程序发送HTTP请求时，我们停止了，因为我们没有可以执行此操作的测试客户端。我们先添加一个。</p>
+<p>到目前为止，在Python中发送HTTP请求最流行的方式是<a href="https://twitter.com/kennethreitz">Kenneth Reitz</a>的<a href="https://github.com/kennethreitz/requests"><code>Requests</code></a>库。但是，为了能够在单元测试中使用它，我们应该始终启动并运行我们的应用程序（即在运行测试之前启动gunicorn）。原因是<a href="http://docs.python-requests.org/en/master/user/advanced/#transport-adapters"><code>Requests</code>只附带一个Transport Adaptter: HTTPAdapter</a>。这违背了单元测试的目的。单元测试应该是自我维持的。对我们来说幸运的是，<a href="https://github.com/seanbrant">Sean Brant</a>编写了一个<a href="https://github.com/seanbrant/requests-wsgi-adapter">WSGI Transport Adapter，用于</a>创建测试客户端。让我们先编写代码再进行讨论。</p>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 译者注:</p>
+<p>先安装2个库:</p>
+<p><code>pip install requests</code><br>
+<code>pip install requests-wsgi-adapter</code><br>
+</p>
+</blockquote>
+<p>将以下方法添加到<code>api.py</code>主类<code>API</code>中：</p>
+<div class="highlight"><pre><span></span><span class="c1"># api.py</span>
+<span class="o">...</span>
+<span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Session</span> <span class="k">as</span> <span class="n">RequestsSession</span>
+<span class="kn">from</span> <span class="nn">wsgiadapter</span> <span class="kn">import</span> <span class="n">WSGIAdapter</span> <span class="k">as</span> <span class="n">RequestsWSGIAdapter</span>
+
+
+<span class="k">class</span> <span class="nc">API</span><span class="p">:</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">test_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;http://testserver&quot;</span><span class="p">):</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">RequestsSession</span><span class="p">()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">base_url</span><span class="p">,</span> <span class="n">adapter</span><span class="o">=</span><span class="n">RequestsWSGIAdapter</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">session</span>
+
+    <span class="o">...</span>
+</pre></div>
+
+
+<p>如此<a href="http://docs.python-requests.org/en/master/user/advanced/#transport-adapters">处所述</a>，要使用Requests WSGI Adapter，我们需要将其mount到Session对象。这样，使用<code>test_session</code>,其URL以给定前缀开头的任何请求都将使用给定的RequestsWSGIAdapter。太好了，现在我们可以用<code>test_session</code>来创建一个测试客户端。创建一个<code>conftest.py</code>文件并将<code>api</code> fixture 移动到此文件，使其如下所示：</p>
+<div class="highlight"><pre><span></span><span class="c1"># conftest.py</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="kn">from</span> <span class="nn">api</span> <span class="kn">import</span> <span class="n">API</span>
+
+
+<span class="nd">@pytest.fixture</span>
+<span class="k">def</span> <span class="nf">api</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">API</span><span class="p">()</span>
+</pre></div>
+
+
+<p>此文件的<code>pytest</code>默认情况下会查找fixture 。现在，让我们在这里创建测试客户端fixture ：</p>
+<div class="highlight"><pre><span></span><span class="c1"># conftest.py</span>
+<span class="o">...</span>
+
+<span class="nd">@pytest.fixture</span>
+<span class="k">def</span> <span class="nf">client</span><span class="p">(</span><span class="n">api</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">api</span><span class="o">.</span><span class="n">test_session</span><span class="p">()</span>
+</pre></div>
+
+
+<p>我们的<code>client</code>需要<code>api</code> fixture 并返回我们之前编写的内容<code>test_session</code>。现在我们可以在单元测试中使用这个<code>client</code> fixture 。让我们直接进入<code>test_bumbo.py</code>文件并编写一个单元测试，测试是否<code>client</code>可以发送请求：</p>
+<div class="highlight"><pre><span></span><span class="c1"># test_bumbo.py</span>
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">test_bumbo_test_client_can_send_requests</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+    <span class="n">RESPONSE_TEXT</span> <span class="o">=</span> <span class="s2">&quot;THIS IS COOL&quot;</span>
+
+    <span class="nd">@api.route</span><span class="p">(</span><span class="s2">&quot;/hey&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">cool</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+        <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">RESPONSE_TEXT</span>
+
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://testserver/hey&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">RESPONSE_TEXT</span>
+</pre></div>
+
+
+<p>运行单元测试<code>pytest test_bumbo.py</code>并观察。我们看到所有的测试都通过了。让我们为最重要的部分添加几个单元测试：</p>
+<div class="highlight"><pre><span></span><span class="c1"># test_bumbo.py</span>
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">test_parameterized_route</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+    <span class="nd">@api.route</span><span class="p">(</span><span class="s2">&quot;/{name}&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;hey {name}&quot;</span>
+
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://testserver/matthew&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;hey matthew&quot;</span>
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://testserver/ashley&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;hey ashley&quot;</span>
+</pre></div>
+
+
+<p>这个测试我们在url中发送的参数是否正常工作。</p>
+<div class="highlight"><pre><span></span><span class="c1"># test_bumbo.py</span>
+<span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">test_default_404_response</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://testserver/doesnotexist&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Not found.&quot;</span>
+</pre></div>
+
+
+<p>这个测试如果请求被发送到不存在的路由，则返回404（未找到）响应。</p>
+<p>剩下的我会留给你。如果您需要任何帮助，请尝试编写更多测试并在评论中告诉我。以下是单元测试的一些想法：</p>
+<ul>
+<li>测试基于类的处理程序GET请求是否正常运行</li>
+<li>测试基于类的处理程序POST请求是否正常运行</li>
+<li>测试如果使用无效的请求方法，基于类的处理程序返回响应<code>Method Not Allowed.</code></li>
+<li>测试是否正确返回状态码</li>
+</ul>
+<h2 id="_2">添加路径的替代方式<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>现在，这是添加路径的方式：</p>
+<div class="highlight"><pre><span></span><span class="nd">@api.route</span><span class="p">(</span><span class="s2">&quot;/home&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;YOLO&quot;</span>
+</pre></div>
+
+
+<p>也就是说，路由被添加为装饰器，就像在Flask中一样。有些人可能喜欢Django注册网址的方式。所以，让我们给他们这样添加路径的选择：</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;YOLO&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">handler2</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;YOLO2&quot;</span>
+
+<span class="n">api</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="s2">&quot;/home&quot;</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="s2">&quot;/about&quot;</span><span class="p">,</span> <span class="n">handler2</span><span class="p">)</span>
+</pre></div>
+
+
+<p><code>add_route</code>方法应该做两件事。检查路径是否已经注册，如果没有，则注册：</p>
+<div class="highlight"><pre><span></span><span class="c1"># api.py</span>
+
+<span class="k">class</span> <span class="nc">API</span><span class="p">:</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">add_route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="p">,</span> <span class="s2">&quot;Such route already exists.&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
+</pre></div>
+
+
+<p>很简单。这段代码看起来很熟悉吗？这是因为我们已经在<code>route</code>装饰器中编写了这样的代码。我们现在可以遵循DRY原则并在<code>route</code>装饰器中使用<code>add_route</code>方法：</p>
+<div class="highlight"><pre><span></span><span class="c1"># api.py</span>
+
+
+<span class="k">class</span> <span class="nc">API</span><span class="p">:</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">add_route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="p">,</span> <span class="s2">&quot;Such route already exists.&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
+
+    <span class="k">def</span> <span class="nf">route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">handler</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">handler</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+</pre></div>
+
+
+<p>让我们添加一个单元测试来检查它是否正常工作：</p>
+<div class="highlight"><pre><span></span><span class="c1"># test_bumbo.py</span>
+
+<span class="k">def</span> <span class="nf">test_alternative_route</span><span class="p">(</span><span class="n">api</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+    <span class="n">response_text</span> <span class="o">=</span> <span class="s2">&quot;Alternative way to add a route&quot;</span>
+
+    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+        <span class="n">resp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">response_text</span>
+
+    <span class="n">api</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="s2">&quot;/alternative&quot;</span><span class="p">,</span> <span class="n">home</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://testserver/alternative&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">response_text</span>
+</pre></div>
+
+
+<p>运行您的测试，您将看到所有测试都通过。</p>
+<h2 id="_3">模板支持<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>当我实现新的东西时，我喜欢做一些叫做README驱动的开发。这是一种技术，您可以在实施之前记下API是什么样子。让我们来实现。假设我们要在我们的处理程序中使用此模板：</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">header</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>{{ title }}<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">header</span><span class="p">&gt;</span>
+
+    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+        The name of the framework is {{ name }}
+    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre></div>
+
+
+<p><code>{{ title }}</code>和<code>{{ name }}</code>是从处理程序发送的变量，这是处理程序的样子：</p>
+<div class="highlight"><pre><span></span><span class="n">api</span> <span class="o">=</span> <span class="n">API</span><span class="p">(</span><span class="n">templates_dir</span><span class="o">=</span><span class="s2">&quot;templates&quot;</span><span class="p">)</span>
+
+<span class="nd">@api.route</span><span class="p">(</span><span class="s2">&quot;/template&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s2">&quot;index.html&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Awesome Framework&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alcazar&quot;</span><span class="p">})</span>
+</pre></div>
+
+
+<p>我希望它尽可能简单，所以我只需要一个方法，将模板名和上下文作为参数，并用给定的参数呈现该模板。另外，我们希望模板目录可以像上面一样配置。</p>
+<p>通过设计API，我们现在可以实现它。</p>
+<p>对于模板支持，我认为<a href="http://jinja.pocoo.org/docs/2.10/">Jinja2</a>是最佳选择。它是一个现代的，设计师友好的Python模板语言，模仿Django的模板。所以，如果你知道Django, 那么使用Jinja2应该感觉一样。</p>
+<p><code>Jinja2</code>使用称为模板<code>Environment</code>的中心对象。我们将在应用程序初始化和借助此Environment 加载模板的基础上配置此环境。以下是如何创建和配置一个：</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">FileSystemLoader</span>
+
+<span class="n">templates_env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s2">&quot;templates&quot;</span><span class="p">)))</span>
+</pre></div>
+
+
+<p><code>FileSystemLoader</code>从文件系统加载模板。此加载程序可以在文件系统上的文件夹中查找模板，并且是加载它们的首选方法。它将模板目录的路径作为参数。现在我们可以这样使用<code>templates_env</code>：</p>
+<div class="highlight"><pre><span></span><span class="n">templates_env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s2">&quot;index.html&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">({</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Awesome Framework&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alcazar&quot;</span><span class="p">})</span>
+</pre></div>
+
+
+<p>既然我们了解了Jinja2中的所有工作原理，那么我们就将其添加到我们自己的框架中。首先，让我们安装jinja2：</p>
+<div class="highlight"><pre><span></span>pip install Jinja2
+</pre></div>
+
+
+<p>然后，在我们的<code>API</code>类的<code>__init__</code>方法中创建<code>Environment</code> 对象：</p>
+<div class="highlight"><pre><span></span><span class="c1"># api.py</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">FileSystemLoader</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="k">class</span> <span class="nc">API</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">templates_dir</span><span class="o">=</span><span class="s2">&quot;templates&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">routes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates_env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">templates_dir</span><span class="p">)))</span>
+
+    <span class="o">...</span>
+</pre></div>
+
+
+<p>我们做了几乎与上面相同的事情，除了我们为<code>templates_dir</code>提供了一个默认值，<code>templates</code>以便用户不必写它。现在我们有了实现我们之前设计的<code>template</code>方法的所有方法：</p>
+<div class="highlight"><pre><span></span><span class="c1"># api.py</span>
+
+<span class="k">class</span> <span class="nc">API</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">context</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates_env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">)</span>
+</pre></div>
+
+
+<p>我认为这里没有必要解释任何事情。你唯一想知道的是为什么我给了<code>context</code>一个默认值<code>None</code>，检查它是否是<code>None</code>，然后将值设置为空字典<code>{}</code>。你可能会说我可以在声明中给它默认值<code>{}</code>。但是<code>dict</code>它是一个可变对象，在Python中将可变对象设置为默认值是一种不好的做法。<a href="https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments">在这里</a>阅读更多相关信息。</p>
+<p>随着一切准备就绪，我们可以创建模板和处理程序。首先，创建<code>templates</code>文件夹：</p>
+<div class="highlight"><pre><span></span>mkdir templates
+</pre></div>
+
+
+<p>通过执行<code>touch templates/index.html</code>创建文件<code>index.html</code>并将以下内容放入：</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">header</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>{{ title }}<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">header</span><span class="p">&gt;</span>
+
+    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>The name of the framework is {{ name }}<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre></div>
+
+
+<p>现在我们可以在我们的<code>app.py</code>创建处理程序：</p>
+<div class="highlight"><pre><span></span><span class="c1"># app.py</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s2">&quot;/template&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">template_handler</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s2">&quot;index.html&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alcazar&quot;</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Best Framework&quot;</span><span class="p">})</span>
+</pre></div>
+
+
+<p>就是这样（好吧，差不多）。启动<code>gunicorn</code>然后访问<code>http://localhost:8000/template</code>。你会看到一个大大的<code>Internal Server Error</code>。那是因为<code>resp.body</code>期望bytes, 而我们的<code>template</code>方法返回一个unicode字符串。因此，我们需要对其进行编码：</p>
+<div class="highlight"><pre><span></span><span class="c1"># app.py</span>
+
+<span class="nd">@api.route</span><span class="p">(</span><span class="s2">&quot;/template&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">template_handler</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">resp</span><span class="p">):</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s2">&quot;index.html&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alcazar&quot;</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Best Framework&quot;</span><span class="p">})</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+</pre></div>
+
+
+<p>重新启动gunicorn，你将看到我们的模板的所有荣耀。在后续的文章中，我们将不再需要<code>encode</code>并使我们的API更漂亮。</p>
+<h2 id="_4">结论<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>我们在这篇文章中实现了三个新功能：</p>
+<ul>
+<li>测试客户端</li>
+<li>添加路径的替代方式（如Django的实现方式）</li>
+<li>支持模板</li>
+</ul>
+<p>请务必在评论中告诉我们应该在本系列中实现的其他功能。对于下一部分，我们肯定会添加对静态文件的支持，但我不确定我们应该添加哪些其他功能。</p>
+<blockquote>
+<p>稍微提醒一下，这个系列是基于我为学习目的而编写的<a href="https://github.com/rahmonov/alcazar">Alcazar框架</a>。如果你喜欢这个系列，<a href="https://github.com/rahmonov/alcazar">请在这儿</a>查看博客中的内容，一定要通过star该repo来表达你的喜爱。</p>
+</blockquote>
+<p>Fight on!</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/python.html">python</a>
+      <a href="https://www.EWhisper.cn/tag/webkuang-jia.html">web框架</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/write-python-framework-part-two.html" title="如何编写Python Web框架（二）">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/java-oom-1-java-heap-space.html" title="8种Java 内存溢出之一:Java Heap Space">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/write-python-framework-part-one.html">如何编写Python Web框架（一）</a></li>
+      <li><a href="https://www.EWhisper.cn/write-python-framework-part-two.html">如何编写Python Web框架（二）</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

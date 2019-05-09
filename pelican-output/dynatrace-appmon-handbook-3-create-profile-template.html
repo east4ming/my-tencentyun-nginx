@@ -1,0 +1,429 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="Dynatrace AppMon 实战手册系列文章. 本文是第三篇, 主要是创建系统配置文件模板." />
+<meta name="keywords" content="Dynatrace, Observability">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Dynatrace AppMon 实战手册 - 3.创建系统配置文件模板"/>
+<meta property="og:description" content="Dynatrace AppMon 实战手册系列文章. 本文是第三篇, 主要是创建系统配置文件模板."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/dynatrace-appmon-handbook-3-create-profile-template.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-04-02 23:08:28.976393+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Observability"/>
+<meta property="article:tag" content="Dynatrace"/>
+<meta property="article:tag" content="Observability"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Dynatrace AppMon 实战手册 - 3.创建系统配置文件模板</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="dynatrace-appmon-handbook-3-create-profile-template">Dynatrace AppMon 实战手册 - 3.创建系统配置文件模板</h1>
+    <p>
+      在 2019-04-02 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <h2 id="_1">步骤<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ol>
+<li>在左侧边栏中，右键<strong>系统配置文件模板</strong> → <strong>创建系统配置文件模板</strong>， 如下图：</li>
+</ol>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcoiwt/hknCr.png"></p>
+<ol start="2">
+<li>配置系统配置文件模板基本信息，如下图：</li>
+</ol>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcowF1/QOxbw.jpg"></p>
+<ol start="3">
+<li>
+<p>选择对应的技术栈（Java、.NET、Web server、PHP、Native）,如上图。具体解释如下：</p>
+</li>
+<li>
+<p>Java  .NET  PHP无须解释</p>
+</li>
+<li>Web server - 对应一系列Web server，如Apache、Nginx、IIS等</li>
+<li>Native - 对应的是Dynatrace的ADK，通过在应用中嵌入该ADK，可以实现对C++、Python等的监控。</li>
+</ol>
+<h2 id="_2">要点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="_3">事件（即告警）相关配置<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p><strong>使某些事件活动或不活动</strong></p>
+<p>以下事件规则不需要启用，具体如下图：</p>
+<ul>
+<li>部署</li>
+<li>测试违例</li>
+<li>事物整体失败率高（<strong>失败率太高</strong>已经覆盖）</li>
+<li>数据库Agent相关（没有购买数据库Agent license则无需开启）</li>
+<li>页面操作失败率高（需要UEM license；<strong>失败率太高</strong>有交集）</li>
+<li>应用程序进程关闭（根据需求确定是否开启）</li>
+</ul>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcoCV4/M1i31.png"></p>
+<h3 id="_4">错误检测配置<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p><strong>不要将日志标记为错误</strong></p>
+<p>删除<strong>重要的日志记录</strong>规则。</p>
+<p>原因：</p>
+<p>有的开发为了在生产上显示日志，会将一些Info等级别的信息设置为Error，而出现Error日志报错并不一定意味着<strong>事务</strong>失败。</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcoNLt/P7SbT.png"></p>
+<h3 id="_5">错误规则创建<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>可以根据应用所特有的Exception、Logging等来创建，具体如下：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcsOkh/65iq5.jpg"></p>
+<h3 id="_6">应用程序定义<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>Dynatrace 6.5 可以通过Web/Mobile（6.5之前只有这一种定义方法）、Messaging、Entry Point来定义应用，可以进一步细化应用的定义。如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcsTQp/R2lT9.jpg"></p>
+<h3 id="_7">用户体验<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>如果没有购买UEM license，则禁用UEM，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcoZMb/amzM1.png"></p>
+<h3 id="schedule">Schedule<a class="headerlink" href="#schedule" title="Permanent link">&para;</a></h3>
+<p><strong>创建时间计划</strong>，如创建<strong>每个工作日、每周、每月</strong>计划。如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcp5kE/44NZA.jpg"></p>
+<h3 id="agent-group-java">Agent Group - Java<a class="headerlink" href="#agent-group-java" title="Permanent link">&para;</a></h3>
+<p>创建Java技术栈的Agent Group模板，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcpaOy/8KhP9.jpg"></p>
+<p><strong>选择需要放置的Sensor</strong></p>
+<p>原则：最少最需要。如下图：</p>
+<p>必须的Sensor：</p>
+<ul>
+<li>JDBC</li>
+<li>Exceptions</li>
+<li>Java Logging</li>
+<li>JMX MBean Server</li>
+<li>JMS</li>
+<li>JMS Receive Entry Point</li>
+<li>Executor Tagging</li>
+<li>Thread Start Tagging</li>
+<li>Java Web Requests</li>
+<li>Servers</li>
+<li>Java Web Services</li>
+</ul>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcpjjm/12bHs1.jpg"></p>
+<h4>Sensor - Exception (Java)</h4>
+<p>对Dynatrace默认的Exception定义进行细化，如下图：</p>
+<p>原因：原有的直接排除java.开头的Exception会排除大量我们需要获取的Exception，如网络相关的报错等。所以我们需要尽可能细化不需要抓取的Exception，如<strong>beans</strong>、 <strong>方法找不到</strong>相关异常。</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcpAV9/YqhSj.jpg"></p>
+<h4>Sensor - JDBC</h4>
+<ul>
+<li>启用聚合（推荐生产环境开启，因为单个事务的SQL执行次数较多，如果不聚合分析起来很不方便。启用聚合了则无法获取<strong>绑定值</strong>）</li>
+<li>SQL长度跳大（如：10240）（默认512长度，经常会抓取到不完整的SQL，从而无法定位SQL问题。建议该值大于所监控的应用中的最大的SQL长度）</li>
+</ul>
+<p>如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcpVjP/10a2Js.jpg"></p>
+<h4>Sensor - Logging (Java)</h4>
+<p>此处Log等级大小写敏感，我们可以添加我们监控的级别，如对于WebLogic，可以添加<strong>Error</strong>等级别，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcqeew/5M54W.jpg"></p>
+<h4>Sensor - Servlet</h4>
+<ul>
+<li>通常，我们认为静态资源不会对系统性能造成影响，无需监控，此处设置排除对静态资源的监控。</li>
+<li>此外，一些中间件、硬件设备，会有与应用无关的URI，我们也需要排除。</li>
+</ul>
+<p>如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcqnte/hunpl.jpg"></p>
+<h3 id="agent-group-net">Agent Group - .NET<a class="headerlink" href="#agent-group-net" title="Permanent link">&para;</a></h3>
+<p>创建.NET Agent Group模板，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcquzV/Pc4ms.jpg"></p>
+<p><strong>选择必要的Sensor</strong>，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcqFMu/CkZXe.jpg"></p>
+<h4>Sensor - ADO.NET</h4>
+<p>与JDBC Sensor类似，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcqMPS/iVLgB.jpg"></p>
+<h4>Sensor - ASP.NET</h4>
+<p>与Servlet类似，见下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcqRLY/8DuGF.jpg"></p>
+<h3 id="api">API<a class="headerlink" href="#api" title="Permanent link">&para;</a></h3>
+<p>可以针对应用开发的需求，定义API，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcqXC8/th008.jpg"></p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcr2YK/14SZ6f.jpg"></p>
+<h3 id="measure">Measure<a class="headerlink" href="#measure" title="Permanent link">&para;</a></h3>
+<p>根据应用监控的需求，进行相关Measure的定义，此类数据可以进一步作为<strong>过滤、聚合、拆分</strong>等条件创建Business Transaction。</p>
+<p>如需要创建<strong>大于10s的web请求</strong>的measure，则具体创建如下：(由<strong>web requests - time</strong>复制修改而来，设置上限阈值)，如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcsFyB/4pne8.jpg"></p>
+<h3 id="business-transaction">Business Transaction<a class="headerlink" href="#business-transaction" title="Permanent link">&para;</a></h3>
+<p>如需要进行更为复杂的应用监控（如针对应用细节的监控、对关键业务的监控等），可以创建Business Transaction。</p>
+<p>如要抓取所有<strong>web响应时间大于10s</strong>的请求，可以将之前创建的Measure作为过滤条件来创建。如下图：</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcrg0x/eFEUX.jpg"></p>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li>勾选<strong>Active</strong> 才会正式启用。</li>
+<li>勾选对应选项后结果会存放到数据库中。</li>
+<li>三大因子<ul>
+<li>Filter</li>
+<li>Calculate Results</li>
+<li>Split Results</li>
+</ul>
+</li>
+<li>Splitting 也是重要的选项</li>
+<li>基线设置用来设置动态或静态的告警阈值</li>
+</ul>
+</blockquote>
+<h3 id="monitor">Monitor<a class="headerlink" href="#monitor" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Monitor这块内容待完善及丰富。</p>
+</blockquote>
+<h4>Unix Monitor</h4>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcrlB8/kLc10.jpg"></p>
+<h4>VMware Monitor</h4>
+<p><strong>Host System Performance Monitor</strong></p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcrlB8/kLc10.jpg"></p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcrLyx/9Rh2b.jpg"></p>
+<p><strong>Virtual Machine Performance Monitor</strong></p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcrU8l/7iHmE.jpg"></p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/Gcwcs3as/cUXUV.jpg"></p>
+<h4>Windows Performance Monitor</h4>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/GcwcsqFN/hKRir.jpg"></p>
+<h2 id="_8">总结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p>至此，系统配置文件模板及关于系统配置文件大部分要点已经配置完成，后续可以基于该模板创建正式的系统配置文件。</p>
+<p>正式的系统配置文件还需要配置的内容有：</p>
+<ul>
+<li>Agent基础配置（如mapping、分辨率等）</li>
+<li>观察层（Messaging、Load Balance等）</li>
+</ul>
+<p>需要细化的内容有：</p>
+<ul>
+<li>应用定义</li>
+<li>Monitor</li>
+<li>任务（定时报告、定时采样等）</li>
+<li>Measure（中间件指标、JMX指标、应用其他指标等）</li>
+<li>Business Transaction （关键业务等）</li>
+<li>Sensor（应用特定Sensor，如关键方法--核保金额；定义入口点，如批处理、TCP Socket及其他）</li>
+</ul>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>
+      <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-4-register-linux-system-service.html" title="Dynatrace AppMon 实战手册 - 4.Dynatrace组件Linux系统配置为服务">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-2-create-certificate.html" title="Dynatrace AppMon 实战手册 - 2.证书创建">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/analyze-problems-with-dynatrace.html">Dynatrace 告警简要分析流程</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-10-authority-management.html">Dynatrace AppMon 实战手册 - 10.Dynatrace权限管理</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-11-create-shedule-task.html">Dynatrace AppMon 实战手册 - 11.Dynatrace创建定时任务</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-12-appmon-optimization.html">Dynatrace AppMon 实战手册 - 12.Dynatrace细节优化</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-13-move-agent.html">Dynatrace AppMon 实战手册 - 13.Dynatrace Agent 迁移</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

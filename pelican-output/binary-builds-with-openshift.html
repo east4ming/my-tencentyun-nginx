@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景: 1.开发人员本地开发调试代码并构建; 2. OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像." />
+<meta name="keywords" content="openshift, docker, devops, git, containers">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="使用OpenShift进行二进制构建"/>
+<meta property="og:description" content="OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景: 1.开发人员本地开发调试代码并构建; 2. OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/binary-builds-with-openshift.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-08 18:41:34.822027+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="docker"/>
+<meta property="article:tag" content="devops"/>
+<meta property="article:tag" content="git"/>
+<meta property="article:tag" content="containers"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 使用OpenShift进行二进制构建</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="binary-builds-with-openshift">使用OpenShift进行二进制构建</h1>
+    <p>
+      在 2019-05-08 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">介绍</a><ul>
+<li><a href="#_2">用例</a></li>
+<li><a href="#_3">限制</a></li>
+</ul>
+</li>
+<li><a href="#_4">教程概述</a><ul>
+<li><a href="#_5">教程：构建本地代码更改</a></li>
+<li><a href="#_6">教程：构建私有代码</a></li>
+<li><a href="#pipeline">教程：来自 pipeline 的二进制工件</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="_1">介绍<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景:</p>
+<ol>
+<li>开发人员本地开发调试代码并构建;</li>
+<li>OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像.</li>
+</ol>
+<p>OpenShift中的二进制构建功能允许开发人员将源代码或工件直接上传到构建(build)，而不是从Git存储库URL pull需要构建的源。通过源代码，Docker或自定义构建策略的 BuildConfig 都可以作为二进制构建启动。从本地工件启动构建时，现有源引用将替换为来自本地用户计算机的源。</p>
+<p>可以使用几种方式提供源，这些方式对应于使用<code>start-build</code>命令时可用的参数：</p>
+<ul>
+<li>从文件（<code>--from-file</code>）：当构建的整个源包含单个文件时就是这种情况。例如，它可能是用于Docker构建的<code>Dockerfile</code>，用于Java应用构建的<code>pom.xml</code>，或用于Ruby构建的<code>Gemfile</code>。</li>
+<li>从目录（<code>--from-directory</code>）：当源在本地目录中并且未提交到Git存储库时使用此目录。<code>start-build</code> 命令将创建给定目录的存档，并将其作为源上传到构建器(builder)。</li>
+<li>从存档（<code>--from-archive</code>）：当具有源的存档已存在时使用此选项。该存档可以是<code>tar</code>，<code>tar.gz</code>或<code>zip</code>格式。</li>
+<li>从Git存储库（<code>--from-repo</code>）：源是当前用户本地计算机上的Git存储库的一部分。当前存储库的HEAD commit将被存档并发送到OpenShift进行构建。</li>
+</ul>
+<h3 id="_2">用例<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>二进制构建适用于无法从现有Git存储库中提取源的需求。使用二进制构建的原因包括：</p>
+<ul>
+<li>构建和测试本地代码的变更。克隆来自公共存储库的源，并将本地变更上传到OpenShift进行构建。而无需在任何地方提交或推送本地更改。</li>
+<li>构建私有代码。新构建可以作为二进制构建从头开始。然后可以将源直接从本地工作站上传到OpenShift，而无需将其签入SCM。</li>
+<li>使用其他来源的工件构建镜像。通过Jenkins pipeline，二进制构建可以用于整合使用Maven或C编译器等工具构建的工件，以及使用这些构建的运行时镜像。</li>
+</ul>
+<h3 id="_3">限制<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>二进制构建无法重复。由于二进制构建依赖于在构建开始时用户上传工件，因此OpenShift无法重复相同的构建而无需用户每次都重复相同的上载。</li>
+<li>无法自动触发二进制生成。它们只能在用户上传所需的二进制工件时手动启动。</li>
+</ul>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"></p>
+<p>以二进制构建方式启动的构建版本也可能具有已配置的源URL。如果是这种情况，触发器会成功启动构建，但源将来自配置的源URL，而不是来自上次构建运行时用户提供的源。(比如: 用户先从Git仓库下载了源码并修改, 用本地修改后的源码手动上传、构建，那么OpenShift会获取到Git仓库的URL, 如果配置了触发器, 下次构建就直接通过Git URL pull源码并自动构建, 而不是自动获取本地的源码.)</p>
+</blockquote>
+<h2 id="_4">教程概述<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>以下教程假设您有一个可用的OpenShift集群，并且您有一个可以创建工件的项目。它要求您拥有本地<code>git</code>和<code>oc</code>客户端。</p>
+<h3 id="_5">教程：构建本地代码更改<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ol>
+<li>基于现有源存储库创建新应用程序并为其创建路由：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc new-app https://github.com/openshift/ruby-hello-world.git
+oc expose svc/ruby-hello-world
+</pre></div>
+
+
+<ol start="2">
+<li>等待初始构建完成并通过route来查看应用程序的页面。你应该得到一个欢迎页面：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc get route ruby-hello-world
+</pre></div>
+
+
+<ol start="3">
+<li>在本地克隆存储库：</li>
+</ol>
+<div class="highlight"><pre><span></span>git clone https://github.com/openshift/ruby-hello-world.git
+<span class="nb">cd</span> ruby-hello-world
+</pre></div>
+
+
+<ol start="4">
+<li>
+<p>更改应用程序的视图。使用您喜欢的编辑器编辑 <code>views/main.rb</code>：将<code>&lt;body&gt;</code>标签更改为<code>&lt;body style="background-color:blue"&gt;</code>。</p>
+</li>
+<li>
+<p>使用本地修改的源启动新构建。在存储库的本地目录中，运行：</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span>oc start-build ruby-hello-world --from-dir<span class="o">=</span><span class="s2">&quot;.&quot;</span> --follow
+</pre></div>
+
+
+<p>构建完成并重新部署应用程序后，指向应用程序主机的route应该会生成一个蓝色背景的页面。</p>
+<p>您可以继续在本地进行更改并使用<code>oc start-build --from-dir</code>。</p>
+<p>您还可以创建代码分支，在本地提交更改，并使用存储库的HEAD作为构建的源：</p>
+<div class="highlight"><pre><span></span>git checkout -b my_branch
+git add .
+git commit -m <span class="s2">&quot;My changes&quot;</span>
+oc start-build ruby-hello-world --from-repo<span class="o">=</span><span class="s2">&quot;.&quot;</span> --follow
+</pre></div>
+
+
+<h3 id="_6">教程：构建私有代码<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<ol>
+<li>创建一个本地目录来保存您的代码：</li>
+</ol>
+<div class="highlight"><pre><span></span>mkdir myapp
+<span class="nb">cd</span> myapp
+</pre></div>
+
+
+<ol start="2">
+<li>在目录中创建一个名为<code>Dockerfile</code>的文件：</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> centos:centos7</span>
+<span class="k">EXPOSE</span><span class="s"> 8080</span>
+<span class="k">COPY</span> index.html /var/run/web/index.html
+<span class="k">CMD</span> <span class="nb">cd</span> /var/run/web <span class="o">&amp;&amp;</span> python -m SimpleHTTPServer <span class="m">8080</span>
+</pre></div>
+
+
+<ol start="3">
+<li>创建一个<code>index.html</code>文件：</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>My local app<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Hello World<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>This is my local application<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre></div>
+
+
+<ol start="4">
+<li>为您的应用程序创建一个新的构建：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc new-build --strategy docker --binary --docker-image centos:centos7 --name myapp
+</pre></div>
+
+
+<ol start="5">
+<li>使用本地目录的内容启动二进制构建：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc start-build myapp --from-dir . --follow
+</pre></div>
+
+
+<ol start="6">
+<li>使用<code>new-app</code>部署应用程序，然后为其创建路由：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc new-app myapp
+oc expose svc/myapp
+</pre></div>
+
+
+<ol start="7">
+<li>获取指向对应应用主机的路由：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc get route myapp
+</pre></div>
+
+
+<p>在构建和部署代码之后，您可以通过更改本地文件并通过<code>oc start-build myapp --from-dir</code>再次调用启动新构建来进行迭代。构建完成后，代码将自动部署，更新的内容将在刷新页面时反映在浏览器中。</p>
+<h3 id="pipeline">教程：来自 pipeline 的二进制工件<a class="headerlink" href="#pipeline" title="Permanent link">&para;</a></h3>
+<p>OpenShift上的Jenkins允许使用带有合适工具的slave镜像来构建代码。例如，您可以使用<code>maven</code> slave镜像来从代码存储库构建WAR包。但是，一旦构建了此工件，您需要将其提交到包含正确的运行时工件的镜像以运行您的代码。可以使用二进制构建将这些工件添加到运行时映像。在下面的教程中，我们将创建一个Jenkins pipeline，该pipeline使用<code>maven</code> slave构建WAR，然后使用带有<code>Dockerfile</code>的二进制构建将WAR添加到 wildfly 运行时映像。</p>
+<ol>
+<li>为您的应用程序创建一个新目录：</li>
+</ol>
+<div class="highlight"><pre><span></span>mkdir mavenapp
+<span class="nb">cd</span> mavenapp
+</pre></div>
+
+
+<ol start="2">
+<li>创建一个<code>Dockerfile</code>将WAR复制到wildfly镜像内的适当位置以供执行。将以下内容复制到名为的本地文件 <code>Dockerfile</code>：</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> wildfly:latest</span>
+<span class="k">COPY</span> ROOT.war /wildfly/standalone/deployments/ROOT.war
+<span class="k">CMD</span>  <span class="nv">$STI_SCRIPTS_PATH</span>/run
+</pre></div>
+
+
+<ol start="3">
+<li>为该<code>Dockerfile</code>创建一个新的BuildConfig：</li>
+</ol>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"></p>
+<p>这将自动启动一个构建, 刚开始会构建失败，因为 <code>ROOT.war</code>工件尚不可用。下面的pipeline将使用二进制构建将该WAR包传递给构建。</p>
+</blockquote>
+<div class="highlight"><pre><span></span>cat Dockerfile <span class="p">|</span> oc new-build -D - --name mavenapp
+</pre></div>
+
+
+<ol start="4">
+<li>创建1个使用Jenkins pipeline的BuildConfig, 这个BuildConfig将构建1个WAR包，然后使用该WAR包和先前创建的<code>Dockerfile</code>来构建镜像。相同的模式可用于其他平台，其中二进制工件由一组工具构建，然后与最终的包含不同运行时的镜像组合。将以下代码保存到<code>mavenapp-pipeline.yml</code>：</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">BuildConfig</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mavenapp-pipeline</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">strategy</span><span class="p">:</span>
+    <span class="nt">jenkinsPipelineStrategy</span><span class="p">:</span>
+      <span class="nt">jenkinsfile</span><span class="p">:</span> <span class="p p-Indicator">|-</span>
+        <span class="no">pipeline {</span>
+          <span class="no">agent { label &quot;maven&quot; }</span>
+          <span class="no">stages {</span>
+            <span class="no">stage(&quot;Clone Source&quot;) {</span>
+              <span class="no">steps {</span>
+                <span class="no">checkout([$class: &#39;GitSCM&#39;,</span>
+                            <span class="no">branches: [[name: &#39;*/master&#39;]],</span>
+                            <span class="no">extensions: [</span>
+                              <span class="no">[$class: &#39;RelativeTargetDirectory&#39;, relativeTargetDir: &#39;mavenapp&#39;]</span>
+                            <span class="no">],</span>
+                            <span class="no">userRemoteConfigs: [[url: &#39;https://github.com/openshift/openshift-jee-sample.git&#39;]]</span>
+                        <span class="no">])</span>
+              <span class="no">}</span>
+            <span class="no">}</span>
+            <span class="no">stage(&quot;Build WAR&quot;) {</span>
+              <span class="no">steps {</span>
+                <span class="no">dir(&#39;mavenapp&#39;) {</span>
+                  <span class="no">sh &#39;mvn clean package -Popenshift&#39;</span>
+                <span class="no">}</span>
+              <span class="no">}</span>
+            <span class="no">}</span>
+            <span class="no">stage(&quot;Build Image&quot;) {</span>
+              <span class="no">steps {</span>
+                <span class="no">dir(&#39;mavenapp/target&#39;) {</span>
+                  <span class="no">sh &#39;oc start-build mavenapp --from-dir . --follow&#39;</span>
+                <span class="no">}</span>
+              <span class="no">}</span>
+            <span class="no">}</span>
+          <span class="no">}</span>
+        <span class="no">}</span>
+    <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">JenkinsPipeline</span>
+  <span class="nt">triggers</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+</pre></div>
+
+
+<ol start="5">
+<li>创建pipeline 构建。如果Jenkins未部署到您的项目中，则使用管道创建的BuildConfig会先部署Jenkins。在Jenkins准备建立您的管道之前可能需要几分钟来启动。您可以通过调用<code>oc rollout status dc/jenkins</code>来检查Jenkins的状态：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc create -f ./mavenapp-pipeline.yml
+</pre></div>
+
+
+<ol start="6">
+<li>一旦Jenkins准备就绪，启动之前定义的管道：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc start-build mavenapp-pipeline
+</pre></div>
+
+
+<ol start="7">
+<li>管道构建完成后，使用<code>new-app</code>部署新应用程序并公开其route：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc new-app mavenapp
+oc expose svc/mavenapp
+</pre></div>
+
+
+<ol start="8">
+<li>使用浏览器，导航到应用程序的路径：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc get route mavenapp
+</pre></div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+      <a href="https://www.EWhisper.cn/tag/git.html">git</a>
+      <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html" title="OpenShift 和 Kubernetes 有什么区别?">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html">OpenShift 和 Kubernetes 有什么区别?</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - containers</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 08 May 2019 18:41:34 +0800</lastBuildDate><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;介绍&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;用例&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;限制&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;教程概述&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_5"&gt;教程：构建本地代码更改&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_6"&gt;教程：构建私有代码&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#pipeline"&gt;教程：来自 pipeline 的二进制工件&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;介绍&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;开发人员本地开发调试代码并构建;&lt;/li&gt;
+&lt;li&gt;OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;OpenShift中的二进制构建功能允许开发人员将源代码或工件直接上传到构建(build)，而不是从Git存储库URL pull需要构建的源。通过源代码，Docker或自定义构建策略的 BuildConfig 都可以作为二进制构建启动。从本地工件启动构建时，现有源引用将替换为来自本地用户计算机的源。&lt;/p&gt;
+&lt;p&gt;可以使用几种方式提供源，这些方式对应于使用&lt;code&gt;start-build&lt;/code&gt;命令时可用的参数：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从文件（&lt;code&gt;--from-file&lt;/code&gt;）：当构建的整个源包含单个文件时就是这种情况。例如，它可能是用于Docker构建的&lt;code&gt;Dockerfile&lt;/code&gt;，用于Java应用构建的&lt;code&gt;pom.xml&lt;/code&gt;，或用于Ruby构建的&lt;code&gt;Gemfile&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;从目录（&lt;code&gt;--from-directory&lt;/code&gt;）：当源在本地目录中并且未提交到Git存储库时使用此目录。&lt;code&gt;start-build&lt;/code&gt; 命令将创建给定目录的存档，并将其作为源上传到构建器(builder)。&lt;/li&gt;
+&lt;li&gt;从存档（&lt;code&gt;--from-archive&lt;/code&gt;）：当具有源的存档已存在时使用此选项。该存档可以是&lt;code&gt;tar&lt;/code&gt;，&lt;code&gt;tar.gz&lt;/code&gt;或&lt;code&gt;zip&lt;/code&gt;格式。&lt;/li&gt;
+&lt;li&gt;从Git存储库（&lt;code&gt;--from-repo&lt;/code&gt;）：源是当前用户本地计算机上的Git存储库的一部分。当前存储库的HEAD commit将被存档并发送到OpenShift进行构建。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="_2"&gt;用例&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;二进制构建适用于无法从现有Git存储库中提取源的需求。使用二进制构建的原因包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;构建和测试本地代码的变更。克隆来自公共存储库的源，并将本地变更上传到OpenShift进行构建。而无需在任何地方提交或推送本地更改。&lt;/li&gt;
+&lt;li&gt;构建私有代码。新构建可以作为二进制构建从头开始。然后可以将源直接从本地工作站上传到OpenShift，而无需将其签入SCM。&lt;/li&gt;
+&lt;li&gt;使用其他来源的工件构建镜像。通过Jenkins pipeline，二进制构建可以用于整合使用Maven或C编译器等工具构建的工件，以及使用这些构建的运行时镜像。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="_3"&gt;限制&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;二进制构建无法重复。由于二进制构建依赖于在构建开始时用户上传工件，因此OpenShift无法重复相同的构建而无需用户每次都重复相同的上载。&lt;/li&gt;
+&lt;li&gt;无法自动触发二进制生成。它们只能在用户上传所需的二进制工件时手动启动。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;以二进制构建方式启动的构建版本也可能具有已配置的源URL。如果是这种情况，触发器会成功启动构建，但源将来自配置的源URL，而不是来自上次构建运行时用户提供的源。(比如: 用户先从Git仓库下载了源码并修改, 用本地修改后的源码手动上传、构建，那么OpenShift会获取到Git仓库的URL, 如果配置了触发器, 下次构建就直接通过Git URL pull源码并自动构建, 而不是自动获取本地的源码.)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="_4"&gt;教程概述&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;以下教程假设您有一个可用的OpenShift集群，并且您有一个可以创建工件的项目。它要求您拥有本地&lt;code&gt;git&lt;/code&gt;和&lt;code&gt;oc&lt;/code&gt;客户端。&lt;/p&gt;
+&lt;h3 id="_5"&gt;教程：构建本地代码更改&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;基于现有源存储库创建新应用程序并为其创建路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app https://github.com/openshift/ruby-hello-world.git
+oc expose svc/ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;等待初始构建完成并通过route来查看应用程序的页面。你应该得到一个欢迎页面：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;在本地克隆存储库：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/openshift/ruby-hello-world.git
+&lt;span class="nb"&gt;cd&lt;/span&gt; ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;
+&lt;p&gt;更改应用程序的视图。使用您喜欢的编辑器编辑 &lt;code&gt;views/main.rb&lt;/code&gt;：将&lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt;标签更改为&lt;code&gt;&amp;lt;body style="background-color:blue"&amp;gt;&lt;/code&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用本地修改的源启动新构建。在存储库的本地目录中，运行：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build ruby-hello-world --from-dir&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt; --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;构建完成并重新部署应用程序后，指向应用程序主机的route应该会生成一个蓝色背景的页面。&lt;/p&gt;
+&lt;p&gt;您可以继续在本地进行更改并使用&lt;code&gt;oc start-build --from-dir&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;您还可以创建代码分支，在本地提交更改，并使用存储库的HEAD作为构建的源：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git checkout -b my_branch
+git add .
+git commit -m &lt;span class="s2"&gt;&amp;quot;My changes&amp;quot;&lt;/span&gt;
+oc start-build ruby-hello-world --from-repo&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt; --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_6"&gt;教程：构建私有代码&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;创建一个本地目录来保存您的代码：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mkdir myapp
+&lt;span class="nb"&gt;cd&lt;/span&gt; myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;在目录中创建一个名为&lt;code&gt;Dockerfile&lt;/code&gt;的文件：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; centos:centos7&lt;/span&gt;
+&lt;span class="k"&gt;EXPOSE&lt;/span&gt;&lt;span class="s"&gt; 8080&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; index.html /var/run/web/index.html
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; /var/run/web &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; python -m SimpleHTTPServer &lt;span class="m"&gt;8080&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;创建一个&lt;code&gt;index.html&lt;/code&gt;文件：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;title&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;My local app&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;title&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;h1&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;Hello World&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;h1&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;p&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;This is my local application&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;p&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;为您的应用程序创建一个新的构建：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-build --strategy docker --binary --docker-image centos:centos7 --name myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="5"&gt;
+&lt;li&gt;使用本地目录的内容启动二进制构建：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build myapp --from-dir . --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="6"&gt;
+&lt;li&gt;使用&lt;code&gt;new-app&lt;/code&gt;部署应用程序，然后为其创建路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app myapp
+oc expose svc/myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="7"&gt;
+&lt;li&gt;获取指向对应应用主机的路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在构建和部署代码之后，您可以通过更改本地文件并通过&lt;code&gt;oc start-build myapp --from-dir&lt;/code&gt;再次调用启动新构建来进行迭代。构建完成后，代码将自动部署，更新的内容将在刷新页面时反映在浏览器中。&lt;/p&gt;
+&lt;h3 id="pipeline"&gt;教程：来自 pipeline 的二进制工件&lt;a class="headerlink" href="#pipeline" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift上的Jenkins允许使用带有合适工具的slave镜像来构建代码。例如，您可以使用&lt;code&gt;maven&lt;/code&gt; slave镜像来从代码存储库构建WAR包。但是，一旦构建了此工件，您需要将其提交到包含正确的运行时工件的镜像以运行您的代码。可以使用二进制构建将这些工件添加到运行时映像。在下面的教程中，我们将创建一个Jenkins pipeline，该pipeline使用&lt;code&gt;maven&lt;/code&gt; slave构建WAR，然后使用带有&lt;code&gt;Dockerfile&lt;/code&gt;的二进制构建将WAR添加到 wildfly 运行时映像。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为您的应用程序创建一个新目录：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mkdir mavenapp
+&lt;span class="nb"&gt;cd&lt;/span&gt; mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;创建一个&lt;code&gt;Dockerfile&lt;/code&gt;将WAR复制到wildfly镜像内的适当位置以供执行。将以下内容复制到名为的本地文件 &lt;code&gt;Dockerfile&lt;/code&gt;：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; wildfly:latest&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; ROOT.war /wildfly/standalone/deployments/ROOT.war
+&lt;span class="k"&gt;CMD&lt;/span&gt;  &lt;span class="nv"&gt;$STI_SCRIPTS_PATH&lt;/span&gt;/run
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;为该&lt;code&gt;Dockerfile&lt;/code&gt;创建一个新的BuildConfig：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;这将自动启动一个构建, 刚开始会构建失败，因为 &lt;code&gt;ROOT.war&lt;/code&gt;工件尚不可用。下面的pipeline将使用二进制构建将该WAR包传递给构建。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cat Dockerfile &lt;span class="p"&gt;|&lt;/span&gt; oc new-build -D - --name mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;创建1个使用Jenkins pipeline的BuildConfig, 这个BuildConfig将构建1个WAR包，然后使用该WAR包和先前创建的&lt;code&gt;Dockerfile&lt;/code&gt;来构建镜像。相同的模式可用于其他平台，其中二进制工件由一组工具构建，然后与最终的包含不同运行时的镜像组合。将以下代码保存到&lt;code&gt;mavenapp-pipeline.yml&lt;/code&gt;：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;apiVersion&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;v1&lt;/span&gt;
+&lt;span class="nt"&gt;kind&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;BuildConfig&lt;/span&gt;
+&lt;span class="nt"&gt;metadata&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;mavenapp-pipeline&lt;/span&gt;
+&lt;span class="nt"&gt;spec&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;strategy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;jenkinsPipelineStrategy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="nt"&gt;jenkinsfile&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;|-&lt;/span&gt;
+        &lt;span class="no"&gt;pipeline {&lt;/span&gt;
+          &lt;span class="no"&gt;agent { label &amp;quot;maven&amp;quot; }&lt;/span&gt;
+          &lt;span class="no"&gt;stages {&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Clone Source&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;checkout([$class: &amp;#39;GitSCM&amp;#39;,&lt;/span&gt;
+                            &lt;span class="no"&gt;branches: [[name: &amp;#39;*/master&amp;#39;]],&lt;/span&gt;
+                            &lt;span class="no"&gt;extensions: [&lt;/span&gt;
+                              &lt;span class="no"&gt;[$class: &amp;#39;RelativeTargetDirectory&amp;#39;, relativeTargetDir: &amp;#39;mavenapp&amp;#39;]&lt;/span&gt;
+                            &lt;span class="no"&gt;],&lt;/span&gt;
+                            &lt;span class="no"&gt;userRemoteConfigs: [[url: &amp;#39;https://github.com/openshift/openshift-jee-sample.git&amp;#39;]]&lt;/span&gt;
+                        &lt;span class="no"&gt;])&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Build WAR&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;dir(&amp;#39;mavenapp&amp;#39;) {&lt;/span&gt;
+                  &lt;span class="no"&gt;sh &amp;#39;mvn clean package -Popenshift&amp;#39;&lt;/span&gt;
+                &lt;span class="no"&gt;}&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Build Image&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;dir(&amp;#39;mavenapp/target&amp;#39;) {&lt;/span&gt;
+                  &lt;span class="no"&gt;sh &amp;#39;oc start-build mavenapp --from-dir . --follow&amp;#39;&lt;/span&gt;
+                &lt;span class="no"&gt;}&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+          &lt;span class="no"&gt;}&lt;/span&gt;
+        &lt;span class="no"&gt;}&lt;/span&gt;
+    &lt;span class="nt"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;JenkinsPipeline&lt;/span&gt;
+  &lt;span class="nt"&gt;triggers&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;[]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="5"&gt;
+&lt;li&gt;创建pipeline 构建。如果Jenkins未部署到您的项目中，则使用管道创建的BuildConfig会先部署Jenkins。在Jenkins准备建立您的管道之前可能需要几分钟来启动。您可以通过调用&lt;code&gt;oc rollout status dc/jenkins&lt;/code&gt;来检查Jenkins的状态：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc create -f ./mavenapp-pipeline.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="6"&gt;
+&lt;li&gt;一旦Jenkins准备就绪，启动之前定义的管道：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build mavenapp-pipeline
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="7"&gt;
+&lt;li&gt;管道构建完成后，使用&lt;code&gt;new-app&lt;/code&gt;部署新应用程序并公开其route：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app mavenapp
+oc expose svc/mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="8"&gt;
+&lt;li&gt;使用浏览器，导航到应用程序的路径：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route mavenapp
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 08 May 2019 18:41:34 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-05-08:/binary-builds-with-openshift.html</guid><category>openshift</category><category>docker</category><category>devops</category><category>git</category><category>containers</category></item><item><title>OpenShift 和 Kubernetes 有什么区别?</title><link>https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html</link><description>&lt;p&gt;OpenShift 3以后, 架构完全基于K8S进行了重构, 但是又有一些差异. 今天, 我们就深入研究一下.&lt;/p&gt;
+&lt;h2 id="k8s"&gt;K8S 是"内核"&lt;a class="headerlink" href="#k8s" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;K8S可以认为是当代分布式系统的"内核". 我们意识到, 一个设计良好的作业调度程序, 跨多台及其运行, 能够协调托管在骑上的工作负载的状态, 自然就会促进写作, 就像Linux内核为单个主机上调度工作负载所做的那样. 遵循这一逻辑, 我们知道不同的产品会根据针对用户的不同而差异化地打造.&lt;/p&gt;
+&lt;p&gt;在很多手机, 电脑, 服务器, 甚至是树莓派上, 运行的都是相同的Linux 内核, 但是通过不同的不定来支持多种多样的硬件.&lt;/p&gt;
+&lt;p&gt;K8S和各种各样的K8S发行版也适用于同样的模型, 通过不同类型的补丁, 来支持在K8S上面的一层. &lt;/p&gt;
+&lt;h2 id="openshift"&gt;OpenShift 是发行版&lt;a class="headerlink" href="#openshift" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;这是一个强有力的区别。OpenShift就是Kubernetes的发行版，专注于开发人员的体验，而开发人员需要开发下一代云原生应用程序。&lt;/p&gt;
+&lt;p&gt;虽然任何人都可以通过选择每1个部分并按照每个用户选择的定制方式组装它们来&lt;a href="http://www.linuxfromscratch.org/"&gt;从Scratch &lt;/a&gt;构建&lt;a href="http://www.linuxfromscratch.org/"&gt;Linux&lt;/a&gt;，但大多数人都没有。大多数用户选择的抽象级别意味着他们不会从管理（甚至了解）Util-Linux版本2.31和2.33之间的差异中获得很多价值。为了更进一步，用户关心最低级别的功能（例如，只要超过最小版本号，他们就知道哪些命令/ API可用），然后提供所提供功能的列表。&lt;/p&gt;
+&lt;p&gt;这与OpenShift非常相似。OpenShift将Kubernetes打包并包含其他工具作为OpenShift认为重要且OpenShift的用户需求的功能。就像CoreOS和CentOS包含不同的工具集一样，迎合不同的用户，因此Kubernetes发行版也是如此。&lt;/p&gt;
+&lt;h2 id="openshiftk8s"&gt;OpenShift和K8S的具体区别&lt;a class="headerlink" href="#openshiftk8s" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="openshift_1"&gt;OpenShift 架构概述&lt;a class="headerlink" href="#openshift_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift容器平台是一系列流行的组件和服务的集合体, 构建于Red Hat Enterprise Linux, Docker, 和K8S之上. OpenShift针对开发人员, 增强了以下功能: &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;远程管理&lt;/li&gt;
+&lt;li&gt;多租户&lt;/li&gt;
+&lt;li&gt;安全性增强&lt;/li&gt;
+&lt;li&gt;应用生命周期管理&lt;/li&gt;
+&lt;li&gt;自服务接口&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img alt="OpenShift 架构" src="./images/openshift-architecture-overview.png"&gt;&lt;/p&gt;
+&lt;p&gt;在上图中, 从下至上, 从左至右, 展示了经过Red Hat 在基本的容器架构基础上进一步集成、增强的架构:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基本OS是Red Hat Enterprise Linux (RHEL)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Docker&lt;/strong&gt;  提供了基本的容器管理API和容器镜像文件格式&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Kubernetes&lt;/strong&gt; 管理运行容器的主机集群(实体的或虚拟的). 它通过资源(resources)来描述多容器应用是由多个资源组成的, 以及他们间如何交互&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Etcd&lt;/strong&gt; 是一个分布式 key-value 存储, Kubernetes 通过它来存储集群内的关于容器和其他资源的配置和状态信息.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在Docker + Kubernetes 之上, OpenShift增加了容器平台所需要的其他功能. 具体包括:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;OpenShift-Kubernetes 扩展&lt;/strong&gt; 是存储在Etcd中, 由Kubernetes管理的额外的资源类型(resource types). 这些额外的资源类型组成了OpenShift 内部状态和配置, 还有应用的资源.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;容器化服务&lt;/strong&gt; 充实了很多基础架构功能, 比如网络和认证. 这些功能有些是一直运行的, 有些是按需启动的. &lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;运行时和xPaaS&lt;/strong&gt; 是为开发者准备好的容器镜像, 每个都预配置了特定的语言运行时或数据库. 可以被用作镜像流(Image Stream)或在此基础上增加不同的框架, 库, 甚至是中间件来进行扩展. xPaaS 提供了一系列JBoss中间件产品的基础镜像, 如: JBoss EAP 和 ActiveMQ.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DevOps 工具集和用户体验&lt;/strong&gt;: OpenShift 为开发人员和系统管理员提供了一个Web UI和CLI 管理工具, 允许配置和监控应用和OpenShift的服务和资源. Web和 CLI 都是基于相同的REST API, 这个API也可以被外部工具(如: IDE和CI平台)整合. OpenShift也可以访问外部SCM库和容器镜像库.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 备注:&lt;/p&gt;
+&lt;p&gt;OpenShift 团队:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;帮助K8S 完成了Namespace 和 quota功能的开发;&lt;/li&gt;
+&lt;li&gt;推动了RBAC 授权认证的开发&lt;/li&gt;
+&lt;li&gt;帮助K8S运行更多类型的应用, 并为其开发了一些卷插件(Volume Plugin)&lt;/li&gt;
+&lt;li&gt;相比K8S, 多了Deployment Config(DC) resource. 使用该资源可以进行参数化部署, 执行滚动部署和回滚等.&lt;/li&gt;
+&lt;li&gt;相比K8S, 多了Route resource. 而Router也是K8S的Ingress功能的前身.&lt;/li&gt;
+&lt;li&gt;相比K8S, 默认集成了SDN (Open vSwitch)&lt;/li&gt;
+&lt;li&gt;相比K8S, 实现了开发运维一体化.&lt;/li&gt;
+&lt;li&gt;纳入CoreOS&lt;/li&gt;
+&lt;li&gt;OpenShift 3.11, 集成了Prometheus和Grafana&lt;/li&gt;
+&lt;li&gt;相比K8S, 增强了管理物理节点的能力&lt;/li&gt;
+&lt;li&gt;目前, OpenShift还和NV合作, 未来会提供基于GPU运算能力的支持.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_1"&gt;资源类型差异&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Kubernetes 资源类型&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Pods&lt;/li&gt;
+&lt;li&gt;Services&lt;/li&gt;
+&lt;li&gt;Replication Controllers&lt;/li&gt;
+&lt;li&gt;Persistent Volume (PV)&lt;/li&gt;
+&lt;li&gt;Persistent Volume Claims (PVC)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;OpenShift 资源类型&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;除了以上资源类型, OpenShift 还增加了以下主要的资源类型:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Deployment Configurations (DC) - 用于 持续交付(CD)工作流&lt;/li&gt;
+&lt;li&gt;Build Configurations (BC) - 用于 持续集成(CI) 工作流&lt;/li&gt;
+&lt;li&gt;Routes - 基于HAProxy, 作用类似于K8S Ingress, 但早于Ingress.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="openshift-s2i"&gt;OpenShift 特有的S2I 功能&lt;a class="headerlink" href="#openshift-s2i" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift中的Source-to-Image (S2I) 进程会从SCM仓库中拉取代码, 自动化监测代码需要哪种类型的运行时, 并从特定运行时的基础镜像启动一个pod. 在这个pod 中, OpenShift 以开发人员相同的方式来构建该应用(如, 使用&lt;strong&gt;maven&lt;/strong&gt;来构建java程序). 如果构建成功, 另一个镜像会被创建, 把应用二进制附加到运行时层之上, 并把这个新镜像推送到OpenShift的内部镜像仓库中. 接下来, 可以从这个新镜像创建一个pod来运行该应用. S2I 可以看做是一个嵌入到OpenShift平台中的 CI/CD pipeline.&lt;/p&gt;
+&lt;p&gt;CI/CD pipelines 会有很多种变异, 这个pipeline会暴露在这个项目(project, 就是K8S的namespace)中, 那么它就可以被调节来满足开发人员的需求. 例如, 外部CI工具(如Jenkins)可以用于来启动和运行测试, 然后给新镜像打上"成功"或"失败"的标签(label), 并推送到QA或生产环境. 随着时间推移, 一个组织一个部门一个公司可以创建他们自己的pipeline模板, 包括自定义的构建器和部署器.&lt;/p&gt;
+&lt;h2 id="_2"&gt;总结&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;OpenShift 平台相比K8S, 具有以下特性:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;自服务平台;&lt;/li&gt;
+&lt;li&gt;多语言, 多中间件, 数据库支持&lt;/li&gt;
+&lt;li&gt;高可用, 可伸缩性&lt;/li&gt;
+&lt;li&gt;也是开源的(Red Hat收取服务费)&lt;/li&gt;
+&lt;li&gt;安全 (基于: RBAC, LDAP, 主机, 网络, 容器各个层面的加固)&lt;/li&gt;
+&lt;li&gt;动态存储管理&lt;/li&gt;
+&lt;li&gt;企业级&lt;/li&gt;
+&lt;li&gt;日志整合/ 监控整合&lt;/li&gt;
+&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Fri, 03 May 2019 16:51:34 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-05-03:/openshift-and-kubernetes-whats-difference.html</guid><category>docker</category><category>openshift</category><category>k8s</category><category>containers</category><category>PAAS</category></item></channel></rss>

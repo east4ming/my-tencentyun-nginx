@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - windows</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Sat, 30 Mar 2019 19:37:41 +0800</lastBuildDate><item><title>使用 Ansible 批量管理 Windows</title><link>https://www.EWhisper.cn/use-ansible-manage-multi-windows.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;安装指南&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;服务器端的要求&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#ansible"&gt;服务器端安装Ansible&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#windows"&gt;Windows 指南&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#windows_1"&gt;设置Windows主机&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#ansiblewindows"&gt;Ansible服务器端配置并管理Windows&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#ping-windows"&gt;ping 远程windows主机&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;创建目录&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_5"&gt;下发文件&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_6"&gt;删除文件&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_7"&gt;删除目录&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#cmd"&gt;执行cmd命令&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#windows_2"&gt;重启windows&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_8"&gt;创建用户&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#windows_3"&gt;windows服务管理&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;概述&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Ansible是自动化运维工具，基于Python开发，实现了批量系统配置、批量程序部署、批量运行命令等功能。Ansible是基于模块(module)和剧本(playbook)工作。&lt;/p&gt;
+&lt;h2 id="_2"&gt;安装指南&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本次在Ubuntu上安装Ansible 2.7 . 更详细安装方式参见: &lt;a href="https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html"&gt;Ansible 安装指南&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_3"&gt;服务器端的要求&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;目前Ansible可以从安装了Python 2（2.7版）或Python 3（3.5及更高版本）的任何机器上运行。控制计算机&lt;strong&gt;不支持Windows&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;这包括Red Hat，Debian，CentOS，macOS，任何BSD等等。&lt;/p&gt;
+&lt;h3 id="ansible"&gt;服务器端安装Ansible&lt;a class="headerlink" href="#ansible" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;通过Apt (Ubuntu)安装最新版本&lt;/h4&gt;
+&lt;p&gt;这里有&lt;a href="https://launchpad.net/~ansible/+archive/ubuntu/ansible"&gt;一个PPA&lt;/a&gt;版本的Ubuntu源。&lt;/p&gt;
+&lt;p&gt;要在您的计算机上配置PPA并安装ansible，请运行以下命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo apt-get update
+sudo apt-get install software-properties-common
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt-get install ansible
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;注意:&lt;/p&gt;
+&lt;p&gt;在较旧的Ubuntu发行版中，“software-properties-common”被称为“python-software-properties”。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="windows"&gt;Windows 指南&lt;a class="headerlink" href="#windows" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="windows_1"&gt;设置Windows主机&lt;a class="headerlink" href="#windows_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;主机要求&lt;/h4&gt;
+&lt;p&gt;要使Ansible与Windows主机通信并使用Windows模块，Windows主机必须满足以下要求：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Ansible支持的Windows版本通常与Microsoft当前和扩展支持下的版本相匹配。支持的桌面操作系统包括&lt;strong&gt;Windows 7,8.1和10&lt;/strong&gt;，受支持的服务器操作系统包括&lt;strong&gt;Windows Server 2008,2008 R2,2012,2012 R2和2016&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;Ansible需要&lt;strong&gt;PowerShell 3.0&lt;/strong&gt;或更高版本，并且至少要在Windows主机上安装&lt;strong&gt;.NET 4.0&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;应创建并激活&lt;strong&gt;WinRM listener &lt;/strong&gt;。更多细节可以在下面找到。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;注意:&lt;/p&gt;
+&lt;p&gt;虽然这些是Ansible连接的基本要求，但是一些Ansible模块还有其他要求，例如较新的OS或PowerShell版本。请参阅模块的文档页面以确定主机是否满足这些要求。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;升级PowerShell和.NET框架&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;升级powershell需要&lt;strong&gt;重启服务器&lt;/strong&gt;才能生效。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Ansible需要PowerShell 3.0版和.NET Framework 4.0或更高版本才能在较旧的操作系统（如Server 2008和Windows 7）上运行。基本OS镜像不符合此要求。您可以使用&lt;a href="https://github.com/jborean93/ansible-windows/blob/master/scripts/Upgrade-PowerShell.ps1"&gt;Upgrade-PowerShell.ps1&lt;/a&gt;脚本来更新这些脚本。&lt;/p&gt;
+&lt;p&gt;这是如何从PowerShell运行此脚本的示例：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Upgrade-PowerShell.ps1&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$env:temp\Upgrade-PowerShell.ps1&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Administrator&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$password&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Password&amp;quot;&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;New-Object&lt;/span&gt; &lt;span class="n"&gt;-TypeName&lt;/span&gt; &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Net&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WebClient&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;DownloadFile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;Set-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;Unrestricted&lt;/span&gt; &lt;span class="n"&gt;-Force&lt;/span&gt;
+
+&lt;span class="c"&gt;# version can be 3.0, 4.0 or 5.1&lt;/span&gt;
+&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="n"&gt;-Version&lt;/span&gt; &lt;span class="n"&gt;5&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt; &lt;span class="n"&gt;-Username&lt;/span&gt; &lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="n"&gt;-Password&lt;/span&gt; &lt;span class="nv"&gt;$password&lt;/span&gt; &lt;span class="n"&gt;-Verbose&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;完成后，您将需要删除自动登录并将执行策略设置回默认值&lt;code&gt;Restricted&lt;/code&gt;。您可以使用以下PowerShell命令执行此操作：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;# this isn&amp;#39;t needed but is a good security practice to complete&lt;/span&gt;
+&lt;span class="nb"&gt;Set-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;Restricted&lt;/span&gt; &lt;span class="n"&gt;-Force&lt;/span&gt;
+
+&lt;span class="nv"&gt;$reg_winlogon_path&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon&amp;quot;&lt;/span&gt;
+&lt;span class="nb"&gt;Set-ItemProperty&lt;/span&gt; &lt;span class="n"&gt;-Path&lt;/span&gt; &lt;span class="nv"&gt;$reg_winlogon_path&lt;/span&gt; &lt;span class="n"&gt;-Name&lt;/span&gt; &lt;span class="n"&gt;AutoAdminLogon&lt;/span&gt; &lt;span class="n"&gt;-Value&lt;/span&gt; &lt;span class="n"&gt;0&lt;/span&gt;
+&lt;span class="nb"&gt;Remove-ItemProperty&lt;/span&gt; &lt;span class="n"&gt;-Path&lt;/span&gt; &lt;span class="nv"&gt;$reg_winlogon_path&lt;/span&gt; &lt;span class="n"&gt;-Name&lt;/span&gt; &lt;span class="n"&gt;DefaultUserName&lt;/span&gt; &lt;span class="n"&gt;-ErrorAction&lt;/span&gt; &lt;span class="n"&gt;SilentlyContinue&lt;/span&gt;
+&lt;span class="nb"&gt;Remove-ItemProperty&lt;/span&gt; &lt;span class="n"&gt;-Path&lt;/span&gt; &lt;span class="nv"&gt;$reg_winlogon_path&lt;/span&gt; &lt;span class="n"&gt;-Name&lt;/span&gt; &lt;span class="n"&gt;DefaultPassword&lt;/span&gt; &lt;span class="n"&gt;-ErrorAction&lt;/span&gt; &lt;span class="n"&gt;SilentlyContinue&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;该脚本的工作原理是检查需要安装哪些程序（例如.NET Framework 4.5.2）以及需要什么样的PowerShell版本。如果&lt;strong&gt;需要重新启动&lt;/strong&gt;并且设置了&lt;code&gt;username&lt;/code&gt;和&lt;code&gt;password&lt;/code&gt;参数，则脚本将在重新启动时自动重新启动并登录。该脚本将继续，直到不再需要执行任何操作且PowerShell版本与目标版本匹配为止。如果未设置&lt;code&gt;username&lt;/code&gt;和 &lt;code&gt;password&lt;/code&gt;参数，脚本将提示用户手动重新引导并在需要时登录。当用户下次登录时，脚本将从停止的位置继续，并且该过程将继续，直到不再需要其他操作为止。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;注意:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果在Server 2008上运行，则必须安装SP2。如果在Server 2008 R2或Windows 7上运行，则必须安装SP1。&lt;/li&gt;
+&lt;li&gt;Windows Server 2008只能安装PowerShell 3.0; 指定较新的版本将导致脚本失败。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;username&lt;/code&gt;和&lt;code&gt;password&lt;/code&gt;参数都是存储在注册表中的纯文本。确保在脚本完成后运行清理命令，以确保主机上仍未存储凭据。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;WinRM内存补丁&lt;/h4&gt;
+&lt;p&gt;在PowerShell v3.0上运行时，WinRM服务存在一个错误，它限制了WinRM可用的内存量。如果未安装此补丁，Ansible将无法在Windows主机上执行某些命令。这些补丁应作为系统引导或映像过程的一部分安装。&lt;a href="https://github.com/jborean93/ansible-windows/blob/master/scripts/Install-WMF3Hotfix.ps1"&gt;Install-WMF3Hotfix.ps1&lt;/a&gt;脚本可用于在受影响的主机上安装此修补程序。&lt;/p&gt;
+&lt;p&gt;以下PowerShell命令将安装此修补程序：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;https://raw.githubusercontent.com/jborean93/ansible-windows/master/scripts/Install-WMF3Hotfix.ps1&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$env:temp\Install-WMF3Hotfix.ps1&amp;quot;&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;New-Object&lt;/span&gt; &lt;span class="n"&gt;-TypeName&lt;/span&gt; &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Net&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WebClient&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;DownloadFile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exe&lt;/span&gt; &lt;span class="n"&gt;-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;ByPass&lt;/span&gt; &lt;span class="o"&gt;-File&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="n"&gt;-Verbose&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;WinRM设置&lt;/h4&gt;
+&lt;p&gt;一旦Powershell升级到至少3.0版本，最后一步是配置WinRM服务，以便Ansible可以连接到它。WinRM服务有两个主要组件，用于管理Ansible如何与Windows主机连接：&lt;code&gt;listener&lt;/code&gt;和&lt;code&gt;service&lt;/code&gt;配置设置。&lt;/p&gt;
+&lt;p&gt;可以在下面阅读有关每个组件的详细信息，也可以使用脚本&lt;a href="https://github.com/ansible/ansible/blob/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"&gt;ConfigureRemotingForAnsible.ps1&lt;/a&gt;来进行基本设置。此脚本使用自签名证书设置HTTP和HTTPS侦听器，并在服务上启用&lt;code&gt;Basic&lt;/code&gt; 身份验证选项。&lt;/p&gt;
+&lt;p&gt;要使用此脚本，请在PowerShell中运行以下命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;$env:temp\ConfigureRemotingForAnsible.ps1&amp;quot;&lt;/span&gt;
+
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;New-Object&lt;/span&gt; &lt;span class="n"&gt;-TypeName&lt;/span&gt; &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Net&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WebClient&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;DownloadFile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exe&lt;/span&gt; &lt;span class="n"&gt;-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;ByPass&lt;/span&gt; &lt;span class="o"&gt;-File&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;注意:&lt;/p&gt;
+&lt;p&gt;ConfigureRemotingForAnsible.ps1脚本仅用于培训和开发目的，不应在生产环境中使用，因为它启用了&lt;code&gt;Basic&lt;/code&gt; 这本质上不安全（如身份验证）。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;WinRM Listener&lt;/h4&gt;
+&lt;p&gt;WinRM服务侦听一个或多个端口上的请求。每个端口都必须创建并配置一个侦听器。&lt;/p&gt;
+&lt;p&gt;要查看在WinRM服务上运行的当前侦听器，请运行以下命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;winrm&lt;/span&gt; &lt;span class="n"&gt;quickconfig&lt;/span&gt;
+&lt;span class="n"&gt;winrm&lt;/span&gt; &lt;span class="n"&gt;enumerate&lt;/span&gt; &lt;span class="n"&gt;winrm&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Listener&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;运行后输出如下:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;Listener&lt;/span&gt;
+    &lt;span class="n"&gt;Address&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="p"&gt;*&lt;/span&gt;
+    &lt;span class="n"&gt;Transport&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HTTP&lt;/span&gt;
+    &lt;span class="n"&gt;Port&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;5985&lt;/span&gt;
+    &lt;span class="n"&gt;Hostname&lt;/span&gt;
+    &lt;span class="n"&gt;Enabled&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;true&lt;/span&gt;
+    &lt;span class="n"&gt;URLPrefix&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;wsman&lt;/span&gt;
+    &lt;span class="n"&gt;CertificateThumbprint&lt;/span&gt;
+    &lt;span class="n"&gt;ListeningOn&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;127&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;192&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;168&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;56&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;155&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;5efe&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;15&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;6&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;5efe&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;192&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;168&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;56&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;155&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;
+&lt;span class="n"&gt;ffff&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;ffff&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;fffe&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;203d&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;7d97&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;c2ed&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;ec78&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;e8ea&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;d765&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;2c69&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;7756&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;7&lt;/span&gt;
+
+&lt;span class="n"&gt;Listener&lt;/span&gt;
+    &lt;span class="n"&gt;Address&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="p"&gt;*&lt;/span&gt;
+    &lt;span class="n"&gt;Transport&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HTTPS&lt;/span&gt;
+    &lt;span class="n"&gt;Port&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;5986&lt;/span&gt;
+    &lt;span class="n"&gt;Hostname&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SERVER2016&lt;/span&gt;
+    &lt;span class="n"&gt;Enabled&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;true&lt;/span&gt;
+    &lt;span class="n"&gt;URLPrefix&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;wsman&lt;/span&gt;
+    &lt;span class="n"&gt;CertificateThumbprint&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;E6CDAA82EEAF2ECE8546E05DB7F3E01AA47D76CE&lt;/span&gt;
+    &lt;span class="n"&gt;ListeningOn&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;127&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;192&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;168&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;56&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;155&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;5efe&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;15&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;6&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;5efe&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;192&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;168&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;56&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;155&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;
+&lt;span class="n"&gt;ffff&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;ffff&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;fffe&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;203d&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;7d97&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;c2ed&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;ec78&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fe80&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;e8ea&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;d765&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;2c69&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;7756&lt;/span&gt;&lt;span class="k"&gt;%&lt;/span&gt;&lt;span class="n"&gt;7&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;修改winrm配置，启用远程连接认证&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;winrm&lt;/span&gt; &lt;span class="nb"&gt;set &lt;/span&gt;&lt;span class="n"&gt;winrm&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;service&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;auth&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;@{Basic=&amp;quot;true&amp;quot;}&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;winrm&lt;/span&gt; &lt;span class="nb"&gt;set &lt;/span&gt;&lt;span class="n"&gt;winrm&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="n"&gt;service&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;@{AllowUnencrypted=&amp;quot;true&amp;quot;}&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;windows 防火墙配置&lt;/h4&gt;
+&lt;p&gt;配置防火墙:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;添加防火墙信任规则，允许5985-5986端口通过&lt;/li&gt;
+&lt;li&gt;打开防火墙高级配置，选择&lt;strong&gt;入站规则&lt;/strong&gt;，在点击新建规则&lt;/li&gt;
+&lt;li&gt;填写一下信息&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;TCP&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;信任端口&lt;strong&gt;5985-5986&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;填写新建规则名称&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="ansiblewindows"&gt;Ansible服务器端配置并管理Windows&lt;a class="headerlink" href="#ansiblewindows" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;添加windows客户端连接信息: 编辑&lt;code&gt;/etc/ansible/hosts&lt;/code&gt;, 添加客户端主机信息(ansible服务端的配置)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[windows]&lt;/span&gt;
+
+&lt;span class="na"&gt;192.168.2.2 ansible_user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Administrator&amp;quot; ansible_password=&amp;quot;Password&amp;quot; ansible_port=5986 ansible_connection=&amp;quot;winrm&amp;quot; ansible_winrm_server_cert_validation=ignore ansible_winrm_transport=basic&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="ping-windows"&gt;ping 远程windows主机&lt;a class="headerlink" href="#ping-windows" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible &lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 -m win_ping
+&lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="nv"&gt;SUCCESS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="s2"&gt;&amp;quot;changed&amp;quot;&lt;/span&gt;: false,
+    &lt;span class="s2"&gt;&amp;quot;ping&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;pong&amp;quot;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_4"&gt;创建目录&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible &lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 -m win_file -a &lt;span class="s1"&gt;&amp;#39;path=D:\\test state=directory&amp;#39;&lt;/span&gt;
+&lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="nv"&gt;CHANGED&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="s2"&gt;&amp;quot;changed&amp;quot;&lt;/span&gt;: &lt;span class="nb"&gt;true&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_5"&gt;下发文件&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible &lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 -m win_copy -a &lt;span class="s1"&gt;&amp;#39;src=/etc/hosts dest=D:\\hosts.txt&amp;#39;&lt;/span&gt;
+&lt;span class="m"&gt;192&lt;/span&gt;.168.2.2 &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="nv"&gt;CHANGED&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&amp;gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="s2"&gt;&amp;quot;changed&amp;quot;&lt;/span&gt;: true,
+    &lt;span class="s2"&gt;&amp;quot;checksum&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;f6d471689e1233342a8e43a130ff40a6ea0b9f51&amp;quot;&lt;/span&gt;,
+    &lt;span class="s2"&gt;&amp;quot;dest&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;D:\\hosts.txt&amp;quot;&lt;/span&gt;,
+    &lt;span class="s2"&gt;&amp;quot;operation&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;file_copy&amp;quot;&lt;/span&gt;,
+    &lt;span class="s2"&gt;&amp;quot;original_basename&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;hosts&amp;quot;&lt;/span&gt;,
+    &lt;span class="s2"&gt;&amp;quot;size&amp;quot;&lt;/span&gt;: &lt;span class="m"&gt;635&lt;/span&gt;,
+    &lt;span class="s2"&gt;&amp;quot;src&amp;quot;&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;/etc/hosts&amp;quot;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_6"&gt;删除文件&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_file -a &amp;#39;dest=d:\\config_dir\\hosts.txt state=absent&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_7"&gt;删除目录&lt;a class="headerlink" href="#_7" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_file -a &amp;#39;dest=d:\\config_dir2 state=absent&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="cmd"&gt;执行cmd命令&lt;a class="headerlink" href="#cmd" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_shell -a &amp;#39;ipconfig&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="windows_2"&gt;重启windows&lt;a class="headerlink" href="#windows_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_reboot&lt;/span&gt;
+&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_shell -a &amp;#39;shutdown -r -t 0&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_8"&gt;创建用户&lt;a class="headerlink" href="#_8" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;远程在windows客户端上创建用户&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_user -a &amp;quot;name=testuser1 passwd=123456&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="windows_3"&gt;windows服务管理&lt;a class="headerlink" href="#windows_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# ansible 192.168.2.2 -m win_shell -a “net stop|start zabbix_agent”&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt;说明:&lt;/p&gt;
+&lt;p&gt;完整的windows module见: &lt;a href="https://docs.ansible.com/ansible/latest/modules/list_of_windows_modules.html"&gt;Windows modules&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Sat, 30 Mar 2019 19:37:41 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-30:/use-ansible-manage-multi-windows.html</guid><category>ansible</category><category>windows</category><category>devops</category></item></channel></rss>

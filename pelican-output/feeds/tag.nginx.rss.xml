@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - nginx</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Sat, 30 Mar 2019 19:37:41 +0800</lastBuildDate><item><title>苹果ATS合规对Web服务器的影响</title><link>https://www.EWhisper.cn/apple-ats-effect-on-web-server.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;一 前言&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#11-ats"&gt;1.1 ATS要求&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;二 检查项&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#21-apache"&gt;2.1 Apache 检查项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#22-nginx"&gt;2.2 NGINX检查项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#23-weblogic"&gt;2.3 WebLogic 检查项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;三 修改配置项&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#31-apache"&gt;3.1 Apache 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#32-nginx"&gt;3.2 NGINX 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#33-weblogic"&gt;3.3 WebLogic 配置项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;四 注意项&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;一 前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;这篇文章是在太平保险期间, 我和同时Huang Wentao一起收集资料并实验后协作完成的.&lt;/p&gt;
+&lt;p&gt;本文写于2年前, 时至今日可能规范, 软件版本或配置项都发生变化. 如果要应用, 请应用前进行完善测试.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="11-ats"&gt;1.1 ATS要求&lt;a class="headerlink" href="#11-ats" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;协商的传输层安全（TLS）版本必须为TLS 1.2;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;连接必须使用AES-128或AES-256对称密码，协商的秘钥交换协议必须是以下之一：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256&lt;/li&gt;
+&lt;li&gt;TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Leaf server（设备服务器）证书必须使用以下类型的密钥之一签名&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Rivest-Shamir-Adleman (RSA)秘钥，长度至少为2048位&lt;/li&gt;
+&lt;li&gt;Elliptic-Curve Cryptography (ECC) 秘钥，长度至少为256位&lt;/li&gt;
+&lt;li&gt;此外，leaf server证书散列算法必须是具有至少256（即SHA-256或更大）的摘要长度（有时称为“指纹”）的安全散列算法2（SHA-2）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_2"&gt;二 检查项&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="21-apache"&gt;2.1 Apache 检查项&lt;a class="headerlink" href="#21-apache" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;OpenSSL版本: 需要大于 &lt;a href="https://www.openssl.org/news/changelog.txt"&gt;1.0.1&lt;/a&gt; (OpenSSL从1.0.1以后开始支持TLS 1.2)&lt;/li&gt;
+&lt;li&gt;当前加密套件使用的密钥交换协议.&lt;ol&gt;
+&lt;li&gt;查看当前加密套件支持的协议. 要保证支持的协议中有以上ATS 中所要求的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;当前密钥长度/指纹算法是否满足:&lt;ol&gt;
+&lt;li&gt;如果是RSA密钥, 则至少要为2048位;&lt;/li&gt;
+&lt;li&gt;如果是ECC密钥, 则至少为256位.&lt;/li&gt;
+&lt;li&gt;指纹安全散列算法要为 SHA-2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Apache版本:&lt;ol&gt;
+&lt;li&gt;&lt;a href="http://svn.apache.org/repos/asf/httpd/httpd/branches/2.2.x/CHANGES"&gt;Apache 2.2.23&lt;/a&gt; 或&lt;a href="http://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/CHANGES"&gt;2.4.0&lt;/a&gt; 以上版本都是支持的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="22-nginx"&gt;2.2 NGINX检查项&lt;a class="headerlink" href="#22-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;OpenSSL 版本: 需要大于1.0.1&lt;/li&gt;
+&lt;li&gt;当前加密套件使用的密钥交换协议.&lt;ol&gt;
+&lt;li&gt;查看当前加密套件支持的协议. 要保证支持的协议中有以上ATS 中所要求的.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;当前密钥长度/指纹算法是否满足:&lt;ol&gt;
+&lt;li&gt;如果是RSA密钥, 则至少要为2048位;&lt;/li&gt;
+&lt;li&gt;如果是ECC密钥, 则至少为256位.&lt;/li&gt;
+&lt;li&gt;指纹安全散列算法要为 SHA-2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;NGINX版本: 建议使用&lt;a href="http://nginx.org/en/CHANGES-1.12"&gt;1.1.13&lt;/a&gt;以上版本.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="23-weblogic"&gt;2.3 WebLogic 检查项&lt;a class="headerlink" href="#23-weblogic" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;JDK版本: 需要版本为JDK 7 以上.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_3"&gt;三 修改配置项&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;除了以上检查项中版本不符合的需要升级、证书的算法、秘钥长度需要达到要求外，还有其他配置项要进行配置.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="31-apache"&gt;3.1 Apache 配置项&lt;a class="headerlink" href="#31-apache" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;示例: Apache版本2.2.23(~~待确定~~)，OpenSSL版本1.0.1e. (最大兼容性配置)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;VirtualHost&lt;/span&gt; &lt;span class="err"&gt;*:443&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    ...
+    SSLEngine on
+    SSLCertificateFile      /path/to/signed_certificate
+    SSLCertificateChainFile /path/to/intermediate_certificate
+    SSLCertificateKeyFile   /path/to/private/key
+
+    # Uncomment the following directive when using client certificate authentication
+    #SSLCACertificateFile    /path/to/ca_certs_for_client_authentication
+
+
+    # HSTS (mod_headers is required) (15768000 seconds = 6 months)
+    Header always set Strict-Transport-Security &amp;quot;max-age=15768000&amp;quot;
+    ...
+&lt;span class="nt"&gt;&amp;lt;/VirtualHost&amp;gt;&lt;/span&gt;
+
+# old configuration, tweak to your needs
+SSLProtocol             all -SSLv2
+SSLCipherSuite          ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:DES-CBC3-SHA:HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP
+SSLHonorCipherOrder     on
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="32-nginx"&gt;3.2 NGINX 配置项&lt;a class="headerlink" href="#32-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;举例：Nginx版本1.11.0，OpenSSL版本1.0.1e (最大兼容性配置)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# Redirect all HTTP requests to HTTPS with a 301 Moved Permanently response.&lt;/span&gt;
+    &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;301&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$host$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;443&lt;/span&gt; &lt;span class="s"&gt;ssl&lt;/span&gt; &lt;span class="s"&gt;http2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:443&lt;/span&gt; &lt;span class="s"&gt;ssl&lt;/span&gt; &lt;span class="s"&gt;http2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# certs sent to the client in SERVER HELLO are concatenated in ssl_certificate&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_certificate&lt;/span&gt; &lt;span class="s"&gt;/path/to/signed_cert_plus_intermediates&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_certificate_key&lt;/span&gt; &lt;span class="s"&gt;/path/to/private_key&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_timeout&lt;/span&gt; &lt;span class="s"&gt;1d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_cache&lt;/span&gt; &lt;span class="s"&gt;shared:SSL:50m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_session_tickets&lt;/span&gt; &lt;span class="no"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# Diffie-Hellman parameter for DHE ciphersuites, recommended 2048 bits&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_dhparam&lt;/span&gt; &lt;span class="s"&gt;/path/to/dhparam.pem&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# old configuration. tweak to your needs.&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_protocols&lt;/span&gt; &lt;span class="s"&gt;SSLv3&lt;/span&gt; &lt;span class="s"&gt;TLSv1&lt;/span&gt; &lt;span class="s"&gt;TLSv1.1&lt;/span&gt; &lt;span class="s"&gt;TLSv1.2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_ciphers&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:DES-CBC3-SHA:HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_prefer_server_ciphers&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)&lt;/span&gt;
+    &lt;span class="kn"&gt;add_header&lt;/span&gt; &lt;span class="s"&gt;Strict-Transport-Security&lt;/span&gt; &lt;span class="s"&gt;max-age=15768000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# OCSP Stapling ---&lt;/span&gt;
+    &lt;span class="c1"&gt;# fetch OCSP records from URL in ssl_certificate and cache them&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_stapling&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_stapling_verify&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;## verify chain of trust of OCSP response using Root CA and Intermediate certs&lt;/span&gt;
+    &lt;span class="kn"&gt;ssl_trusted_certificate&lt;/span&gt; &lt;span class="s"&gt;/path/to/root_CA_cert_plus_intermediates&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="kn"&gt;resolver&lt;/span&gt; &lt;span class="s"&gt;&amp;lt;IP&lt;/span&gt; &lt;span class="s"&gt;DNS&lt;/span&gt; &lt;span class="s"&gt;resolver&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="kn"&gt;....&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="33-weblogic"&gt;3.3 WebLogic 配置项&lt;a class="headerlink" href="#33-weblogic" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;需要在Oracle官网下载java 7相关的policyfile&lt;br&gt;
+解压后，替换&lt;code&gt;JAVA_HOME/jre/lib/security&lt;/code&gt;下的&lt;code&gt;local_policy.jar&lt;/code&gt;、&lt;code&gt;US_export_policy.jar&lt;/code&gt;文件。&lt;/p&gt;
+&lt;h2 id="_4"&gt;四 注意项&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;升级OpenSSL，可能会影响sftp、ssh等和ssl有关的协议，需谨慎操作。&lt;/li&gt;
+&lt;li&gt;考虑到旧的ssl版本漏洞，以及兼容性，建议都要禁用掉ssl V2及以下版本协议。(最新的建议是SSL v3也禁用)&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Sat, 30 Mar 2019 19:37:41 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-30:/apple-ats-effect-on-web-server.html</guid><category>ATS</category><category>apple</category><category>ssl</category><category>nginx</category><category>apache</category><category>tls</category><category>openssl</category></item><item><title>HTTPS基础原理和配置 - 加密协议SSL和TLS</title><link>https://www.EWhisper.cn/https-101-chapter-1.html</link><description>&lt;blockquote&gt;
+&lt;p&gt;近期又碰到了SSL相关的事情, 就心血来潮开个新专题 - 《HTTPS基础原理和配置》&lt;/p&gt;
+&lt;p&gt;本文是第一篇文章， 主要介绍SSL TLS加密协议的相关内容。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="_1"&gt;加密协议历史概要&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;SSL TLS加密协议其实并没有很长的历史，1995年&lt;strong&gt;网景&lt;/strong&gt;发布了SSL v2.0，这也是web加密的开始。这使得电子商务领域，人们可以在线提交密码和信用卡，并且至少是相当安全的。&lt;/p&gt;
+&lt;p&gt;SSLv3.0很快发布，这版被保罗·柯克（Paul Coker）及其他人完全重写。这是一个非常坚实的协议。事实上，IETF采用SSL v3.0，并使它成为并不是网景独有的协议，叫做TLS（Transport Layer Security）。SSL意思是安全套接字层，但现在叫传输层安全。&lt;/p&gt;
+&lt;p&gt;所以，TLS v1.0几乎和SSL v3.0 一模一样，只是进行了一两个小优化，并且IAF使之标准化。如果你深究这些协议，TLS v1.0实际上就是SSL v3.1；所以你可以认为他们是连续的。&lt;/p&gt;
+&lt;p&gt;但是最终IETF提出了新版本v1.1（一些小优化），然后是v1.2，引入了一些新的加密算法。但是看到这你可能会想“好吧，有些客户端支持这些，有些客户端支持更新的，这取决于它们发布的时间. 安全性上可能差不太多". 但实际在安全意义上，这些中的大多数已经以被破解了。&lt;/p&gt;
+&lt;h3 id="_2"&gt;关键历史节点&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;SSL v2.0 1995年 网景 发布&lt;/li&gt;
+&lt;li&gt;SSL v3.0 1996年发布 修复v2的主要问题&lt;/li&gt;
+&lt;li&gt;TLS v1.0 1999年 IETF发布；对SSLv3小优化&lt;/li&gt;
+&lt;li&gt;TLS v1.1 2006年 发布 小优化&lt;/li&gt;
+&lt;li&gt;TLS v1.2 2008年发布 改进hash和AEAD模式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="_3"&gt;&lt;img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"&gt;被破解历史概要&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;首先是SSL v2.0, 设计之初就被破解&lt;img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"&gt;&lt;img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"&gt;&lt;img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"&gt;, 所以，ssl v2.0确实不推荐使用；已经被破解很长很长时间了，不安全。 我们经常听到的支持的SSL版本一般也是从SSL v3.0开始的.&lt;/p&gt;
+&lt;p&gt;SSL v3.0呢, 之前一直在用，直到2014年11月被破解。&lt;/p&gt;
+&lt;p&gt;TLS呢, v1.0和v1.1基本安全。&lt;/p&gt;
+&lt;p&gt;最新的v1.2(其实现在已经不算最新的了, TLS v1.3已经出来了, 但是目前主流的最新协议还是1.2), 是唯一一个还没有针对性攻击的版本(PS: 当然, 近期也有针对TLS v1.2的漏洞爆出, 但还算OK)。&lt;/p&gt;
+&lt;p&gt;TLS有一个混乱的历史，并没有真正最好的安全记录，但TLS v1.2一直还是最好的，当涉及到与浏览器和服务的交互，它内置在几乎一切的浏览器和服务器中(最新的)。&lt;/p&gt;
+&lt;p&gt;所以，TLS v1.2是大势所趋, 如果涉及到关键业务数据交互, 如&lt;strong&gt;用户关键信息&lt;/strong&gt; &lt;strong&gt;支付&lt;/strong&gt; &lt;strong&gt;金融&lt;/strong&gt;等场景, TLS v1.2才能真正有保障, 而其他老的加密协议, 都已经被破解了, 黑客想拿到你的数据(如果你用老的加密协议)只是时间问题, 并不存在技术上的难点。所以评估ATS(苹果的安全相关要求)合规也要求该版本。&lt;/p&gt;
+&lt;h3 id="_4"&gt;&lt;img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"&gt;被破解关键历史节点&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;SSL v2.0 1995发布 - 设计之初被破解&lt;/li&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;SSL v3.0 1996发布 – 被POODLE破解（2014 .11）&lt;/li&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;TSL v1.0 1999发布 – BEAST(2011)和Lucky 13(2013)发现漏洞&lt;/li&gt;
+&lt;li&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;T​LS v1.1 2006发布 – 被Lucky 13(2013)和RC4(2013,2015)发现漏洞&lt;/li&gt;
+&lt;li&gt;TLS v1.2 2008发布 – 只有在AEAD模式下是安全的&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="_5"&gt;客户端兼容性&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt; 注意:&lt;/p&gt;
+&lt;p&gt;如果有条件, 强烈建议&lt;strong&gt;只选择 TLS v1.2&lt;/strong&gt;版本. (对于传统企业, 真的挺难做到的)​&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;根据以上的内容来看, 那我只选择TLS v1.2协议好了, 但实际情况是, TLS v1.2 是&lt;strong&gt;2008&lt;/strong&gt;年才发布的(标注发布), 而真正要落到实处所需要的时间更长. 所以很多客户端并不支持TLS v1.2. &lt;/p&gt;
+&lt;p&gt;这些客户端, 是&lt;strong&gt;广义&lt;/strong&gt;的客户端, 包括: &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;操作系统&lt;/li&gt;
+&lt;li&gt;浏览器&lt;/li&gt;
+&lt;li&gt;手机&lt;/li&gt;
+&lt;li&gt;胖客户端(如Java客户端)&lt;/li&gt;
+&lt;li&gt;...&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;所以，如果你计划服务器只选择1.2版本，你就可能失去了很多潜在客户(还在用旧的客户端的客户, 当然, 说不定用着旧电脑的员工也被拒之门外了...)。这并不是最好的举动，除非对绝对安全非常敏感。否则的话, 还是建议支持更多的安全协议让更多的客户可以兼容. 是吧? 毕竟比起http这种裸奔, 其他旧的协议好歹还是穿着衣服的.&lt;img align="absmiddle" alt="😏" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f60f.png" title=":smirk:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;但是, 另一些大平台, 已经开始倾向于v1.2。比如ios之前的&lt;a href="https://developer.apple.com/news/?id=12212016b&amp;amp;1482372961"&gt;ATS合规要求&lt;/a&gt;, 比如&lt;a href="https://www.microsoft.com/security/blog/2017/06/20/tls-1-2-support-at-microsoft/"&gt;微软建议你放弃TLS v1.0和 TLS v1.1的支持&lt;/a&gt;。因此，行业正在朝着标准迈进。&lt;/p&gt;
+&lt;h3 id="tls-v12"&gt;支持TLS v1.2客户端列表&lt;a class="headerlink" href="#tls-v12" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Windows 8 以上 (Windows Server 2008以上 - 2017年下半年才支持) (&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt; win7不支持! 更别提win xp了)&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://access.redhat.com/blogs/766093/posts/1976123"&gt;RHEL 或 CentOS ≥ 6.5&lt;/a&gt; (&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;用CentOS 5.X的注意了啊, 不支持TLS v1.2 ​)&lt;/li&gt;
+&lt;li&gt;Chrome ≥ 30&lt;/li&gt;
+&lt;li&gt;安卓 ≥ 5.0&lt;/li&gt;
+&lt;li&gt;火狐浏览器 ≥ 27&lt;/li&gt;
+&lt;li&gt;IE/Edge ≥ 11 (&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;主流的IE8 9 10都不支持!)&lt;/li&gt;
+&lt;li&gt;iOS ≥ 5&lt;ul&gt;
+&lt;li&gt;注意：iOS 9应用需要TLS 1.2支持。(ATS合规要求, 当时后来好像很难推下去)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="tls-10"&gt;支持TLS 1.0 客户端列表&lt;a class="headerlink" href="#tls-10" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;TLS 1.0 （真正安全的最老版本）几乎都支持（除了win xp sp2)。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="win xp sp2" src="./images/winxpsp2.png"&gt;&lt;/p&gt;
+&lt;h2 id="_6"&gt;配置建议&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;再次推荐&lt;a href="https://www.ssllabs.com/"&gt;SSL Labs&lt;/a&gt;, 打分如下:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="SSL Labs打分示例" src="./images/ssl-labs-example.png"&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_7"&gt;高安全性 低兼容性&lt;a class="headerlink" href="#_7" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;SSLProtocol             all -SSLv3 -TLSv1 -TLSv1.1&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;只支持TLS v1.2.&lt;/strong&gt; 当你配置加密协议时，如果只选择TLS&lt;br&gt;
+1.2,得分会是&lt;strong&gt;A&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3 id="_8"&gt;中安全性 高兼容性&lt;a class="headerlink" href="#_8" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;SSLProtocol             all -SSLv3&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;只支持&lt;strong&gt;TLS&lt;/strong&gt;协议, 得分也会是&lt;strong&gt;A&lt;/strong&gt;. (之前的, 近期不确定, 感兴趣的可以测一下).&lt;/p&gt;
+&lt;h3 id="_9"&gt;低安全性 最大兼容性&lt;a class="headerlink" href="#_9" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;SSLProtocol             all&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;如果使用SSLv3.0，有风险，得C。&lt;/p&gt;
+&lt;h2 id="_10"&gt;总结&lt;a class="headerlink" href="#_10" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;选择加密协议, 要根据具体的需求, 有侧重, 也要做到安全性和兼容性的兼顾.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我之前有个相关的PPT, 感兴趣的话后续发上来.&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Sat, 30 Mar 2019 00:08:23 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-30:/https-101-chapter-1.html</guid><category>linux</category><category>openssl</category><category>ssl</category><category>nginx</category><category>centos</category></item><item><title>NGINX 配置SSL 支持</title><link>https://www.EWhisper.cn/nginx-conf-add-ssl-support.html</link><description>&lt;p&gt;&lt;img alt="nginx+ssl" src="./images/nginx-ssl-certificate.jpg"&gt;&lt;/p&gt;
+&lt;h2 id="_1"&gt;前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html"&gt;上篇文章&lt;/a&gt;中, 我们已经申请好了SSL证书. 那么现在, 我们就要配置全站SSL了! &lt;img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"&gt;&lt;img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"&gt;&lt;img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;这次的工作主要是NGINX的配置, 同时会有一些我的博客本身的配置.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;博客本身配置更改包括: (这篇文章就先不细说了)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;网页内链接全部从http改为https(其实配置下SITEURL, 工具会自动生成好) 并重新发布. (特别要注意, 如果有的站内css, js等没有用https就尴尬了, 会被各类浏览器拦截掉, 并提示"不安全的脚本")&lt;/li&gt;
+&lt;li&gt;网站有用到的第三方工具(如拨测), 把网站的地址改为 https开头的.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="nginx"&gt;NGINX配置&lt;a class="headerlink" href="#nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;首先, 创建并上传准备好的证书文件到指定目录: (crt和key文件)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo mkdir -p /etc/pki/nginx/
+&lt;span class="c1"&gt;# 通过sftp上传到该目录&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;进行nginx.conf 的ssl配置, 本次主要涉及到server块的配置更改, 如下: (具体的指令作用见注释)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;listen&lt;/span&gt;       &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;server_name&lt;/span&gt;  &lt;span class="s"&gt;www.ewhisper.cn&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;301&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$host$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;listen&lt;/span&gt;       &lt;span class="mi"&gt;443&lt;/span&gt; &lt;span class="s"&gt;ssl&lt;/span&gt; &lt;span class="s"&gt;http2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;server_name&lt;/span&gt;  &lt;span class="s"&gt;www.ewhisper.cn&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;root&lt;/span&gt;         &lt;span class="s"&gt;/usr/share/nginx/html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 静态博客的存放位置&lt;/span&gt;
+
+        &lt;span class="kn"&gt;ssl_certificate&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/etc/pki/nginx/1_www.ewhisper.cn_bundle.crt&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 证书路径&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_certificate_key&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/etc/pki/nginx/2_www.ewhisper.cn.key&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 证书密钥路径&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_session_cache&lt;/span&gt; &lt;span class="s"&gt;shared:SSL:50m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# ssl session cache分配50m空间, 缓存ssl session&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_session_timeout&lt;/span&gt;  &lt;span class="s"&gt;1d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# ssl session 超时时间为1天&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_session_tickets&lt;/span&gt; &lt;span class="no"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# ssl session ticket 机制, 部分版本有bug, 视情况开启.&lt;/span&gt;
+
+        &lt;span class="kn"&gt;ssl_protocols&lt;/span&gt; &lt;span class="s"&gt;TLSv1.2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# ssl 协议版本&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_ciphers&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# ssl ciphers&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_prefer_server_ciphers&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 倾向于使用server端的ciphers&lt;/span&gt;
+
+        &lt;span class="c1"&gt;# HSTS 6 months&lt;/span&gt;
+        &lt;span class="kn"&gt;add_header&lt;/span&gt; &lt;span class="s"&gt;Strict-Transport-Security&lt;/span&gt; &lt;span class="s"&gt;max-age=15768000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  
+        &lt;span class="c1"&gt;# 添加个http header, 告诉浏览器直接转到https, 此功能有风险, 慎重选择. &lt;/span&gt;
+        &lt;span class="c1"&gt;# (比如你的证书过期忘记续了, 那么用户想转到http都没办法)&lt;/span&gt;
+
+        &lt;span class="kn"&gt;ssl_stapling&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 启用ssl OCSP stapling功能, 服务端主动查询OCSP结果, 提高TLS效率&lt;/span&gt;
+        &lt;span class="kn"&gt;ssl_stapling_verify&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 开启OCSP stapling 验证&lt;/span&gt;
+
+        &lt;span class="c1"&gt;# Load configuration files for the default server block.&lt;/span&gt;
+        &lt;span class="kn"&gt;include&lt;/span&gt; &lt;span class="s"&gt;/etc/nginx/default.d/*.conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;# 我的博客的location在这里配置&lt;/span&gt;
+
+        &lt;span class="c1"&gt;#location / {&lt;/span&gt;
+        &lt;span class="c1"&gt;#}&lt;/span&gt;
+
+        &lt;span class="kn"&gt;error_page&lt;/span&gt; &lt;span class="mi"&gt;404&lt;/span&gt; &lt;span class="s"&gt;/404.html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="kn"&gt;location&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/40x.html&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+        &lt;span class="kn"&gt;error_page&lt;/span&gt; &lt;span class="mi"&gt;500&lt;/span&gt; &lt;span class="mi"&gt;502&lt;/span&gt; &lt;span class="mi"&gt;503&lt;/span&gt; &lt;span class="mi"&gt;504&lt;/span&gt; &lt;span class="s"&gt;/50X.html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="kn"&gt;location&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/50X.html&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;以上的某些指令, 我先大概介绍下, 后续会有文章做详细介绍.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;return 301 https://$host$request_uri;&lt;/code&gt;   HTTP的全部永久重定向到https对应的URL&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/usr/share/nginx/html&lt;/code&gt;  静态博客的存放位置&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssl_session_timeout  1d;&lt;/code&gt;  ssl session 超时时间为1天&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssl_session_tickets off;  #&lt;/code&gt;  ssl session ticket 机制, 部分版本有bug, 视情况开启.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssl_prefer_server_ciphers on;&lt;/code&gt;  倾向于使用server端的ciphers&lt;/li&gt;
+&lt;li&gt;HSTS功能:　添加个HTTP header, 告诉浏览器直接转到https, &lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;此功能有风险, 慎重选择.  (比如你的证书过期忘记续了, 那么用户想转到HTTP都没办法)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssl_stapling on;&lt;/code&gt;  启用ssl OCSP stapling功能, 服务端主动查询OCSP结果, 提高TLS握手效率&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/etc/nginx/default.d/*.conf;&lt;/code&gt;  我的博客&lt;code&gt;location&lt;/code&gt;配置&lt;br&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 小技巧:&lt;/p&gt;
+&lt;p&gt;火狐浏览器背后的基金会, 开源了一个非常好用的工具: &lt;a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/"&gt;ssl-config-generator&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在这上边, 点一点就可以自动生成推荐的SSL配置了.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="ssl-config-generator" src="./images/ssl-config-generator.png"&gt;&lt;/p&gt;
+&lt;p&gt;提一点, 如上图所示, 第二列一定要根据你的客户浏览器或客户端的版本使用情况慎重选择. &lt;/p&gt;
+&lt;p&gt;比如, 用户还在用Windows XP, IE6, Java 6, 那么只能选择Old.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;接下来, 就是要重启nginx来生效了. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo nginx -t  &lt;span class="c1"&gt;# 测试配置, 没问题再重启&lt;/span&gt;
+$ sudo systemctl reload nginx.service
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;重启后, 测试发现 css js都没有生效. &lt;img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"&gt;&lt;img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"&gt;&lt;img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;因为之前nginx刚配置过缓存. 当时脑子没转过来, 没有第一时间意识到可能是浏览器缓存的问题. 就直接nginx stop 再start了下. 结果悲催的我的网站可用性就从100%跌到99.81%了.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="网站可用性" src="images/index.png"&gt;&lt;/p&gt;
+&lt;p&gt;后来终于意识到可能是浏览器缓存的问题了, 清理了缓存后, 再启动, 终于页面显示正常, 图标也从"不安全"变成了小锁.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="./images/ssl-ewhisper.png"&gt;&lt;/p&gt;
+&lt;p&gt;测试访问http://www.ewhisper.cn, 也会被强制转到 https://www.ewhisper.cn. 完美!&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;/p&gt;
+&lt;h2 id="ssl"&gt;我的SSL评级&lt;a class="headerlink" href="#ssl" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;再来介绍个好东西 - &lt;a href="https://www.ssllabs.com/ssltest/analyze.html"&gt;SSL Labs&lt;/a&gt;. 可以对你的网站进行SSL 安全评级. &lt;/p&gt;
+&lt;p&gt;点击链接, 输入网站地址, 喝杯茶, 结果就出来了 - &lt;strong&gt;A+&lt;/strong&gt; 哈哈哈哈哈!!!!&lt;/p&gt;
+&lt;p&gt;&lt;img alt="我的网站SSL评分" src="./images/ewhisper-ssl-report.png"&gt;&lt;/p&gt;
+&lt;p&gt;最后附上我的&lt;a href="https://www.EWhisper.cn/assets/SSL_Server_Test_ www.ewhisper.cn.pdf"&gt;完整报告&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Fri, 29 Mar 2019 10:50:29 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-29:/nginx-conf-add-ssl-support.html</guid><category>nginx</category><category>ssl</category><category>拨测</category><category>可用性</category></item></channel></rss>

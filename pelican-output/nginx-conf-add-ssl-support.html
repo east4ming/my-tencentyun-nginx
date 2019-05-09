@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="通过NGINX配置www.ewhisper.cn全站SSL加持, 启用高级别ssl配置, 启用HSTS, OCSP等高级功能. 同时记得要修改在第三方服务上的本站URL哦~" />
+<meta name="keywords" content="nginx, ssl, 拨测, 可用性">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="NGINX 配置SSL 支持"/>
+<meta property="og:description" content="通过NGINX配置www.ewhisper.cn全站SSL加持, 启用高级别ssl配置, 启用HSTS, OCSP等高级功能. 同时记得要修改在第三方服务上的本站URL哦~"/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/nginx-conf-add-ssl-support.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-03-29 10:50:29.353981+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="nginx"/>
+<meta property="article:tag" content="ssl"/>
+<meta property="article:tag" content="拨测"/>
+<meta property="article:tag" content="可用性"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; NGINX 配置SSL 支持</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="nginx-conf-add-ssl-support">NGINX 配置SSL 支持</h1>
+    <p>
+      在 2019-03-29 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="nginx+ssl" src="./images/nginx-ssl-certificate.jpg"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p><a href="https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html">上篇文章</a>中, 我们已经申请好了SSL证书. 那么现在, 我们就要配置全站SSL了! <img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"><img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"><img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4aa.png" title=":muscle:" width="20px"></p>
+<p>这次的工作主要是NGINX的配置, 同时会有一些我的博客本身的配置.</p>
+<blockquote>
+<p>博客本身配置更改包括: (这篇文章就先不细说了)</p>
+<ul>
+<li>网页内链接全部从http改为https(其实配置下SITEURL, 工具会自动生成好) 并重新发布. (特别要注意, 如果有的站内css, js等没有用https就尴尬了, 会被各类浏览器拦截掉, 并提示"不安全的脚本")</li>
+<li>网站有用到的第三方工具(如拨测), 把网站的地址改为 https开头的.</li>
+</ul>
+</blockquote>
+<h2 id="nginx">NGINX配置<a class="headerlink" href="#nginx" title="Permanent link">&para;</a></h2>
+<p>首先, 创建并上传准备好的证书文件到指定目录: (crt和key文件)</p>
+<div class="highlight"><pre><span></span>$ sudo mkdir -p /etc/pki/nginx/
+<span class="c1"># 通过sftp上传到该目录</span>
+</pre></div>
+
+
+<p>进行nginx.conf 的ssl配置, 本次主要涉及到server块的配置更改, 如下: (具体的指令作用见注释)</p>
+<div class="highlight"><pre><span></span>    <span class="k">server</span> <span class="p">{</span>
+        <span class="kn">listen</span>       <span class="mi">80</span><span class="p">;</span>
+        <span class="kn">server_name</span>  <span class="s">www.ewhisper.cn</span><span class="p">;</span>
+        <span class="kn">return</span> <span class="mi">301</span> <span class="s">https://</span><span class="nv">$host$request_uri</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">server</span> <span class="p">{</span>
+        <span class="kn">listen</span>       <span class="mi">443</span> <span class="s">ssl</span> <span class="s">http2</span><span class="p">;</span>
+        <span class="kn">server_name</span>  <span class="s">www.ewhisper.cn</span><span class="p">;</span>
+        <span class="kn">root</span>         <span class="s">/usr/share/nginx/html</span><span class="p">;</span>  <span class="c1"># 静态博客的存放位置</span>
+
+        <span class="kn">ssl_certificate</span> <span class="s">&quot;/etc/pki/nginx/1_www.ewhisper.cn_bundle.crt&quot;</span><span class="p">;</span>  <span class="c1"># 证书路径</span>
+        <span class="kn">ssl_certificate_key</span> <span class="s">&quot;/etc/pki/nginx/2_www.ewhisper.cn.key&quot;</span><span class="p">;</span>  <span class="c1"># 证书密钥路径</span>
+        <span class="kn">ssl_session_cache</span> <span class="s">shared:SSL:50m</span><span class="p">;</span>  <span class="c1"># ssl session cache分配50m空间, 缓存ssl session</span>
+        <span class="kn">ssl_session_timeout</span>  <span class="s">1d</span><span class="p">;</span>  <span class="c1"># ssl session 超时时间为1天</span>
+        <span class="kn">ssl_session_tickets</span> <span class="no">off</span><span class="p">;</span>  <span class="c1"># ssl session ticket 机制, 部分版本有bug, 视情况开启.</span>
+
+        <span class="kn">ssl_protocols</span> <span class="s">TLSv1.2</span><span class="p">;</span>  <span class="c1"># ssl 协议版本</span>
+        <span class="kn">ssl_ciphers</span> <span class="s">&#39;ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256&#39;</span><span class="p">;</span>  <span class="c1"># ssl ciphers</span>
+        <span class="kn">ssl_prefer_server_ciphers</span> <span class="no">on</span><span class="p">;</span>  <span class="c1"># 倾向于使用server端的ciphers</span>
+
+        <span class="c1"># HSTS 6 months</span>
+        <span class="kn">add_header</span> <span class="s">Strict-Transport-Security</span> <span class="s">max-age=15768000</span><span class="p">;</span>  
+        <span class="c1"># 添加个http header, 告诉浏览器直接转到https, 此功能有风险, 慎重选择. </span>
+        <span class="c1"># (比如你的证书过期忘记续了, 那么用户想转到http都没办法)</span>
+
+        <span class="kn">ssl_stapling</span> <span class="no">on</span><span class="p">;</span>  <span class="c1"># 启用ssl OCSP stapling功能, 服务端主动查询OCSP结果, 提高TLS效率</span>
+        <span class="kn">ssl_stapling_verify</span> <span class="no">on</span><span class="p">;</span>  <span class="c1"># 开启OCSP stapling 验证</span>
+
+        <span class="c1"># Load configuration files for the default server block.</span>
+        <span class="kn">include</span> <span class="s">/etc/nginx/default.d/*.conf</span><span class="p">;</span>  <span class="c1"># 我的博客的location在这里配置</span>
+
+        <span class="c1">#location / {</span>
+        <span class="c1">#}</span>
+
+        <span class="kn">error_page</span> <span class="mi">404</span> <span class="s">/404.html</span><span class="p">;</span>
+            <span class="kn">location</span> <span class="p">=</span> <span class="s">/40x.html</span> <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="kn">error_page</span> <span class="mi">500</span> <span class="mi">502</span> <span class="mi">503</span> <span class="mi">504</span> <span class="s">/50X.html</span><span class="p">;</span>
+            <span class="kn">location</span> <span class="p">=</span> <span class="s">/50X.html</span> <span class="p">{</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 说明:</p>
+<p>以上的某些指令, 我先大概介绍下, 后续会有文章做详细介绍.</p>
+<ol>
+<li><code>return 301 https://$host$request_uri;</code>   HTTP的全部永久重定向到https对应的URL</li>
+<li><code>/usr/share/nginx/html</code>  静态博客的存放位置</li>
+<li><code>ssl_session_timeout  1d;</code>  ssl session 超时时间为1天</li>
+<li><code>ssl_session_tickets off;  #</code>  ssl session ticket 机制, 部分版本有bug, 视情况开启.</li>
+<li><code>ssl_prefer_server_ciphers on;</code>  倾向于使用server端的ciphers</li>
+<li>HSTS功能:　添加个HTTP header, 告诉浏览器直接转到https, <img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px">此功能有风险, 慎重选择.  (比如你的证书过期忘记续了, 那么用户想转到HTTP都没办法)</li>
+<li><code>ssl_stapling on;</code>  启用ssl OCSP stapling功能, 服务端主动查询OCSP结果, 提高TLS握手效率</li>
+<li><code>/etc/nginx/default.d/*.conf;</code>  我的博客<code>location</code>配置<br>
+</li>
+</ol>
+</blockquote>
+<p><br/></p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 小技巧:</p>
+<p>火狐浏览器背后的基金会, 开源了一个非常好用的工具: <a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/">ssl-config-generator</a></p>
+<p>在这上边, 点一点就可以自动生成推荐的SSL配置了.</p>
+<p><img alt="ssl-config-generator" src="./images/ssl-config-generator.png"></p>
+<p>提一点, 如上图所示, 第二列一定要根据你的客户浏览器或客户端的版本使用情况慎重选择. </p>
+<p>比如, 用户还在用Windows XP, IE6, Java 6, 那么只能选择Old.</p>
+</blockquote>
+<p>接下来, 就是要重启nginx来生效了. </p>
+<div class="highlight"><pre><span></span>$ sudo nginx -t  <span class="c1"># 测试配置, 没问题再重启</span>
+$ sudo systemctl reload nginx.service
+</pre></div>
+
+
+<p>重启后, 测试发现 css js都没有生效. <img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"><img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"><img align="absmiddle" alt="😱" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f631.png" title=":scream:" width="20px"></p>
+<p>因为之前nginx刚配置过缓存. 当时脑子没转过来, 没有第一时间意识到可能是浏览器缓存的问题. 就直接nginx stop 再start了下. 结果悲催的我的网站可用性就从100%跌到99.81%了.</p>
+<p><img alt="网站可用性" src="images/index.png"></p>
+<p>后来终于意识到可能是浏览器缓存的问题了, 清理了缓存后, 再启动, 终于页面显示正常, 图标也从"不安全"变成了小锁.</p>
+<p><img alt="" src="./images/ssl-ewhisper.png"></p>
+<p>测试访问http://www.ewhisper.cn, 也会被强制转到 https://www.ewhisper.cn. 完美!<img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"></p>
+<h2 id="ssl">我的SSL评级<a class="headerlink" href="#ssl" title="Permanent link">&para;</a></h2>
+<p>再来介绍个好东西 - <a href="https://www.ssllabs.com/ssltest/analyze.html">SSL Labs</a>. 可以对你的网站进行SSL 安全评级. </p>
+<p>点击链接, 输入网站地址, 喝杯茶, 结果就出来了 - <strong>A+</strong> 哈哈哈哈哈!!!!</p>
+<p><img alt="我的网站SSL评分" src="./images/ewhisper-ssl-report.png"></p>
+<p>最后附上我的<a href="https://www.EWhisper.cn/assets/SSL_Server_Test_ www.ewhisper.cn.pdf">完整报告</a></p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/nginx.html">nginx</a>
+      <a href="https://www.EWhisper.cn/tag/ssl.html">ssl</a>
+      <a href="https://www.EWhisper.cn/tag/bo-ce.html">拨测</a>
+      <a href="https://www.EWhisper.cn/tag/ke-yong-xing.html">可用性</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html" title="腾讯云申请免费SSL证书">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/centos-7-install-x11-desktop-and-chinese-support.html" title="CentOS 7.5 安装X11桌面和中文支持">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/initialize-my-tencentyun-server.html">腾讯云服务器初始化操作</a></li>
+      <li><a href="https://www.EWhisper.cn/build-ide-on-tencentyun.html">在云服务器上搭建集成开发环境</a></li>
+      <li><a href="https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html">腾讯云申请免费SSL证书</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

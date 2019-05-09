@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="AIOps平台通过结合大数据, 机器学习和可视化, 通过更深入的分析洞察来增强IT运营. IT领导应该启动AIOps部署, 以优化当前的性能分析, 并在未来两到五年扩展到IT服务管理和自动化." />
+<meta name="keywords" content="gartner, aiops, 可观察性, 大数据, 机器学习">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="什么是 AIOps?"/>
+<meta property="og:description" content="AIOps平台通过结合大数据, 机器学习和可视化, 通过更深入的分析洞察来增强IT运营. IT领导应该启动AIOps部署, 以优化当前的性能分析, 并在未来两到五年扩展到IT服务管理和自动化."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/what-is-aiops.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-04-02 22:21:31.386802+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Observability"/>
+<meta property="article:tag" content="gartner"/>
+<meta property="article:tag" content="aiops"/>
+<meta property="article:tag" content="可观察性"/>
+<meta property="article:tag" content="大数据"/>
+<meta property="article:tag" content="机器学习"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 什么是 AIOps?</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="what-is-aiops">什么是 AIOps?</h1>
+    <p>
+      在 2019-04-02 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#aiops">什么是 AIOps</a><ul>
+<li><a href="#aiops_1">AIOps 描述</a></li>
+<li><a href="#aiops_2">典型AIOps 平台介绍</a></li>
+<li><a href="#_1">上下文协作和知识捕获</a></li>
+<li><a href="#aiops_3">AIOps 诞生背景</a></li>
+</ul>
+</li>
+<li><a href="#_2">市场分析</a><ul>
+<li><a href="#_3">数据摄取和处理</a></li>
+<li><a href="#_4">分析结果</a></li>
+</ul>
+</li>
+<li><a href="#_5">代表性供应商</a></li>
+<li><a href="#aiops_4">AIOps 平台建设建议</a><ul>
+<li><a href="#aiops_5">通过采用增量方法确保成功部署AIOps功能</a></li>
+<li><a href="#aiops_6">选择能够支持广泛的历史和流数据类型的AIOps平台</a></li>
+</ul>
+</li>
+<li><a href="#_6">总结</a><ul>
+<li><a href="#_7">建议</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="aiops">什么是 AIOps<a class="headerlink" href="#aiops" title="Permanent link">&para;</a></h2>
+<p>AIOps平台结合了<strong>大数据</strong>和<strong>机器学习</strong>功能, 通过可扩展的提取和分析IT不断增加的<strong>数据量(volume), 数据种类(variety)和数据生成速度(velocity)</strong>来支持所有的主要IP运维功能. 该<strong>平台支持使用多个数据源(监控的数据源), 数据收集方法以及分析和演示技术.</strong></p>
+<h3 id="aiops_1">AIOps 描述<a class="headerlink" href="#aiops_1" title="Permanent link">&para;</a></h3>
+<p>AIOps可以增强多种常见的IT运营流程和任务, 包括<strong>性能分析, 异常检测, 事件关联和分析, IT服务管理和自动化.</strong><br>
+它们的核心功能是:</p>
+<ul>
+<li><strong>提取数据</strong> - 从与供应商有关或无关的多个源中提取数据</li>
+<li><strong>数据分析</strong> - 通过以下2点启用数据分析:<ul>
+<li>提取时的实时分析(流式数据引擎)</li>
+<li>存储数据的历史分析(大数据离线分析)</li>
+</ul>
+</li>
+<li><strong>数据访问</strong> - 提供对数据的访问</li>
+<li><strong>数据存储</strong> - 存储采集的数据</li>
+<li>使用<strong>机器学习</strong></li>
+<li><strong>关联操作</strong> - 根据分析结果启动操作或下一步</li>
+</ul>
+<p>分析工作的目标是发现和建立模型 - 用于预测可能的事件和新出现的使用情况 - 并及时回看历史数据已确定当前系统行为的根本原因.</p>
+<p><img alt="AIOps平台在IT运营管理(ITOM)中持续洞察" src="./images/340492_0001.png"></p>
+<h3 id="aiops_2">典型AIOps 平台介绍<a class="headerlink" href="#aiops_2" title="Permanent link">&para;</a></h3>
+<p>下面以典型的AIOps 平台为例, 对AIOps的相关功能进行一一介绍.</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:<br>
+截图来自: <a href="https://www.moogsoft.com/">moogsoft</a></p>
+</blockquote>
+<h4>概览</h4>
+<p>下图为软件首页,  着重展示了功能:</p>
+<ul>
+<li><strong>告警降噪</strong> - 250000 的事件降噪为55个场景, 过滤噪声99.9%</li>
+</ul>
+<p><img alt="概览" src="./images/moogsoft-ai-ops-overview-in-situ@2x.png"></p>
+<p>以下是这个AIOps软件的主要功能:</p>
+<h4>集成</h4>
+<p>与IT监控，自动化，服务管理，通知和协作工具进行50多种开箱即用的集成; 通过REST，syslog，webhook，socket或SNMP，我们可以与数百个集成，为您在一个平台上的整个IT工具链提供可见的上下文。(集成, 源端集成监控, 目标端集成自动化, 通知工具等)</p>
+<p>集成接口:</p>
+<p><img alt="集成方式" src="./images/plug-graphics-logos-lg.png"></p>
+<p>集成的监控:</p>
+<p><img alt="集成监控" src="./images/Integrations-1.png"></p>
+<h4>降噪</h4>
+<p>通过对整个监控堆栈中的所有事件进行数学分析，将信号与噪声分离，将警报量降低90％或更多。</p>
+<p><img alt="降噪" src="./images/noise-reduction-eduction-reduced.png"></p>
+<h4>关联</h4>
+<p>关联整个监控堆栈中的相关警报，为运维人员提供上下文感知，以更快地发现事件。</p>
+<p><img alt="关联" src="./images/Asset-19@3x.png"></p>
+<h4>根因分析</h4>
+<p>机器学习和基于拓扑的算法在当前事件中列出可能根本原因。最重要的是，我们的技术从过去学习，所以如果问题再次出现，您会自动收到有关如何更快地修复它的说明。</p>
+<p><img alt="根因分析" src="./images/probable-root-cause-reduced.png"></p>
+<h3 id="_1">上下文协作和知识捕获<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>将事件传递到合适的人员，以便他们可以一起更快地解决每个事件，同时记录相关恢复步骤，类似事件。我们的AIOps平台可以快速，轻松地跨团队和工具进行协作。</p>
+<p><img alt="协作1" src="./images/Collaboration-1-reduced.png"></p>
+<p><img alt="协作2" src="./images/Collaboration-2-reduced.png"></p>
+<p><img alt="协作3" src="./images/Collaboration-3-reduced.png"></p>
+<h3 id="aiops_3">AIOps 诞生背景<a class="headerlink" href="#aiops_3" title="Permanent link">&para;</a></h3>
+<p>在过去二十年中，人工智能技术间歇性地影响了ITOM的发展，而AIOps平台只是这种影响的最新例证。IT运营一方面要求精细化运营, 降低成本，另一方面又增加了运营复杂性。可以在<strong>数据量(volume), 数据种类(variety)和数据生成速度(velocity)</strong>的三个维度上定义复杂性：</p>
+<ul>
+<li>IT基础架构和应用程序产生的<strong>数据量</strong>快速增长（每年增长2到3倍）</li>
+<li>机器和人类生成的<strong>数据类型越来越多</strong>（例如，指标，日志，wire数据和文档[知识管理]）</li>
+<li>由于采用了云原生或其他敏捷架构，<strong>数据生成速度</strong>不断提高，IT架构内的变化率也在不断提高</li>
+</ul>
+<p>在处理大量，多样化和速度的数据时，现有的监控工具面临压力。更重要的是，监控工具不会跨越提取有用见解所需的多种数据类型。例如，企业需要大量数据，这些数据可能跨越<strong>基础架构</strong>和<strong>应用程序指标</strong>，<strong>用户体验数据</strong>，<strong>业务交易数据</strong>，<strong>拨测数据</strong>以及来自各种<strong>系统的日志</strong>，以获得更多分析, 洞察和见解。</p>
+<p>非IT团队如业务条线和IT运营团队（如应用程序开发人员和DevOps），越来越多地表现出对AIOps技术的兴趣，以便在多个数据集中表现出洞察力。<br>
+此外，由于数字业务，IT需要采取行动的速度也在不断提高(敏捷快速)，因此需要可以提供以下帮助的工具：</p>
+<ul>
+<li><strong>降低噪音</strong>（例如，以误报或冗余事件的形式）</li>
+<li><strong>根因分析</strong> - 提供更好的因果关系，这有助于确定事故的可能原因</li>
+<li><strong>动态告警基线</strong> - 捕获超出静态阈值的异常，以主动检测异常情况</li>
+<li><strong>故障预测</strong> - 推断未来事件以防止潜在的故障</li>
+<li><strong>集成处理</strong>  - 启动解决问题的操作（直接或通过集成）</li>
+</ul>
+<p>迄今为止，AIOps功能主要用于支持IT运维流程，以便监控或观察IT基础架构，应用程序行为或数字体验。AIOps平台投资几乎总是基于其<strong>减少平均解决问题时间</strong>(提高业务连续性)的能力而得到认可。无论是采用机器学习还是在事件管理上下文中对事件进行重复数据删除，还是在APM上下文中结合基于字节码检测的分布式跟踪数据来分析应用程序日志数据，它们都是合理的。</p>
+<p>AIOps正在逐渐演变，不仅可以提取数据进行分析，还可以<strong>根据分析启动相应操作</strong>。这些操作（最有可能通过与其他ITOM和ITSM工具的集成）将采取多种形式，包括：</p>
+<ul>
+<li>告警及告警处置</li>
+<li>问题自动分类及记录</li>
+<li>CMDB清洗, 修正和关联</li>
+<li>运行预定自动化动作</li>
+<li>应用程序发布编排</li>
+</ul>
+<p>AIOps工具在监控的四个阶段 - <strong>数据采集，聚合，分析和行动</strong>（见图2） - 显示了“右移” - 具有数据聚合和分析的核心功能。随着技术的进一步发展，用户将能够利用平台的主动建议，实现行动操作的阶段。<br>
+关于监控工具与AIOps的争论刚刚开始，而且可能会增长。然而，从长远来看，专家领域将存在专业监控工具，而对于IT运营通才(SRE团妒?)，主要的工具将是AIOps。</p>
+<p><img alt="监控的4个阶段" src="./images/340492_0002.png"></p>
+<h2 id="_2">市场分析<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>迄今为止，很少有供应商提供全面，集成的AIOps平台。然而，许多供应商提供了广泛的AIOps功能，其子集彼此集成。为了更清楚地了解市场如何发展以及供应商彼此之间的位置，Gartner将当前可用的AIOps功能划分为数据管理和分析结果两大类：</p>
+<h3 id="_3">数据摄取和处理<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>历史和流数据管理 - 允许提取，索引和持久化存储日志数据，wire数据，指标和文档数据的软件或设备。由此产生的数据库大部分是非结构化的或多结构化的，而存储的数据集以高容量累积，以高速度变化并且根据高度变化的格式隐式地构造。这种历史数据管理功能可称为“大数据管理”。为了在IT运营用例下提供价值，该工具还必须将人类用户感知的时间尺度的数据呈现为实时，直接在摄取时提供数据无需访问持久数据库。它必须跨多个实时和历史数据流提供连贯的分析。</li>
+</ul>
+<h3 id="_4">分析结果<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>基本和高级统计分析</strong>- 单变量和多变量分析的组合，包括对IT实体捕获的指标以及源头策划数据的相关性，聚类，分类和推断的使用。</li>
+<li><strong>自动建立模型和预测</strong> - 使用上述一种或多种类型的历史或流数据，以引出描述可以从数据集本身推断但不立即存在的新相关的数学或结构模式。然后可以使用这些模式及时前进并以不同程度的概率预测事件。</li>
+<li><strong>异常检测</strong> - 使用先前组件发现的模型首先确定什么构成正常的系统行为，然后辨别出与正常系统行为的偏差。</li>
+<li><strong>根因分析</strong> - 修剪由自动化模式发现和预测组件建立的相关性网络，以隔离代表真正因果关系的依赖性链接，从而提供有效干预的解决方案。</li>
+<li><strong>适用性建议</strong> - 对问题进行分类，将其分类为已知类别。然后，它可以挖掘先前解决方案的存储，分析这些解决方案的适用性并以优先级形式提供它们以用于补救。最终，这些将使用闭环方法，并在使用后对其有效性进行投票。</li>
+<li><strong>拓扑</strong>- 对于AIOps检测到的相关且可操作的模式，必须围绕所摄取的数据放置上下文。该上下文是拓扑。如果没有拓扑的上下文和事实上的约束，检测到的模式虽然有效，但可能无益且分散注意力。从拓扑中的数据派生模式将减少模式的数量，建立相关性并说明隐藏的依赖性。使用拓扑作为因果关系确定的一部分可以大大提高其准确性和有效性。使用图形和瓶颈分析捕获事件发生的位置及其上下游依赖关系可以提供关于重点修复工作的重点。</li>
+</ul>
+<h2 id="_5">代表性供应商<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>供应商</th>
+<th>成立年份</th>
+<th>总部</th>
+<th>网站</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anodot</td>
+<td>2014</td>
+<td>Israel</td>
+<td><a href="https://www.anodot.com/">https://www.anodot.com/</a></td>
+</tr>
+<tr>
+<td>BigPanda</td>
+<td>2014</td>
+<td>United States</td>
+<td><a href="https://www.bigpanda.io/">https://www.bigpanda.io</a></td>
+</tr>
+<tr>
+<td>BMC</td>
+<td>1980</td>
+<td>United States</td>
+<td><a href="https://www.bmc.com/">https://www.bmc.com/</a></td>
+</tr>
+<tr>
+<td>Brains Technology</td>
+<td>2008</td>
+<td>Japan</td>
+<td><a href="https://www.brains-tech.co.jp/en/">https://www.brains-tech.co.jp/en/</a></td>
+</tr>
+<tr>
+<td>CA Technologies</td>
+<td>1974</td>
+<td>United States</td>
+<td><a href="https://www.ca.com/us.html">https://www.ca.com/us.html</a></td>
+</tr>
+<tr>
+<td>Devo (Logtrust)</td>
+<td>2011</td>
+<td>United States</td>
+<td><a href="https://www.devo.com/">https://www.devo.com/</a></td>
+</tr>
+<tr>
+<td>Elastic</td>
+<td>2012</td>
+<td>United States</td>
+<td><a href="https://www.elastic.co/">https://www.elastic.co/</a></td>
+</tr>
+<tr>
+<td>Evolven</td>
+<td>2007</td>
+<td>United States</td>
+<td><a href="https://www.evolven.com/">https://www.evolven.com/</a></td>
+</tr>
+<tr>
+<td>FixStream</td>
+<td>2013</td>
+<td>United States</td>
+<td><a href="https://fixstream.com/">https://fixstream.com/</a></td>
+</tr>
+<tr>
+<td>IBM</td>
+<td>1911</td>
+<td>United States</td>
+<td><a href="http://www.ibm.com/">www.ibm.com</a></td>
+</tr>
+<tr>
+<td>InfluxData</td>
+<td>2013</td>
+<td>United States</td>
+<td><a href="https://www.influxdata.com/">https://www.influxdata.com/</a></td>
+</tr>
+<tr>
+<td>ITRS</td>
+<td>1993</td>
+<td>United Kingdom</td>
+<td><a href="https://www.itrsgroup.com/">https://www.itrsgroup.com/</a></td>
+</tr>
+<tr>
+<td>jKool</td>
+<td>2014</td>
+<td>United States</td>
+<td><a href="https://www.jkoolcloud.com/">https://www.jkoolcloud.com/</a></td>
+</tr>
+<tr>
+<td>Loom Systems</td>
+<td>2015</td>
+<td>United States</td>
+<td><a href="https://www.loomsystems.com/">https://www.loomsystems.com/</a></td>
+</tr>
+<tr>
+<td>Moogsoft</td>
+<td>2011</td>
+<td>United States</td>
+<td><a href="https://www.moogsoft.com/">https://www.moogsoft.com/</a></td>
+</tr>
+<tr>
+<td>Scalyr</td>
+<td>2012</td>
+<td>United States</td>
+<td><a href="https://www.scalyr.com/">https://www.scalyr.com/</a></td>
+</tr>
+<tr>
+<td>ScienceLogic</td>
+<td>2003</td>
+<td>United States</td>
+<td><a href="https://sciencelogic.com/">https://sciencelogic.com/</a></td>
+</tr>
+<tr>
+<td>SignalFx</td>
+<td>2013</td>
+<td>United States</td>
+<td><a href="https://signalfx.com/">https://signalfx.com/</a></td>
+</tr>
+<tr>
+<td>Splunk</td>
+<td>2004</td>
+<td>United States</td>
+<td><a href="https://www.splunk.com/">https://www.splunk.com/</a></td>
+</tr>
+<tr>
+<td>Stackstate</td>
+<td>2015</td>
+<td>Netherlands</td>
+<td><a href="https://www.stackstate.com/">https://www.stackstate.com/</a></td>
+</tr>
+<tr>
+<td>Sumo Logic</td>
+<td>2010</td>
+<td>United States</td>
+<td><a href="https://www.sumologic.com/">https://www.sumologic.com/</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="aiops_4">AIOps 平台建设建议<a class="headerlink" href="#aiops_4" title="Permanent link">&para;</a></h2>
+<h3 id="aiops_5">通过采用增量方法确保成功部署AIOps功能<a class="headerlink" href="#aiops_5" title="Permanent link">&para;</a></h3>
+<p>AIOps功能的有效部署需要从根据数据源重组IT域开始的结构化方法。这种方法将所需的焦点转移到数据集而不是工具，这是传统的方法。Gartner发现，最好先掌握从各种来源获取的大型持久数据集的使用。只有在IT运营团队熟练掌握AIOps的大数据方面之后，才能尝试掌握能力类别。因此，在选择工具或服务时，企业应优先考虑那些允许部署数据提取，存储和访问的供应商，而不依赖于剩余的AIOps组件。鉴于AIOps将用于多个用例，I＆O领导者必须确保供应商支持逐步添加其他功能。</p>
+<h3 id="aiops_6">选择能够支持广泛的历史和流数据类型的AIOps平台<a class="headerlink" href="#aiops_6" title="Permanent link">&para;</a></h3>
+<p>现代IT运营旨在获得IT实体的综合可见性，包括应用程序，其关系，相互依赖性和过去的转换，以深入了解整体IT环境的现状。选择正确的数据源对于避免盲点至关重要。部署成熟度和不断变化的用例的渐进性需要准备好摄取各种数据源。I＆O领导者必须选择能够摄取和提供对各种历史和流数据类型的访问的AIOps平台（参见图3）。</p>
+<p><img alt="AIOps获取的数据类型" src="./images/340492_0003.png"></p>
+<h2 id="_6">总结<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<h3 id="_7">建议<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>负责优化IT运营的数据中心负责人应该:</p>
+<ul>
+<li>通过采用以历史数据开始的增量方法部署AIOps, 并逐步使用<strong>流数据</strong>, 与不断改进的IT运营成熟度保持一致.</li>
+<li>要选择这样的 AIOps平台: 通过识别能够摄取和提供对文本和指标数据访问的AIOps平台, 能够全面了解IT系统过去和现在的平台.</li>
+<li>通过选择支持逐步部署面向IT运维的机器学习四个阶段的工具, 深化其IT运营团队的分析技能: 描述性, 诊断性, 主动性能力和根本原因分析, 以帮助避免高严重性中断.</li>
+</ul>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/gartner.html">gartner</a>
+      <a href="https://www.EWhisper.cn/tag/aiops.html">aiops</a>
+      <a href="https://www.EWhisper.cn/tag/ke-guan-cha-xing.html">可观察性</a>
+      <a href="https://www.EWhisper.cn/tag/da-shu-ju.html">大数据</a>
+      <a href="https://www.EWhisper.cn/tag/ji-qi-xue-xi.html">机器学习</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/the-declaration-of-sre.html" title="SRE 宣言">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-4-register-linux-system-service.html" title="Dynatrace AppMon 实战手册 - 4.Dynatrace组件Linux系统配置为服务">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/initialize-my-tencentyun-server.html">腾讯云服务器初始化操作</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

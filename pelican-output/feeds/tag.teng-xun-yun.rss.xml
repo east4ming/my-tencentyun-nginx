@@ -1,0 +1,825 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - 腾讯云</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Fri, 29 Mar 2019 11:01:50 +0800</lastBuildDate><item><title>CentOS 7.5 安装X11桌面和中文支持</title><link>https://www.EWhisper.cn/centos-7-install-x11-desktop-and-chinese-support.html</link><description>&lt;h1 id="_1"&gt;概述&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;通过在CentOS 7.5 上安装X11桌面环境和中文语言、字体、输入法来将云服务器打造成 Python 集成开发环境。&lt;/p&gt;
+&lt;p&gt;需要安装的软件或软件包有:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;X Window System&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Fonts&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;input-methods&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id="x11"&gt;安装 X11 桌面系统&lt;a class="headerlink" href="#x11" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;软件包组: X Window System 包含的信息如下:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo yum group info &lt;span class="s2"&gt;&amp;quot;X Window System&amp;quot;&lt;/span&gt;
+Loaded plugins: fastestmirror, langpacks
+Loading mirror speeds from cached hostfile
+
+Group: X Window System
+ Group-Id: x11
+ Description: X Window System Support.
+ Mandatory Packages:
+   &lt;span class="o"&gt;=&lt;/span&gt;glx-utils
+   &lt;span class="o"&gt;=&lt;/span&gt;initial-setup-gui
+   &lt;span class="o"&gt;=&lt;/span&gt;mesa-dri-drivers
+   &lt;span class="o"&gt;=&lt;/span&gt;plymouth-system-theme
+   &lt;span class="o"&gt;=&lt;/span&gt;spice-vdagent
+   &lt;span class="o"&gt;=&lt;/span&gt;xorg-x11-drivers
+   &lt;span class="o"&gt;=&lt;/span&gt;xorg-x11-server-Xorg
+   &lt;span class="o"&gt;=&lt;/span&gt;xorg-x11-utils
+   &lt;span class="o"&gt;=&lt;/span&gt;xorg-x11-xauth
+   &lt;span class="o"&gt;=&lt;/span&gt;xorg-x11-xinit
+   &lt;span class="o"&gt;=&lt;/span&gt;xvattr
+ Optional Packages:
+   mesa-libGLES
+   tigervnc-server
+   wayland-protocols-devel
+   xorg-x11-drv-keyboard
+   xorg-x11-drv-libinput
+   xorg-x11-drv-mouse
+   xorg-x11-drv-openchrome
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo yum group install -y &lt;span class="s2"&gt;&amp;quot;X Window System&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1 id="_2"&gt;安装字体&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;软件包组: "Fonts"包含以下包:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo yum group info &lt;span class="s2"&gt;&amp;quot;Fonts&amp;quot;&lt;/span&gt;
+Loaded plugins: fastestmirror, langpacks
+Loading mirror speeds from cached hostfile
+
+Group: Fonts
+ Group-Id: fonts
+ Description: Fonts &lt;span class="k"&gt;for&lt;/span&gt; rendering text in a variety of languages and scripts.
+ Default Packages:
+   &lt;span class="o"&gt;=&lt;/span&gt;cjkuni-uming-fonts
+    dejavu-sans-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;dejavu-sans-mono-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;dejavu-serif-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;gnu-free-mono-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;gnu-free-sans-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;gnu-free-serif-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;google-crosextra-caladea-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;google-crosextra-carlito-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;google-noto-emoji-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;jomolhari-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;khmeros-base-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;liberation-mono-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;liberation-sans-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;liberation-serif-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lklug-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-assamese-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-bengali-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-devanagari-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-gujarati-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-kannada-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-malayalam-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-marathi-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-nepali-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-oriya-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-punjabi-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-tamil-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;lohit-telugu-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;madan-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;nhn-nanum-gothic-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;open-sans-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;overpass-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;paktype-naskh-basic-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;paratype-pt-sans-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;sil-abyssinica-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;sil-nuosu-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;sil-padauk-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;smc-meera-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;stix-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;thai-scalable-waree-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;ucs-miscfixed-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;vlgothic-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;wqy-microhei-fonts
+   &lt;span class="o"&gt;=&lt;/span&gt;wqy-zenhei-fonts
+ Optional Packages:
+   aajohan-comfortaa-fonts
+   bitmap-fixed-fonts
+   bitmap-lucida-typewriter-fonts
+   bpg-chveulebrivi-fonts
+   bpg-courier-fonts
+   bpg-glaho-fonts
+   cjkuni-ukai-fonts
+   comic-neue-fonts
+   culmus-aharoni-clm-fonts
+   culmus-caladings-clm-fonts
+   culmus-david-clm-fonts
+   culmus-drugulin-clm-fonts
+   culmus-ellinia-clm-fonts
+   culmus-frank-ruehl-clm-fonts
+   culmus-hadasim-clm-fonts
+   culmus-keteryg-fonts
+   culmus-miriam-clm-fonts
+   culmus-miriam-mono-clm-fonts
+   culmus-nachlieli-clm-fonts
+   culmus-simple-clm-fonts
+   culmus-stamashkenaz-clm-fonts
+   culmus-stamsefarad-clm-fonts
+   culmus-yehuda-clm-fonts
+   freefont
+   ghostscript-chinese
+   google-noto-sans-armenian-fonts
+   google-noto-sans-devanagari-fonts
+   google-noto-sans-devanagari-ui-fonts
+   google-noto-sans-ethiopic-fonts
+   google-noto-sans-fonts
+   google-noto-sans-georgian-fonts
+   google-noto-sans-hebrew-fonts
+   google-noto-sans-khmer-fonts
+   google-noto-sans-khmer-ui-fonts
+   google-noto-sans-lao-fonts
+   google-noto-sans-lao-ui-fonts
+   google-noto-sans-tamil-fonts
+   google-noto-sans-tamil-ui-fonts
+   google-noto-sans-thai-fonts
+   google-noto-sans-thai-ui-fonts
+   google-noto-sans-ui-fonts
+   google-noto-serif-armenian-fonts
+   google-noto-serif-fonts
+   google-noto-serif-georgian-fonts
+   google-noto-serif-lao-fonts
+   google-noto-serif-thai-fonts
+   gubbi-fonts
+   horai-ume-gothic-fonts
+   horai-ume-mincho-fonts
+   horai-ume-pgothic-fonts
+   horai-ume-pmincho-fonts
+   horai-ume-uigothic-fonts
+   ipa-gothic-fonts
+   ipa-mincho-fonts
+   ipa-pgothic-fonts
+   ipa-pmincho-fonts
+   kacst-art-fonts
+   kacst-book-fonts
+   kacst-decorative-fonts
+   kacst-digital-fonts
+   kacst-farsi-fonts
+   kacst-letter-fonts
+   kacst-naskh-fonts
+   kacst-office-fonts
+   kacst-one-fonts
+   kacst-pen-fonts
+   kacst-poster-fonts
+   kacst-qurn-fonts
+   kacst-screen-fonts
+   kacst-title-fonts
+   kacst-titlel-fonts
+   khmeros-battambang-fonts
+   khmeros-bokor-fonts
+   khmeros-handwritten-fonts
+   khmeros-metal-chrieng-fonts
+   khmeros-muol-fonts
+   khmeros-siemreap-fonts
+   kurdit-unikurd-web-fonts
+   liberation-narrow-fonts
+   nafees-web-naskh-fonts
+   navilu-fonts
+   nhn-nanum-brush-fonts
+   nhn-nanum-myeongjo-fonts
+   nhn-nanum-pen-fonts
+   paktype-naqsh-fonts
+   paktype-tehreer-fonts
+   pothana2000-fonts
+   saab-fonts
+   samyak-devanagari-fonts
+   samyak-gujarati-fonts
+   samyak-malayalam-fonts
+   samyak-oriya-fonts
+   samyak-tamil-fonts
+   smc-anjalioldlipi-fonts
+   smc-dyuthi-fonts
+   smc-kalyani-fonts
+   smc-rachana-fonts
+   smc-raghumalayalam-fonts
+   smc-suruma-fonts
+   thai-scalable-garuda-fonts
+   thai-scalable-kinnari-fonts
+   thai-scalable-loma-fonts
+   thai-scalable-norasi-fonts
+   thai-scalable-purisa-fonts
+   thai-scalable-sawasdee-fonts
+   thai-scalable-tlwgmono-fonts
+   thai-scalable-tlwgtypewriter-fonts
+   thai-scalable-tlwgtypist-fonts
+   thai-scalable-tlwgtypo-fonts
+   thai-scalable-umpush-fonts
+   tibetan-machine-uni-fonts
+   vemana2000-fonts
+   vlgothic-p-fonts
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo yum group install -y &lt;span class="s2"&gt;&amp;quot;Fonts&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 备注:&lt;/p&gt;
+&lt;p&gt;安装完成后可以手动刷新字体缓存:&lt;/p&gt;
+&lt;p&gt;安装字体相关的包:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ sudo yum install -y fontconfig mkfontscale&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;执行下面3条命令刷新字体缓存:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ mkfontscale&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;$ mkfontdir&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;$ fc-cache -fv&lt;/code&gt;&lt;br&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="_3"&gt;安装输入法&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;软件包组: "input-methods"包含:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo yum group info &lt;span class="s2"&gt;&amp;quot;input-methods&amp;quot;&lt;/span&gt;
+Loaded plugins: fastestmirror, langpacks
+Loading mirror speeds from cached hostfile
+
+Group: Input Methods
+ Group-Id: input-methods
+ Description: Software &lt;span class="k"&gt;for&lt;/span&gt; the input of international text.
+ Default Packages:
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-chewing
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-hangul
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-kkc
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-libpinyin
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-m17n
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-rawcode
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-sayura
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-table
+   &lt;span class="o"&gt;=&lt;/span&gt;ibus-table-chinese
+   &lt;span class="o"&gt;=&lt;/span&gt;m17n-contrib
+   &lt;span class="o"&gt;=&lt;/span&gt;m17n-db
+ Optional Packages:
+   ibus-typing-booster
+   iok
+ Conditional Packages:
+    gtk2-immodule-xim
+    gtk3-immodule-xim
+    ibus-gtk2
+    ibus-gtk3
+   -ibus-qt
+   -imsettings-cinnamon
+   -imsettings-gsettings
+   -imsettings-qt
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$  sudo yum group install -y &lt;span class="s2"&gt;&amp;quot;input-methods&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1 id="x11forwarding"&gt;启用 X11Forwarding&lt;a class="headerlink" href="#x11forwarding" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;修改&lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt; :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;X11Forwarding yes
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;重启服务生效:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo systemctl restart sshd.service
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1 id="_4"&gt;配置输入法&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;启用了 X11Forwarding之后, 就可以配置输入法 ibus 了, 选择使用中文pinyin输入法.&lt;/p&gt;
+&lt;h2 id="_5"&gt;英文环境下使用中文输入法&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;因为我个人买个了服务器, 打算既作为开发环境, 又作为网站博客使用. 所以语言环境就选择默认的: &lt;em&gt;en_US.utf8&lt;/em&gt; . 而并没有改为中文环境. 英文环境下使用中文输入法步骤如下:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;将安装到文件复制到英文环境下: (注意是&lt;code&gt;ibus*&lt;/code&gt;)&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ sudo cp /usr/share/locale/zh_CN/LC_MESSAGES/ibus* /usr/share/locale/en_US/LC_MESSAGES&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;将ibus设置为英文环境的开机启动项, 编辑文件&lt;code&gt;/etc/X11/xinit/xinputrc&lt;/code&gt;, 加入如下一行:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;_im_language_list=”en zh”&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="ibus"&gt;输入法 ibus 配置&lt;a class="headerlink" href="#ibus" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;输入如下ibus 输入法命令&lt;br&gt;
+&lt;code&gt;$ ibus-setup&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;如果&lt;code&gt;ibus-deamon&lt;/code&gt; 没有运行, 会弹出如下界面提示, 点击&lt;em&gt;Yes&lt;/em&gt;. 会后台执行命令: &lt;code&gt;ibus-daemon --xim&lt;/code&gt;&lt;br&gt;
+&lt;img alt="ibus-daemon 提示运行" src="images/1552980351961.png"&gt;&lt;/li&gt;
+&lt;li&gt;启动后会弹出如下提示:&lt;br/&gt;&lt;br&gt;
+&lt;img alt="ibus加入bashrc" src="images/1552981039781.png"&gt;&lt;br/&gt;&lt;br&gt;
+    以下需要加入到&lt;code&gt;~/.bashrc&lt;/code&gt;  或 &lt;code&gt;~/.zshrc&lt;/code&gt;中:&lt;br&gt;
+&lt;code&gt;export GTK_IM_MODULE=ibus&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;export XMODIFIERS=@im=ibus&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;export QT_IM_MODULE=ibus&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;ibus-daemon -rdx&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;点击&lt;em&gt;OK&lt;/em&gt;后会弹出 ibus 的配置界面, 如下:&lt;br&gt;
+&lt;img alt="ibus 首选项" src="images/1552981185401.png"&gt;&lt;/li&gt;
+&lt;li&gt;点击&lt;em&gt;输入法&lt;/em&gt; → &lt;em&gt;添加&lt;/em&gt; → &lt;em&gt;Chinese&lt;/em&gt; → &lt;em&gt;pinyin&lt;/em&gt; 来添加拼音输入法, 如下图:&lt;br&gt;
+&lt;img alt="添加输入法" src="images/1552981294294.png"&gt;&lt;br&gt;
+&lt;img alt="添加拼音输入法" src="images/1552981424476.png"&gt;&lt;/li&gt;
+&lt;li&gt;添加完成后, 可以通过X11启动, firefox 或 pycharm等来测试拼音输入法是否生效. 默认可以通过: &lt;code&gt;&amp;lt;Super&amp;gt;+&amp;lt;Space&amp;gt;&lt;/code&gt;按键来切换输入法.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;查看后台 ibus相关进程, 如下:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="ibus 相关进程" src="images/1552981628167.png"&gt;&lt;/p&gt;
+&lt;p&gt;另外, 如果某些配置不生效, 可以通过以下操作来使之生效:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;source&lt;/code&gt; 对应的文件. 如: &lt;code&gt;source ~/.bashrc&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;重新登陆&lt;/li&gt;
+&lt;li&gt;重启相关服务, 如: &lt;code&gt;ibus-daemon -rdx&lt;/code&gt; 或 &lt;code&gt;sudo systemctl restart sshd.service&lt;/code&gt;等&lt;/li&gt;
+&lt;li&gt;重启主机.&lt;br&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;最后, 就是安装自己喜欢的编辑器和IDE了, 推荐VSCODE和PyCharm.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Fri, 29 Mar 2019 11:01:50 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-29:/centos-7-install-x11-desktop-and-chinese-support.html</guid><category>linux</category><category>腾讯云</category><category>云</category></item><item><title>腾讯云申请免费SSL证书</title><link>https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html</link><description>&lt;h2 id="_1"&gt;前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;现在申请SSL证书的门槛和费用都大大降低了. 出现了很多免费提供加密证书的机构, 比较知名的是国外的&lt;a href="https://letsencrypt.org/"&gt;Let’s Encrypt&lt;/a&gt;, 免费, 自动化, 开放. 国内的云服务商也会提供免费的SSL证书. 下面是我在腾讯云上申请SSL证书的步骤.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="SSL" src="./images/SSL-Certificate.png"&gt;&lt;/p&gt;
+&lt;h2 id="_2"&gt;步骤&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;进入腾讯云&lt;a href="https://console.cloud.tencent.com/ssl"&gt;SSL证书管理页面&lt;/a&gt;, 点击 &lt;strong&gt;申请免费证书&lt;/strong&gt;, 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="申请免费证书" src="./images/tencentyun_app_ssl_1.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;目前腾讯云上提供的免费证书是 &lt;strong&gt;TRUSTAsia&lt;/strong&gt;家的, 选择并确定. 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="TRUSTAsia" src="./images/tencentyun_app_ssl_2.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;接下来就填写证书需要的相关信息, 很简单, 只有2项必填项:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通用名称, 具体的&lt;strong&gt;单域名&lt;/strong&gt;. (&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt; 如: www.ewhisper.cn, blog.ewhisper.cn. 不能是*.ewhisper.cn 这种通用域名.)&lt;/li&gt;
+&lt;li&gt;申请邮箱&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="证书信息" src="./images/tencentyun_app_ssl_3.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;接下来是域名身份验证. 腾讯云一套的话, 直接选择 &lt;strong&gt;自动DNS验证&lt;/strong&gt;. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="域名身份验证" src="./images/tencentyun_app_ssl_4.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;这样就完成申请了, 接下来就是等待审核了. 我的ssl审核的非常快, 也就十几分钟就下来了. 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="等待审核" src="./images/tencentyun_app_ssl_5.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;证书详情如下:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="证书详情" src="./images/tencentyun_app_ssl_6.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;证书信息列表如下, 证书有效期一年. 可以选择部署到CDN和负载均衡上. (如果有的话) 也可以下载部署到nginx上.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="证书信息列表" src="./images/tencentyun_app_ssl_7.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;下载的是个证书压缩包. 包括各类web server的证书类型:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Apache: key, crt, 和bundle.crt&lt;/li&gt;
+&lt;li&gt;IIS: pfx&lt;/li&gt;
+&lt;li&gt;Nginx: crt, key&lt;/li&gt;
+&lt;li&gt;Tomcat: jks&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;接下来就是NGINX配置的事情了. &lt;a href="https://www.EWhisper.cn/nginx-conf-add-ssl-support.html"&gt;戳这儿查看&lt;img align="absmiddle" alt="👉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f449.png" title=":point_right:" width="20px"&gt;&lt;/a&gt; &lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Fri, 29 Mar 2019 10:41:49 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-29:/tencentyun-apply-ssl-certificate.html</guid><category>SSL</category><category>腾讯云</category><category>云</category><category>安全</category></item><item><title>在云服务器上搭建集成开发环境</title><link>https://www.EWhisper.cn/build-ide-on-tencentyun.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#python"&gt;python优化配置&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#python-36"&gt;安装python 3.6&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#pipenv-python-36"&gt;安装pipenv: (主要使用python 3.6)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#python-37"&gt;编译安装Python 3.7&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#docker"&gt;Docker 配置&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;安装&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;修改仓库源&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;开机启动&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;使用腾讯云容器的相关服务&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="python"&gt;python优化配置&lt;a class="headerlink" href="#python" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;安装相关软件:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs gcc make patch  &lt;span class="c1"&gt;# 安装编译软件&lt;/span&gt;
+sudo yum group install -y development  &lt;span class="c1"&gt;# 安装开发包组&lt;/span&gt;
+sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs gdbm-devel openssl-libs openssl-devel openssl-devel ncurses-devel libsqlite3x-devel sqlite-devel readline-devel zlib-devel bzip2-devel python2-bz2file db4-devel libpcap-devel xz-devel libffi-devel sqlite3 sqlite python-ujson  &lt;span class="c1"&gt;# 安装依赖&lt;/span&gt;
+
+sudo yum install -y mariadb mariadb-server redis memcached &lt;span class="c1"&gt;# 安装mariadb&lt;/span&gt;
+sudo systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; mariadb.service redis.service  &lt;span class="c1"&gt;# mariadb redis 开机启动&lt;/span&gt;
+sudo systemctl start mariadb.service redis.service  &lt;span class="c1"&gt;# 启动mariadb服务&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="python-36"&gt;安装python 3.6&lt;a class="headerlink" href="#python-36" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y python36
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装pip:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum -y install python-pip python34-pip python36-pip
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;pip conf: &lt;/p&gt;
+&lt;p&gt;在文件&lt;code&gt;~/.pip/pip.conf&lt;/code&gt;中添加或修改:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[global]&lt;/span&gt;
+&lt;span class="na"&gt;index-url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;http://mirrors.tencentyun.com/pypi/simple&lt;/span&gt;
+&lt;span class="na"&gt;trusted-host&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mirrors.tencentyun.com&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;参考文章:&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://cloud.tencent.com/document/product/213/8623"&gt;腾讯云软件源加速软件包下载和更新&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="pipenv-python-36"&gt;安装pipenv: (主要使用python 3.6)&lt;a class="headerlink" href="#pipenv-python-36" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;pip3.6 install pipenv --user
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;编辑&lt;code&gt;~/.zshrc&lt;/code&gt;, 加入以下内容:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/home/casey/.local/bin:&lt;span class="nv"&gt;$PATH&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;后续使用&lt;code&gt;pipenv&lt;/code&gt;管理文件, 有以下几个要点:&lt;br&gt;
+1. 安装时候根据需要, 根据OS现有python指定, 如: &lt;code&gt;pipenv install --python /usr/bin/python36&lt;/code&gt;&lt;br&gt;
+2. 可以修改&lt;code&gt;Pipfile&lt;/code&gt;的以下配置, 加快依赖下载:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[[source]]&lt;/span&gt;
+&lt;span class="na"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;http://mirrors.tencentyun.com/pypi/simple --trusted-host mirrors.tencentyun.com&amp;quot;&lt;/span&gt;
+&lt;span class="na"&gt;verify_ssl&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;false&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="python-37"&gt;编译安装Python 3.7&lt;a class="headerlink" href="#python-37" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;需要先yum安装&lt;code&gt;libffi-devel&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 下载源码包并解压&lt;/span&gt;
+wget https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz
+tar -xvzf Python-3.7.2.tgz
+&lt;span class="nb"&gt;cd&lt;/span&gt; Python-3.7.2
+&lt;span class="c1"&gt;# configure &lt;/span&gt;
+sudo mkdir -p /usr/lib64/python3.7
+sudo ./configure --prefix&lt;span class="o"&gt;=&lt;/span&gt;/usr/lib64/python3.7
+&lt;span class="c1"&gt;# install&lt;/span&gt;
+sudo make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo make install
+&lt;span class="c1"&gt;# 创建软连接&lt;/span&gt;
+sudo rm -f /usr/bin/python3
+sudo ln -s /usr/lib64/python3.7/bin/python3 /usr/bin/python3
+&lt;span class="c1"&gt;# 加入PATH&lt;/span&gt;
+vi ~/.zshrc
+&lt;span class="c1"&gt;# .zshrc修改为以下内容&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/lib64/python3.7/bin:/home/casey/.local/bin:&lt;span class="nv"&gt;$PATH&lt;/span&gt;
+&lt;span class="c1"&gt;# 使得配置生效&lt;/span&gt;
+&lt;span class="nb"&gt;source&lt;/span&gt; ~/.zshrc
+&lt;span class="c1"&gt;# 验证&lt;/span&gt;
+python3 -V 
+&lt;span class="c1"&gt;# 输出: Python 3.7.2&lt;/span&gt;
+pip3 -V                     
+&lt;span class="c1"&gt;# 输出: pip 18.1 from /usr/lib64/python3.7/lib/python3.7/site-packages/pip (python 3.7)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2 id="docker"&gt;Docker 配置&lt;a class="headerlink" href="#docker" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="_1"&gt;安装&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs docker docker-compose docker-distribution docker-logrotate docker-lvm-plugin 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_2"&gt;修改仓库源&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;适用于 CentOS 7 版本。&lt;/p&gt;
+&lt;p&gt;修改 Docker 配置文件 &lt;code&gt;sudo vi /etc/sysconfig/docker&lt;/code&gt;，如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;OPTIONS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;--registry-mirror=https://mirror.ccs.tencentyun.com&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;参考文章:&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://cloud.tencent.com/document/product/457/9113"&gt;使用 DockerHub 加速器&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_3"&gt;开机启动&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_4"&gt;使用腾讯云容器的相关服务&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;控制台, 进入&lt;strong&gt;容器服务&lt;/strong&gt; → &lt;strong&gt;镜像仓库&lt;/strong&gt; → &lt;strong&gt;我的镜像&lt;/strong&gt; , 输入镜像仓库的个人密码. (账号是AppID)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;(可选): 在&lt;strong&gt;访问管理&lt;/strong&gt; → &lt;strong&gt;用户组&lt;/strong&gt; → &lt;strong&gt;当前用户组&lt;/strong&gt;里 → &lt;strong&gt;关联策略&lt;/strong&gt; : &lt;a href="https://console.cloud.tencent.com/cam/policy/detail/419082&amp;amp;QcloudCCRFullAccess&amp;amp;2"&gt;QcloudCCRFullAccess&lt;/a&gt; (镜像仓库全读写权限)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;云服务器使用如下命令登录:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo docker login --username=appid ccr.ccs.tencentyun.com&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;下载镜像:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo docker pull ccr.ccs.tencentyun.com/[namespace]/[ImageName]:[镜像版本号]&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 27 Mar 2019 09:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-27:/build-ide-on-tencentyun.html</guid><category>腾讯云</category><category>云</category><category>python</category><category>pipenv</category><category>docker</category></item><item><title>腾讯云服务器初始化操作</title><link>https://www.EWhisper.cn/initialize-my-tencentyun-server.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;重装系统&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;设置监控告警&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;创建密钥并绑定主机&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;安全组配置&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#centos-75"&gt;CentOS 7.5 优化配置&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_5"&gt;用户/登录相关优化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_6"&gt;更新系统和软件&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#git"&gt;安装及配置 Git&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#shell"&gt;优化配置shell&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#using-oh-my-zsh"&gt;Using Oh My Zsh&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#plugins"&gt;Plugins&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#themes"&gt;Themes&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;重装系统&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;因为我买的时候, CentOS最新只提供到7.3, 我希望使用CentOS 7.5. 看到镜像库里有(什么毛病, 买的时候为啥不提供&lt;img align="absmiddle" alt="😕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f615.png" title=":confused:" width="20px"&gt;&lt;img align="absmiddle" alt="😕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f615.png" title=":confused:" width="20px"&gt;&lt;img align="absmiddle" alt="😕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f615.png" title=":confused:" width="20px"&gt;), 所以重新安装下系统.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;选中实例, 点击&lt;strong&gt;更多&lt;/strong&gt;, 选择&lt;strong&gt;重装系统&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="重装系统" src="./images/init_tencentyun_install_os_1.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;选择&lt;strong&gt;公共镜像&lt;/strong&gt; -&amp;gt; &lt;strong&gt;CentOS&lt;/strong&gt; -&amp;gt; &lt;strong&gt;CentOS 7.5 64位&lt;/strong&gt; -&amp;gt; 输入root密码. 点击&lt;strong&gt;开始重装&lt;/strong&gt;. 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="重装系统具体选项" src="./images/init_tencentyun_install_os_2.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;等待重装完毕即可.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_2"&gt;设置监控告警&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;点击&lt;strong&gt;监控&lt;/strong&gt;图标:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="点击监控" src="./images/init_tencentyun_monitor_1.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;有以下监控指标, 如下图, 点击&lt;strong&gt;设置告警&lt;/strong&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;CPU&lt;/li&gt;
+&lt;li&gt;内存&lt;/li&gt;
+&lt;li&gt;宽带(内外网)&lt;/li&gt;
+&lt;li&gt;磁盘IO&lt;/li&gt;
+&lt;li&gt;分区使用请看&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="设置告警" src="./images/init_tencentyun_monitor_2.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;根据自己的需要, 定制告警策略. 示例如下:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="告警策略" src="./images/init_tencentyun_monitor_3.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;要配置告警通知渠道, 需要先&lt;strong&gt;新增用户组&lt;/strong&gt;. 如下(我和其他人合用, 所以建立一个用户组还是有必要的):&lt;/p&gt;
+&lt;p&gt;&lt;img alt="新增用户组" src="./images/init_tencentyun_monitor_4.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;新增用户组的操作如下, 先直接使用预设策略 - 管理员就可以了.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="新增用户组" src="./images/init_tencentyun_groupuser_3.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;接下来关联到具体的用户组&lt;/p&gt;
+&lt;p&gt;&lt;img alt="关联接受组" src="./images/init_tencentyun_monitor_5.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;点击&lt;strong&gt;完成&lt;/strong&gt;, 配置完成后如下所示: (可以把默认的禁用掉了)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="告警策略" src="./images/init_tencentyun_monitor_6.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_3"&gt;创建密钥并绑定主机&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;在&lt;strong&gt;SSH密钥&lt;/strong&gt; 菜单, 点击&lt;strong&gt;创建密钥&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="创建密钥" src="./images/init_tencentyun_key_1.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;创建密钥(&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;  密钥请妥善保存, 勿外传).&lt;/p&gt;
+&lt;p&gt;&lt;img alt="创建密钥" src="./images/init_tencentyun_key_2.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;创建后, 先关闭主机(关闭后的主机才能绑定密钥, 很好, 关机也受到告警了👌), 再选择&lt;strong&gt;绑定/解绑实例&lt;/strong&gt;, 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="绑定实例" src="./images/init_tencentyun_key_3.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="_4"&gt;安全组配置&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 备注:&lt;/p&gt;
+&lt;p&gt;类似于防火墙权限.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;点击&lt;strong&gt;安全组&lt;/strong&gt; -&amp;gt; &lt;strong&gt;新建&lt;/strong&gt;. 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="新建安全组" src="./images/init_tencentyun_securegroup_1.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;选择&lt;strong&gt;立即设置规则&lt;/strong&gt;. 具体原因如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="设置规则" src="./images/init_tencentyun_securegroup_2.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;可以先关联到我自己的云主机实例. 如下图:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="关联到实例" src="./images/init_tencentyun_securegroup_3.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;然后再配置出/入站规则, 先配置入站, 先选择&lt;strong&gt;一键放通&lt;/strong&gt;. 放通以下:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Linux SSH登录: 22端口&lt;/li&gt;
+&lt;li&gt;Windows登录: 3389&lt;/li&gt;
+&lt;li&gt;ping: ICMP协议&lt;/li&gt;
+&lt;li&gt;HTTP: 80&lt;/li&gt;
+&lt;li&gt;HTTPS: 443&lt;/li&gt;
+&lt;li&gt;FTP: 20和21&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="一键放通入站" src="./images/init_tencentyun_securegroup_4.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;再根据自己需要添加规则, 如下: (放通TCP的8000端口)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="自定义规则" src="./images/init_tencentyun_securegroup_5.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;最后配置出站规则, 选择&lt;strong&gt;一键放通&lt;/strong&gt;. 以后再慢慢细化, 如下:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="一键放通出栈" src="./images/init_tencentyun_securegroup_6.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;至此, 控制台上该配置的就配置的差不多了, 接下来登录主机进行配置.&lt;/p&gt;
+&lt;h2 id="centos-75"&gt;CentOS 7.5 优化配置&lt;a class="headerlink" href="#centos-75" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="_5"&gt;用户/登录相关优化&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;创建普通用户 基于公钥登录&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;创建普通用户: &lt;code&gt;useradd -m  -p yourpassword casey&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;普通用户基于公钥登录: (因为之前&lt;strong&gt;创建密钥并绑定主机&lt;/strong&gt;, 公钥已经存在于主机上了, 所以不需要keygen了, 直接复制就可以了)&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;cp /root/.ssh/authorized_keys /home/casey/.ssh &amp;amp;&amp;amp; chown -R casey:casey /home/casey/.ssh/&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;确认基于ssh公钥的登录是否工作&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 备注:&lt;/p&gt;
+&lt;p&gt;完整的&lt;strong&gt;基于公钥&lt;/strong&gt;登录的步骤如下: (前提是刚开始该账户能通过账号密码方式登录)&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在云主机上创建普通用户: &lt;code&gt;useradd -m -p yourpassword hellowordomain&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;使用 ssh-keygen命令在云主机上创建密匙对: &lt;code&gt;ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_tencent_$(date +%Y-%m-%d) -C "tencent key for hellowordomain"&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;使用 ssh-copy-id 命令安装公匙：&lt;code&gt;ssh-copy-id -i /path/to/public-key-file user@host&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;确认基于ssh公钥的登录是否工作&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;普通用户配置sudo权限&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;在 CentOS/RHEL 系统中如何将用户 vivek 添加到 sudo 组中&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在 CentOS/RHEL 和 Fedora 系统中允许 wheel 组中的用户执行所有的命令。使用 usermod 命令将用户 vivek 添加到 wheel 组中：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo usermod -aG wheel vivek
+$ id vivek
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;sudo无需输入密码&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# root用户&lt;/span&gt;
+visudo
+
+&lt;span class="c1"&gt;# 修改如下内容后保存退出&lt;/span&gt;
+&lt;span class="c1"&gt;## Allows people in group wheel to run all commands&lt;/span&gt;
+&lt;span class="c1"&gt;# %wheel        ALL=(ALL)       ALL&lt;/span&gt;
+
+&lt;span class="c1"&gt;## Same thing without a password&lt;/span&gt;
+%wheel  &lt;span class="nv"&gt;ALL&lt;/span&gt;&lt;span class="o"&gt;=(&lt;/span&gt;ALL&lt;span class="o"&gt;)&lt;/span&gt;       NOPASSWD: ALL
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;测试并确保用户 vivek 可以以 root 身份登录执行以下命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo -i  &lt;span class="c1"&gt;# 切换到root用户&lt;/span&gt;
+sudo systemctl status sshd  &lt;span class="c1"&gt;# 查看sshd的状态&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;&lt;code&gt;sshd_config&lt;/code&gt; 优化&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# 禁用root登录
+PermitRootLogin no
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+UsePAM no
+# 禁用密码登录 仅留下公匙登录
+AuthenticationMethods publickey
+PubkeyAuthentication yes
+# 禁用空密码
+PermitEmptyPasswords no
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;最后测试 &lt;code&gt;sshd_config&lt;/code&gt; 文件并重启/重新加载 SSH 服务&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo sshd -t
+sudo systemctl restart sshd.service
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_6"&gt;更新系统和软件&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum upgrade -y  &lt;span class="c1"&gt;# 升级所有软件&lt;/span&gt;
+sudo yum clean all -y  &lt;span class="c1"&gt;# 清理缓存&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="git"&gt;安装及配置 Git&lt;a class="headerlink" href="#git" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;安装Git&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo yum install -y --setopt=tsflags=nodocs git&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;配置git&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;git config --global user.name "east4ming"&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;git config --global user.email "cuikaidong@foxmail.com"&lt;/code&gt;&lt;br&gt;
+&lt;code&gt;ssh-keygen -t rsa -b 4096 -C "cuikaidong@foxmail.com"  # 已有私钥也可以重复使用&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;cat .ssh/id_rsa.pub&lt;/code&gt; 并复制 (id_rsa.pub是对应的公钥信息)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;打开github网页登入账户进入账户settings左边找到SSH，可以清理一下没用的SSH keys，然后新建一个 ，取名任意，粘贴进去cat产生的所有字符。保存即可。&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;缓存HTTPS方式的密码: &lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ git config --global credential.helper 'cache --timeout=3600'  # Set the cache to timeout after 1 hour (setting is in seconds)&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="shell"&gt;优化配置shell&lt;a class="headerlink" href="#shell" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;安装zsh&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs zsh
+zsh --version
+sudo chsh -s &lt;span class="k"&gt;$(&lt;/span&gt;which zsh&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;span class="c1"&gt;# 注销&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装powerline&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;pip install powerline-status --user
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;安装&lt;a href="https://github.com/robbyrussell/oh-my-zsh"&gt;&lt;strong&gt;oh-my-zsh&lt;/strong&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sh -c &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2 id="using-oh-my-zsh"&gt;Using Oh My Zsh&lt;a class="headerlink" href="#using-oh-my-zsh" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;以下内容来自 oh-my-zsh github&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="plugins"&gt;Plugins&lt;a class="headerlink" href="#plugins" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Oh My Zsh comes with a shitload of plugins to take advantage of. You can take a look in the &lt;a href="https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins"&gt;plugins&lt;/a&gt; directory and/or the &lt;a href="https://github.com/robbyrussell/oh-my-zsh/wiki/Plugins"&gt;wiki&lt;/a&gt;to see what's currently available.&lt;/p&gt;
+&lt;h4&gt;Enabling Plugins&lt;/h4&gt;
+&lt;p&gt;Once you spot a plugin (or several) that you'd like to use with Oh My Zsh, you'll need to enable them in the &lt;code&gt;.zshrc&lt;/code&gt; file. You'll find the zshrc file in your &lt;code&gt;$HOME&lt;/code&gt; directory. Open it with your favorite text editor and you'll see a spot to list all the plugins you want to load.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vi ~/.zshrc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;For example, this might begin to look like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;plugins=(
+git
+bundler
+dotenv
+osx
+rake
+rbenv
+ruby
+)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Using Plugins&lt;/h4&gt;
+&lt;p&gt;Most plugins (should! we're working on this) include a &lt;strong&gt;README&lt;/strong&gt;, which documents how to use them.&lt;/p&gt;
+&lt;h3 id="themes"&gt;Themes&lt;a class="headerlink" href="#themes" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;We'll admit it. Early in the Oh My Zsh world, we may have gotten a bit too theme happy. We have over one hundred themes now bundled. Most of them have &lt;a href="https://wiki.github.com/robbyrussell/oh-my-zsh/themes"&gt;screenshots&lt;/a&gt; on the wiki. Check them out!&lt;/p&gt;
+&lt;h4&gt;Selecting a Theme&lt;/h4&gt;
+&lt;p&gt;&lt;em&gt;Robby's theme is the default one. It's not the fanciest one. It's not the simplest one. It's just the right one (for him).&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Once you find a theme that you'd like to use, you will need to edit the &lt;code&gt;~/.zshrc&lt;/code&gt; file. You'll see an environment variable (all caps) in there that looks like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;ZSH_THEME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;robbyrussell&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To use a different theme, simply change the value to match the name of your desired theme. For example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;ZSH_THEME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;agnoster&amp;quot;&lt;/span&gt; &lt;span class="c1"&gt;# (this is one of the fancy ones)&lt;/span&gt;
+&lt;span class="c1"&gt;# see https://github.com/robbyrussell/oh-my-zsh/wiki/Themes#agnoster&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;em&gt;Note: many themes require installing the Powerline Fonts in order to render properly.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Open up a new terminal window and your prompt should look something like this:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Agnoster theme" src="https://cloud.githubusercontent.com/assets/2618447/6316862/70f58fb6-ba03-11e4-82c9-c083bf9a6574.png"&gt;&lt;/p&gt;
+&lt;p&gt;In case you did not find a suitable theme for your needs, please have a look at the wiki for &lt;a href="https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes"&gt;more of them&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you're feeling feisty, you can let the computer select one randomly for you each time you open a new terminal window.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ZSH_THEME=&amp;quot;random&amp;quot; # (...please let it be pie... please be some pie..)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And if you want to pick random theme from a list of your favorite themes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ZSH_THEME_RANDOM_CANDIDATES=(
+&amp;quot;robbyrussell&amp;quot;
+&amp;quot;agnoster&amp;quot;
+)
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Tue, 26 Mar 2019 21:09:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-26:/initialize-my-tencentyun-server.html</guid><category>腾讯云</category><category>云</category><category>centos</category><category>监控</category><category>告警</category><category>可观察性</category><category>安全</category><category>密钥</category><category>git</category><category>shell</category></item></channel></rss>

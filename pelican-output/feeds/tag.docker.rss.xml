@@ -1,0 +1,721 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>东风微鸣 Blog - docker</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 08 May 2019 18:41:34 +0800</lastBuildDate><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;介绍&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;用例&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;限制&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;教程概述&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_5"&gt;教程：构建本地代码更改&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_6"&gt;教程：构建私有代码&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#pipeline"&gt;教程：来自 pipeline 的二进制工件&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="_1"&gt;介绍&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;开发人员本地开发调试代码并构建;&lt;/li&gt;
+&lt;li&gt;OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;OpenShift中的二进制构建功能允许开发人员将源代码或工件直接上传到构建(build)，而不是从Git存储库URL pull需要构建的源。通过源代码，Docker或自定义构建策略的 BuildConfig 都可以作为二进制构建启动。从本地工件启动构建时，现有源引用将替换为来自本地用户计算机的源。&lt;/p&gt;
+&lt;p&gt;可以使用几种方式提供源，这些方式对应于使用&lt;code&gt;start-build&lt;/code&gt;命令时可用的参数：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从文件（&lt;code&gt;--from-file&lt;/code&gt;）：当构建的整个源包含单个文件时就是这种情况。例如，它可能是用于Docker构建的&lt;code&gt;Dockerfile&lt;/code&gt;，用于Java应用构建的&lt;code&gt;pom.xml&lt;/code&gt;，或用于Ruby构建的&lt;code&gt;Gemfile&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;从目录（&lt;code&gt;--from-directory&lt;/code&gt;）：当源在本地目录中并且未提交到Git存储库时使用此目录。&lt;code&gt;start-build&lt;/code&gt; 命令将创建给定目录的存档，并将其作为源上传到构建器(builder)。&lt;/li&gt;
+&lt;li&gt;从存档（&lt;code&gt;--from-archive&lt;/code&gt;）：当具有源的存档已存在时使用此选项。该存档可以是&lt;code&gt;tar&lt;/code&gt;，&lt;code&gt;tar.gz&lt;/code&gt;或&lt;code&gt;zip&lt;/code&gt;格式。&lt;/li&gt;
+&lt;li&gt;从Git存储库（&lt;code&gt;--from-repo&lt;/code&gt;）：源是当前用户本地计算机上的Git存储库的一部分。当前存储库的HEAD commit将被存档并发送到OpenShift进行构建。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="_2"&gt;用例&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;二进制构建适用于无法从现有Git存储库中提取源的需求。使用二进制构建的原因包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;构建和测试本地代码的变更。克隆来自公共存储库的源，并将本地变更上传到OpenShift进行构建。而无需在任何地方提交或推送本地更改。&lt;/li&gt;
+&lt;li&gt;构建私有代码。新构建可以作为二进制构建从头开始。然后可以将源直接从本地工作站上传到OpenShift，而无需将其签入SCM。&lt;/li&gt;
+&lt;li&gt;使用其他来源的工件构建镜像。通过Jenkins pipeline，二进制构建可以用于整合使用Maven或C编译器等工具构建的工件，以及使用这些构建的运行时镜像。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="_3"&gt;限制&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;二进制构建无法重复。由于二进制构建依赖于在构建开始时用户上传工件，因此OpenShift无法重复相同的构建而无需用户每次都重复相同的上载。&lt;/li&gt;
+&lt;li&gt;无法自动触发二进制生成。它们只能在用户上传所需的二进制工件时手动启动。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;以二进制构建方式启动的构建版本也可能具有已配置的源URL。如果是这种情况，触发器会成功启动构建，但源将来自配置的源URL，而不是来自上次构建运行时用户提供的源。(比如: 用户先从Git仓库下载了源码并修改, 用本地修改后的源码手动上传、构建，那么OpenShift会获取到Git仓库的URL, 如果配置了触发器, 下次构建就直接通过Git URL pull源码并自动构建, 而不是自动获取本地的源码.)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="_4"&gt;教程概述&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;以下教程假设您有一个可用的OpenShift集群，并且您有一个可以创建工件的项目。它要求您拥有本地&lt;code&gt;git&lt;/code&gt;和&lt;code&gt;oc&lt;/code&gt;客户端。&lt;/p&gt;
+&lt;h3 id="_5"&gt;教程：构建本地代码更改&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;基于现有源存储库创建新应用程序并为其创建路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app https://github.com/openshift/ruby-hello-world.git
+oc expose svc/ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;等待初始构建完成并通过route来查看应用程序的页面。你应该得到一个欢迎页面：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;在本地克隆存储库：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/openshift/ruby-hello-world.git
+&lt;span class="nb"&gt;cd&lt;/span&gt; ruby-hello-world
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;
+&lt;p&gt;更改应用程序的视图。使用您喜欢的编辑器编辑 &lt;code&gt;views/main.rb&lt;/code&gt;：将&lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt;标签更改为&lt;code&gt;&amp;lt;body style="background-color:blue"&amp;gt;&lt;/code&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用本地修改的源启动新构建。在存储库的本地目录中，运行：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build ruby-hello-world --from-dir&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt; --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;构建完成并重新部署应用程序后，指向应用程序主机的route应该会生成一个蓝色背景的页面。&lt;/p&gt;
+&lt;p&gt;您可以继续在本地进行更改并使用&lt;code&gt;oc start-build --from-dir&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;您还可以创建代码分支，在本地提交更改，并使用存储库的HEAD作为构建的源：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git checkout -b my_branch
+git add .
+git commit -m &lt;span class="s2"&gt;&amp;quot;My changes&amp;quot;&lt;/span&gt;
+oc start-build ruby-hello-world --from-repo&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt; --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_6"&gt;教程：构建私有代码&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;创建一个本地目录来保存您的代码：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mkdir myapp
+&lt;span class="nb"&gt;cd&lt;/span&gt; myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;在目录中创建一个名为&lt;code&gt;Dockerfile&lt;/code&gt;的文件：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; centos:centos7&lt;/span&gt;
+&lt;span class="k"&gt;EXPOSE&lt;/span&gt;&lt;span class="s"&gt; 8080&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; index.html /var/run/web/index.html
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; /var/run/web &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; python -m SimpleHTTPServer &lt;span class="m"&gt;8080&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;创建一个&lt;code&gt;index.html&lt;/code&gt;文件：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;title&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;My local app&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;title&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;h1&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;Hello World&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;h1&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;p&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;This is my local application&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;p&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;为您的应用程序创建一个新的构建：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-build --strategy docker --binary --docker-image centos:centos7 --name myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="5"&gt;
+&lt;li&gt;使用本地目录的内容启动二进制构建：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build myapp --from-dir . --follow
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="6"&gt;
+&lt;li&gt;使用&lt;code&gt;new-app&lt;/code&gt;部署应用程序，然后为其创建路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app myapp
+oc expose svc/myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="7"&gt;
+&lt;li&gt;获取指向对应应用主机的路由：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route myapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在构建和部署代码之后，您可以通过更改本地文件并通过&lt;code&gt;oc start-build myapp --from-dir&lt;/code&gt;再次调用启动新构建来进行迭代。构建完成后，代码将自动部署，更新的内容将在刷新页面时反映在浏览器中。&lt;/p&gt;
+&lt;h3 id="pipeline"&gt;教程：来自 pipeline 的二进制工件&lt;a class="headerlink" href="#pipeline" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift上的Jenkins允许使用带有合适工具的slave镜像来构建代码。例如，您可以使用&lt;code&gt;maven&lt;/code&gt; slave镜像来从代码存储库构建WAR包。但是，一旦构建了此工件，您需要将其提交到包含正确的运行时工件的镜像以运行您的代码。可以使用二进制构建将这些工件添加到运行时映像。在下面的教程中，我们将创建一个Jenkins pipeline，该pipeline使用&lt;code&gt;maven&lt;/code&gt; slave构建WAR，然后使用带有&lt;code&gt;Dockerfile&lt;/code&gt;的二进制构建将WAR添加到 wildfly 运行时映像。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为您的应用程序创建一个新目录：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mkdir mavenapp
+&lt;span class="nb"&gt;cd&lt;/span&gt; mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;创建一个&lt;code&gt;Dockerfile&lt;/code&gt;将WAR复制到wildfly镜像内的适当位置以供执行。将以下内容复制到名为的本地文件 &lt;code&gt;Dockerfile&lt;/code&gt;：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; wildfly:latest&lt;/span&gt;
+&lt;span class="k"&gt;COPY&lt;/span&gt; ROOT.war /wildfly/standalone/deployments/ROOT.war
+&lt;span class="k"&gt;CMD&lt;/span&gt;  &lt;span class="nv"&gt;$STI_SCRIPTS_PATH&lt;/span&gt;/run
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;为该&lt;code&gt;Dockerfile&lt;/code&gt;创建一个新的BuildConfig：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt;&lt;/p&gt;
+&lt;p&gt;这将自动启动一个构建, 刚开始会构建失败，因为 &lt;code&gt;ROOT.war&lt;/code&gt;工件尚不可用。下面的pipeline将使用二进制构建将该WAR包传递给构建。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cat Dockerfile &lt;span class="p"&gt;|&lt;/span&gt; oc new-build -D - --name mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;创建1个使用Jenkins pipeline的BuildConfig, 这个BuildConfig将构建1个WAR包，然后使用该WAR包和先前创建的&lt;code&gt;Dockerfile&lt;/code&gt;来构建镜像。相同的模式可用于其他平台，其中二进制工件由一组工具构建，然后与最终的包含不同运行时的镜像组合。将以下代码保存到&lt;code&gt;mavenapp-pipeline.yml&lt;/code&gt;：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;apiVersion&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;v1&lt;/span&gt;
+&lt;span class="nt"&gt;kind&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;BuildConfig&lt;/span&gt;
+&lt;span class="nt"&gt;metadata&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;mavenapp-pipeline&lt;/span&gt;
+&lt;span class="nt"&gt;spec&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;strategy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;jenkinsPipelineStrategy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="nt"&gt;jenkinsfile&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;|-&lt;/span&gt;
+        &lt;span class="no"&gt;pipeline {&lt;/span&gt;
+          &lt;span class="no"&gt;agent { label &amp;quot;maven&amp;quot; }&lt;/span&gt;
+          &lt;span class="no"&gt;stages {&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Clone Source&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;checkout([$class: &amp;#39;GitSCM&amp;#39;,&lt;/span&gt;
+                            &lt;span class="no"&gt;branches: [[name: &amp;#39;*/master&amp;#39;]],&lt;/span&gt;
+                            &lt;span class="no"&gt;extensions: [&lt;/span&gt;
+                              &lt;span class="no"&gt;[$class: &amp;#39;RelativeTargetDirectory&amp;#39;, relativeTargetDir: &amp;#39;mavenapp&amp;#39;]&lt;/span&gt;
+                            &lt;span class="no"&gt;],&lt;/span&gt;
+                            &lt;span class="no"&gt;userRemoteConfigs: [[url: &amp;#39;https://github.com/openshift/openshift-jee-sample.git&amp;#39;]]&lt;/span&gt;
+                        &lt;span class="no"&gt;])&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Build WAR&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;dir(&amp;#39;mavenapp&amp;#39;) {&lt;/span&gt;
+                  &lt;span class="no"&gt;sh &amp;#39;mvn clean package -Popenshift&amp;#39;&lt;/span&gt;
+                &lt;span class="no"&gt;}&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;stage(&amp;quot;Build Image&amp;quot;) {&lt;/span&gt;
+              &lt;span class="no"&gt;steps {&lt;/span&gt;
+                &lt;span class="no"&gt;dir(&amp;#39;mavenapp/target&amp;#39;) {&lt;/span&gt;
+                  &lt;span class="no"&gt;sh &amp;#39;oc start-build mavenapp --from-dir . --follow&amp;#39;&lt;/span&gt;
+                &lt;span class="no"&gt;}&lt;/span&gt;
+              &lt;span class="no"&gt;}&lt;/span&gt;
+            &lt;span class="no"&gt;}&lt;/span&gt;
+          &lt;span class="no"&gt;}&lt;/span&gt;
+        &lt;span class="no"&gt;}&lt;/span&gt;
+    &lt;span class="nt"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;JenkinsPipeline&lt;/span&gt;
+  &lt;span class="nt"&gt;triggers&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;[]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="5"&gt;
+&lt;li&gt;创建pipeline 构建。如果Jenkins未部署到您的项目中，则使用管道创建的BuildConfig会先部署Jenkins。在Jenkins准备建立您的管道之前可能需要几分钟来启动。您可以通过调用&lt;code&gt;oc rollout status dc/jenkins&lt;/code&gt;来检查Jenkins的状态：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc create -f ./mavenapp-pipeline.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="6"&gt;
+&lt;li&gt;一旦Jenkins准备就绪，启动之前定义的管道：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc start-build mavenapp-pipeline
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="7"&gt;
+&lt;li&gt;管道构建完成后，使用&lt;code&gt;new-app&lt;/code&gt;部署新应用程序并公开其route：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc new-app mavenapp
+oc expose svc/mavenapp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="8"&gt;
+&lt;li&gt;使用浏览器，导航到应用程序的路径：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc get route mavenapp
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 08 May 2019 18:41:34 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-05-08:/binary-builds-with-openshift.html</guid><category>openshift</category><category>docker</category><category>devops</category><category>git</category><category>containers</category></item><item><title>OpenShift 和 Kubernetes 有什么区别?</title><link>https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html</link><description>&lt;p&gt;OpenShift 3以后, 架构完全基于K8S进行了重构, 但是又有一些差异. 今天, 我们就深入研究一下.&lt;/p&gt;
+&lt;h2 id="k8s"&gt;K8S 是"内核"&lt;a class="headerlink" href="#k8s" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;K8S可以认为是当代分布式系统的"内核". 我们意识到, 一个设计良好的作业调度程序, 跨多台及其运行, 能够协调托管在骑上的工作负载的状态, 自然就会促进写作, 就像Linux内核为单个主机上调度工作负载所做的那样. 遵循这一逻辑, 我们知道不同的产品会根据针对用户的不同而差异化地打造.&lt;/p&gt;
+&lt;p&gt;在很多手机, 电脑, 服务器, 甚至是树莓派上, 运行的都是相同的Linux 内核, 但是通过不同的不定来支持多种多样的硬件.&lt;/p&gt;
+&lt;p&gt;K8S和各种各样的K8S发行版也适用于同样的模型, 通过不同类型的补丁, 来支持在K8S上面的一层. &lt;/p&gt;
+&lt;h2 id="openshift"&gt;OpenShift 是发行版&lt;a class="headerlink" href="#openshift" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;这是一个强有力的区别。OpenShift就是Kubernetes的发行版，专注于开发人员的体验，而开发人员需要开发下一代云原生应用程序。&lt;/p&gt;
+&lt;p&gt;虽然任何人都可以通过选择每1个部分并按照每个用户选择的定制方式组装它们来&lt;a href="http://www.linuxfromscratch.org/"&gt;从Scratch &lt;/a&gt;构建&lt;a href="http://www.linuxfromscratch.org/"&gt;Linux&lt;/a&gt;，但大多数人都没有。大多数用户选择的抽象级别意味着他们不会从管理（甚至了解）Util-Linux版本2.31和2.33之间的差异中获得很多价值。为了更进一步，用户关心最低级别的功能（例如，只要超过最小版本号，他们就知道哪些命令/ API可用），然后提供所提供功能的列表。&lt;/p&gt;
+&lt;p&gt;这与OpenShift非常相似。OpenShift将Kubernetes打包并包含其他工具作为OpenShift认为重要且OpenShift的用户需求的功能。就像CoreOS和CentOS包含不同的工具集一样，迎合不同的用户，因此Kubernetes发行版也是如此。&lt;/p&gt;
+&lt;h2 id="openshiftk8s"&gt;OpenShift和K8S的具体区别&lt;a class="headerlink" href="#openshiftk8s" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="openshift_1"&gt;OpenShift 架构概述&lt;a class="headerlink" href="#openshift_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift容器平台是一系列流行的组件和服务的集合体, 构建于Red Hat Enterprise Linux, Docker, 和K8S之上. OpenShift针对开发人员, 增强了以下功能: &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;远程管理&lt;/li&gt;
+&lt;li&gt;多租户&lt;/li&gt;
+&lt;li&gt;安全性增强&lt;/li&gt;
+&lt;li&gt;应用生命周期管理&lt;/li&gt;
+&lt;li&gt;自服务接口&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img alt="OpenShift 架构" src="./images/openshift-architecture-overview.png"&gt;&lt;/p&gt;
+&lt;p&gt;在上图中, 从下至上, 从左至右, 展示了经过Red Hat 在基本的容器架构基础上进一步集成、增强的架构:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基本OS是Red Hat Enterprise Linux (RHEL)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Docker&lt;/strong&gt;  提供了基本的容器管理API和容器镜像文件格式&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Kubernetes&lt;/strong&gt; 管理运行容器的主机集群(实体的或虚拟的). 它通过资源(resources)来描述多容器应用是由多个资源组成的, 以及他们间如何交互&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Etcd&lt;/strong&gt; 是一个分布式 key-value 存储, Kubernetes 通过它来存储集群内的关于容器和其他资源的配置和状态信息.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在Docker + Kubernetes 之上, OpenShift增加了容器平台所需要的其他功能. 具体包括:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;OpenShift-Kubernetes 扩展&lt;/strong&gt; 是存储在Etcd中, 由Kubernetes管理的额外的资源类型(resource types). 这些额外的资源类型组成了OpenShift 内部状态和配置, 还有应用的资源.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;容器化服务&lt;/strong&gt; 充实了很多基础架构功能, 比如网络和认证. 这些功能有些是一直运行的, 有些是按需启动的. &lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;运行时和xPaaS&lt;/strong&gt; 是为开发者准备好的容器镜像, 每个都预配置了特定的语言运行时或数据库. 可以被用作镜像流(Image Stream)或在此基础上增加不同的框架, 库, 甚至是中间件来进行扩展. xPaaS 提供了一系列JBoss中间件产品的基础镜像, 如: JBoss EAP 和 ActiveMQ.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DevOps 工具集和用户体验&lt;/strong&gt;: OpenShift 为开发人员和系统管理员提供了一个Web UI和CLI 管理工具, 允许配置和监控应用和OpenShift的服务和资源. Web和 CLI 都是基于相同的REST API, 这个API也可以被外部工具(如: IDE和CI平台)整合. OpenShift也可以访问外部SCM库和容器镜像库.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 备注:&lt;/p&gt;
+&lt;p&gt;OpenShift 团队:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;帮助K8S 完成了Namespace 和 quota功能的开发;&lt;/li&gt;
+&lt;li&gt;推动了RBAC 授权认证的开发&lt;/li&gt;
+&lt;li&gt;帮助K8S运行更多类型的应用, 并为其开发了一些卷插件(Volume Plugin)&lt;/li&gt;
+&lt;li&gt;相比K8S, 多了Deployment Config(DC) resource. 使用该资源可以进行参数化部署, 执行滚动部署和回滚等.&lt;/li&gt;
+&lt;li&gt;相比K8S, 多了Route resource. 而Router也是K8S的Ingress功能的前身.&lt;/li&gt;
+&lt;li&gt;相比K8S, 默认集成了SDN (Open vSwitch)&lt;/li&gt;
+&lt;li&gt;相比K8S, 实现了开发运维一体化.&lt;/li&gt;
+&lt;li&gt;纳入CoreOS&lt;/li&gt;
+&lt;li&gt;OpenShift 3.11, 集成了Prometheus和Grafana&lt;/li&gt;
+&lt;li&gt;相比K8S, 增强了管理物理节点的能力&lt;/li&gt;
+&lt;li&gt;目前, OpenShift还和NV合作, 未来会提供基于GPU运算能力的支持.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_1"&gt;资源类型差异&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Kubernetes 资源类型&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Pods&lt;/li&gt;
+&lt;li&gt;Services&lt;/li&gt;
+&lt;li&gt;Replication Controllers&lt;/li&gt;
+&lt;li&gt;Persistent Volume (PV)&lt;/li&gt;
+&lt;li&gt;Persistent Volume Claims (PVC)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;OpenShift 资源类型&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;除了以上资源类型, OpenShift 还增加了以下主要的资源类型:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Deployment Configurations (DC) - 用于 持续交付(CD)工作流&lt;/li&gt;
+&lt;li&gt;Build Configurations (BC) - 用于 持续集成(CI) 工作流&lt;/li&gt;
+&lt;li&gt;Routes - 基于HAProxy, 作用类似于K8S Ingress, 但早于Ingress.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="openshift-s2i"&gt;OpenShift 特有的S2I 功能&lt;a class="headerlink" href="#openshift-s2i" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;OpenShift中的Source-to-Image (S2I) 进程会从SCM仓库中拉取代码, 自动化监测代码需要哪种类型的运行时, 并从特定运行时的基础镜像启动一个pod. 在这个pod 中, OpenShift 以开发人员相同的方式来构建该应用(如, 使用&lt;strong&gt;maven&lt;/strong&gt;来构建java程序). 如果构建成功, 另一个镜像会被创建, 把应用二进制附加到运行时层之上, 并把这个新镜像推送到OpenShift的内部镜像仓库中. 接下来, 可以从这个新镜像创建一个pod来运行该应用. S2I 可以看做是一个嵌入到OpenShift平台中的 CI/CD pipeline.&lt;/p&gt;
+&lt;p&gt;CI/CD pipelines 会有很多种变异, 这个pipeline会暴露在这个项目(project, 就是K8S的namespace)中, 那么它就可以被调节来满足开发人员的需求. 例如, 外部CI工具(如Jenkins)可以用于来启动和运行测试, 然后给新镜像打上"成功"或"失败"的标签(label), 并推送到QA或生产环境. 随着时间推移, 一个组织一个部门一个公司可以创建他们自己的pipeline模板, 包括自定义的构建器和部署器.&lt;/p&gt;
+&lt;h2 id="_2"&gt;总结&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;OpenShift 平台相比K8S, 具有以下特性:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;自服务平台;&lt;/li&gt;
+&lt;li&gt;多语言, 多中间件, 数据库支持&lt;/li&gt;
+&lt;li&gt;高可用, 可伸缩性&lt;/li&gt;
+&lt;li&gt;也是开源的(Red Hat收取服务费)&lt;/li&gt;
+&lt;li&gt;安全 (基于: RBAC, LDAP, 主机, 网络, 容器各个层面的加固)&lt;/li&gt;
+&lt;li&gt;动态存储管理&lt;/li&gt;
+&lt;li&gt;企业级&lt;/li&gt;
+&lt;li&gt;日志整合/ 监控整合&lt;/li&gt;
+&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Fri, 03 May 2019 16:51:34 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-05-03:/openshift-and-kubernetes-whats-difference.html</guid><category>docker</category><category>openshift</category><category>k8s</category><category>containers</category><category>PAAS</category></item><item><title>Docker 学习笔记 - 镜像</title><link>https://www.EWhisper.cn/docker-handbook-image.html</link><description>&lt;h2 id="_1"&gt;获取镜像&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker pull&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id="_2"&gt;查看镜像信息&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker images&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;docker inspect &amp;lt;images id&amp;gt;  # 获取镜像的详细信息&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id="_3"&gt;搜寻镜像&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker search&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id="_4"&gt;删除镜像&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker rmi&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;当一个镜像拥有多个标签，&lt;code&gt;docker rmi&lt;/code&gt;只是删除该镜像指定的标签，并不影响镜像文件
+当镜像只剩下一个标签时，再使用会彻底删除该镜像
+先删除该镜像的所有容器，再删除镜像&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="_5"&gt;创建镜像&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;3种方法：
+- 基于已有镜像的&lt;strong&gt;容器&lt;/strong&gt;创建
+- 基于本地模板导入
+- 基于Dockerfile创建&lt;/p&gt;
+&lt;h3 id="_6"&gt;基于已有镜像的容器创建&lt;a class="headerlink" href="#_6" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;docker commit&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;-a: 作者信息
+-m: 提交信息
+-p 提交时暂停容器运行
+-c changelist&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_7"&gt;基于本地模板的导入&lt;a class="headerlink" href="#_7" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;推荐使用OpenVZ 提供的模板来创建。下载地址：https://openvz.org/Download/template/precreated
+&lt;code&gt;sudo cat ubuntu-16.04-x86_64.tar.gz | docker import - ubuntu:16.04&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id="_8"&gt;导出和载入镜像&lt;a class="headerlink" href="#_8" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;导出&lt;/strong&gt;：&lt;code&gt;sudo docker save -o ubuntu_16.04.tar ubuntu:16.04&lt;/code&gt;
+&lt;strong&gt;载入&lt;/strong&gt;：&lt;code&gt;sudo docker load --input ubuntu_16.04.tar&lt;/code&gt; 或者 &lt;code&gt;sudo docker load &amp;lt; ubuntu_16.04.tar&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;该指令会载入镜像，以及其相关的元数据信息（包括标签等）. 关于&lt;code&gt;docker load&lt;/code&gt;和&lt;code&gt;docker import&lt;/code&gt;指令的区别见下一章.&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Thu, 28 Mar 2019 22:17:48 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-28:/docker-handbook-image.html</guid><category>docker</category></item><item><title>在云服务器上搭建集成开发环境</title><link>https://www.EWhisper.cn/build-ide-on-tencentyun.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#python"&gt;python优化配置&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#python-36"&gt;安装python 3.6&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#pipenv-python-36"&gt;安装pipenv: (主要使用python 3.6)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#python-37"&gt;编译安装Python 3.7&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#docker"&gt;Docker 配置&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;安装&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;修改仓库源&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_3"&gt;开机启动&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_4"&gt;使用腾讯云容器的相关服务&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="python"&gt;python优化配置&lt;a class="headerlink" href="#python" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;安装相关软件:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs gcc make patch  &lt;span class="c1"&gt;# 安装编译软件&lt;/span&gt;
+sudo yum group install -y development  &lt;span class="c1"&gt;# 安装开发包组&lt;/span&gt;
+sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs gdbm-devel openssl-libs openssl-devel openssl-devel ncurses-devel libsqlite3x-devel sqlite-devel readline-devel zlib-devel bzip2-devel python2-bz2file db4-devel libpcap-devel xz-devel libffi-devel sqlite3 sqlite python-ujson  &lt;span class="c1"&gt;# 安装依赖&lt;/span&gt;
+
+sudo yum install -y mariadb mariadb-server redis memcached &lt;span class="c1"&gt;# 安装mariadb&lt;/span&gt;
+sudo systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; mariadb.service redis.service  &lt;span class="c1"&gt;# mariadb redis 开机启动&lt;/span&gt;
+sudo systemctl start mariadb.service redis.service  &lt;span class="c1"&gt;# 启动mariadb服务&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="python-36"&gt;安装python 3.6&lt;a class="headerlink" href="#python-36" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y python36
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装pip:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum -y install python-pip python34-pip python36-pip
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;pip conf: &lt;/p&gt;
+&lt;p&gt;在文件&lt;code&gt;~/.pip/pip.conf&lt;/code&gt;中添加或修改:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[global]&lt;/span&gt;
+&lt;span class="na"&gt;index-url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;http://mirrors.tencentyun.com/pypi/simple&lt;/span&gt;
+&lt;span class="na"&gt;trusted-host&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mirrors.tencentyun.com&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;参考文章:&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://cloud.tencent.com/document/product/213/8623"&gt;腾讯云软件源加速软件包下载和更新&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="pipenv-python-36"&gt;安装pipenv: (主要使用python 3.6)&lt;a class="headerlink" href="#pipenv-python-36" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;pip3.6 install pipenv --user
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;编辑&lt;code&gt;~/.zshrc&lt;/code&gt;, 加入以下内容:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/home/casey/.local/bin:&lt;span class="nv"&gt;$PATH&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;后续使用&lt;code&gt;pipenv&lt;/code&gt;管理文件, 有以下几个要点:&lt;br&gt;
+1. 安装时候根据需要, 根据OS现有python指定, 如: &lt;code&gt;pipenv install --python /usr/bin/python36&lt;/code&gt;&lt;br&gt;
+2. 可以修改&lt;code&gt;Pipfile&lt;/code&gt;的以下配置, 加快依赖下载:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[[source]]&lt;/span&gt;
+&lt;span class="na"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;http://mirrors.tencentyun.com/pypi/simple --trusted-host mirrors.tencentyun.com&amp;quot;&lt;/span&gt;
+&lt;span class="na"&gt;verify_ssl&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;false&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="python-37"&gt;编译安装Python 3.7&lt;a class="headerlink" href="#python-37" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;需要先yum安装&lt;code&gt;libffi-devel&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# 下载源码包并解压&lt;/span&gt;
+wget https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz
+tar -xvzf Python-3.7.2.tgz
+&lt;span class="nb"&gt;cd&lt;/span&gt; Python-3.7.2
+&lt;span class="c1"&gt;# configure &lt;/span&gt;
+sudo mkdir -p /usr/lib64/python3.7
+sudo ./configure --prefix&lt;span class="o"&gt;=&lt;/span&gt;/usr/lib64/python3.7
+&lt;span class="c1"&gt;# install&lt;/span&gt;
+sudo make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo make install
+&lt;span class="c1"&gt;# 创建软连接&lt;/span&gt;
+sudo rm -f /usr/bin/python3
+sudo ln -s /usr/lib64/python3.7/bin/python3 /usr/bin/python3
+&lt;span class="c1"&gt;# 加入PATH&lt;/span&gt;
+vi ~/.zshrc
+&lt;span class="c1"&gt;# .zshrc修改为以下内容&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/lib64/python3.7/bin:/home/casey/.local/bin:&lt;span class="nv"&gt;$PATH&lt;/span&gt;
+&lt;span class="c1"&gt;# 使得配置生效&lt;/span&gt;
+&lt;span class="nb"&gt;source&lt;/span&gt; ~/.zshrc
+&lt;span class="c1"&gt;# 验证&lt;/span&gt;
+python3 -V 
+&lt;span class="c1"&gt;# 输出: Python 3.7.2&lt;/span&gt;
+pip3 -V                     
+&lt;span class="c1"&gt;# 输出: pip 18.1 from /usr/lib64/python3.7/lib/python3.7/site-packages/pip (python 3.7)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2 id="docker"&gt;Docker 配置&lt;a class="headerlink" href="#docker" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="_1"&gt;安装&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo yum install -y --setopt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;tsflags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;nodocs docker docker-compose docker-distribution docker-logrotate docker-lvm-plugin 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_2"&gt;修改仓库源&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;适用于 CentOS 7 版本。&lt;/p&gt;
+&lt;p&gt;修改 Docker 配置文件 &lt;code&gt;sudo vi /etc/sysconfig/docker&lt;/code&gt;，如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;OPTIONS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;--registry-mirror=https://mirror.ccs.tencentyun.com&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;参考文章:&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://cloud.tencent.com/document/product/457/9113"&gt;使用 DockerHub 加速器&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_3"&gt;开机启动&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_4"&gt;使用腾讯云容器的相关服务&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;控制台, 进入&lt;strong&gt;容器服务&lt;/strong&gt; → &lt;strong&gt;镜像仓库&lt;/strong&gt; → &lt;strong&gt;我的镜像&lt;/strong&gt; , 输入镜像仓库的个人密码. (账号是AppID)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;(可选): 在&lt;strong&gt;访问管理&lt;/strong&gt; → &lt;strong&gt;用户组&lt;/strong&gt; → &lt;strong&gt;当前用户组&lt;/strong&gt;里 → &lt;strong&gt;关联策略&lt;/strong&gt; : &lt;a href="https://console.cloud.tencent.com/cam/policy/detail/419082&amp;amp;QcloudCCRFullAccess&amp;amp;2"&gt;QcloudCCRFullAccess&lt;/a&gt; (镜像仓库全读写权限)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;云服务器使用如下命令登录:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo docker login --username=appid ccr.ccs.tencentyun.com&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;下载镜像:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sudo docker pull ccr.ccs.tencentyun.com/[namespace]/[ImageName]:[镜像版本号]&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 27 Mar 2019 09:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-27:/build-ide-on-tencentyun.html</guid><category>腾讯云</category><category>云</category><category>python</category><category>pipenv</category><category>docker</category></item><item><title>使用 Dynatrace AppMon 监控 Docker 应用</title><link>https://www.EWhisper.cn/monitoring-docker-app-with-dynatrace.html</link><description>&lt;div class="toc"&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#appmon-dockerized-apps-basic"&gt;使用AppMon 监控 dockerized apps (basic)&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#_1"&gt;基于组合的方案&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#_2"&gt;基于继承的方案&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#qa"&gt;Q&amp;amp;A&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#appmon-dockerized-apps-kubernetes-openshift"&gt;使用AppMon 监控 dockerized apps - Kubernetes 和 OpenShift&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href="#a"&gt;方案A: 基于继承的方案&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#b"&gt;B方案: 基于组合的方案&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;p&gt;可以配置 AppMon 来监控包裹在docker 容器里的应用:&lt;/p&gt;
+&lt;h2 id="appmon-dockerized-apps-basic"&gt;使用AppMon 监控 dockerized apps (basic)&lt;a class="headerlink" href="#appmon-dockerized-apps-basic" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;本章节介绍了将&lt;a href="https://www.dynatrace.com/solutions/application-monitoring/"&gt;AppMon&lt;/a&gt; agent与dockerized应用程序集成的两种方案。这些方案在本页面上被称为&lt;strong&gt;基于组合&lt;/strong&gt;和&lt;strong&gt;基于继承&lt;/strong&gt;的方案。每个方案的利弊都会列出. 但是，建议不要使用&lt;strong&gt;基于继承&lt;/strong&gt;的方法，而是将其用于演示目的。&lt;/p&gt;
+&lt;h3 id="_1"&gt;基于组合的方案&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;使用基于组合的方案，您可以使用&lt;a href="https://hub.docker.com/r/dynatrace/agent/"&gt;AppMon/agent&lt;/a&gt; Docker镜像(示例见下), 该镜像包含所有的AppMon agent, 你可以配置附加到你的现有的Docker容器中。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;AppMon 6.5 示例:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;#DOCKERFILE FOR DYNATRACE AGENT&lt;/span&gt;
+&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; alpine:3.5&lt;/span&gt;
+
+&lt;span class="k"&gt;LABEL&lt;/span&gt; &lt;span class="nv"&gt;maintainer&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Blazej Tomaszewski &amp;lt;blazej.tomaszewski@dynatrace.com&amp;gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;ARG&lt;/span&gt; DT_HOME
+&lt;span class="k"&gt;ARG&lt;/span&gt; BUILD_VERSION
+&lt;span class="k"&gt;ARG&lt;/span&gt; VERSION
+&lt;span class="k"&gt;ARG&lt;/span&gt; CUID
+&lt;span class="k"&gt;ARG&lt;/span&gt; CGID
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;AGENT_INSTALLER_NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dynatrace-agent-&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;-unix.jar
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;WSAGENT_INSTALLER32_NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dynatrace-wsagent-&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;-linux-x86-32.tar
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;WSAGENT_INSTALLER64_NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dynatrace-wsagent-&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;-linux-x86-64.tar
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;NODE_AGENT_INSTALLER_NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dynatrace-one-agent-nodejs-&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;-linux-x86.tgz
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://files.dynatrace.com/downloads/OnPrem/dynaTrace/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;AGENT_INSTALLER_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;WSAGENT_INSTALLER32_URL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://files.dynatrace.com/downloads/OnPrem/dynaTrace/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;WSAGENT_INSTALLER32_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;WSAGENT_INSTALLER64_URL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://files.dynatrace.com/downloads/OnPrem/dynaTrace/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;WSAGENT_INSTALLER64_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;NODE_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://files.dynatrace.com/downloads/OnPrem/dynaTrace/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BUILD_VERSION&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;NODE_AGENT_INSTALLER_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;SLAVE_AGENT_PORT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;8001&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;DT_INSTALL_DEPS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;curl&lt;span class="se"&gt;\ &lt;/span&gt;openjdk8-jre-base
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;DT_RUNTIME_DEPS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;bash
+
+&lt;span class="k"&gt;COPY&lt;/span&gt; build/scripts/install-agent.sh /usr/bin
+&lt;span class="k"&gt;COPY&lt;/span&gt; build/scripts/install-node-agent.sh /usr/bin
+&lt;span class="k"&gt;COPY&lt;/span&gt; build/scripts/install-wsagent.sh /usr/bin
+
+&lt;span class="k"&gt;RUN&lt;/span&gt;  apk update &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; apk add --no-cache &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_INSTALL_DEPS&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_RUNTIME_DEPS&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     mkdir -p &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_HOME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     /usr/bin/install-agent.sh &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     /usr/bin/install-wsagent.sh &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;WSAGENT_INSTALLER32_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     /usr/bin/install-wsagent.sh &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;WSAGENT_INSTALLER64_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     /usr/bin/install-node-agent.sh &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;NODE_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     mkdir -p &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_HOME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/log/agent &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+     apk del &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_INSTALL_DEPS&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;ADD&lt;/span&gt;  build/bin/dtnginx_offsets.json.tar.gz &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_HOME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/agent/conf
+&lt;span class="k"&gt;COPY&lt;/span&gt; build/scripts/run-wsagent.sh &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_HOME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;COPY&lt;/span&gt; build/scripts/create-user.sh /tmp
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;CUID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;CUID&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="nv"&gt;0&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; &lt;span class="nv"&gt;CGID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;CGID&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="nv"&gt;0&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;RUN&lt;/span&gt; /bin/sh -c /tmp/create-user.sh &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; rm -rf /tmp/*
+&lt;span class="k"&gt;USER&lt;/span&gt;&lt;span class="s"&gt; ${CUID}:${CGID}&lt;/span&gt;
+
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="k"&gt;while&lt;/span&gt; true&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; sleep &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;从技术上讲，这种方法使用了docker的一个特性，它允许docker容器将其文件系统的一部分导出为&lt;a href="https://docs.docker.com/engine/tutorials/dockervolumes/"&gt;docker卷&lt;/a&gt;，从而使其可以被其他感兴趣的容器获得。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://www.EWhisper.cn/images/dynatrace_docker_1.png"&gt;&lt;/p&gt;
+&lt;h4&gt;示例&lt;/h4&gt;
+&lt;p&gt;以下示例假定您已经运行&lt;code&gt;dynatrace/agent&lt;/code&gt; Docker容器, 通过名字 &lt;code&gt;dtagent&lt;/code&gt; 导入到&lt;code&gt;/dynatrace&lt;/code&gt;安装目录作为一个卷. GitHub上的&lt;a href="https://github.com/Dynatrace/Dynatrace-AppMon-Docker"&gt;AppMon in Docker&lt;/a&gt; 项目包含脚本来完成这个任务，甚至允许你在docker中方便地设置一个完整的appmon环境。更多的信息可以在以下的"性能诊所"(视频)找到。&lt;/p&gt;
+&lt;h5&gt;示例: Apache Tomcat&lt;/h5&gt;
+&lt;p&gt;下边的&lt;code&gt;docker-compose.yml&lt;/code&gt; 挂载容器&lt;code&gt;dtagent&lt;/code&gt; 导入的卷, 并且使用合适的&lt;code&gt;-agentpath&lt;/code&gt;来初始化&lt;code&gt;CATALINA_OPTS&lt;/code&gt;环境变量.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;tomcat&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;tomcat&lt;/span&gt;
+  &lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;8080&lt;/span&gt;
+  &lt;span class="nt"&gt;volumes_from&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;dtagent&lt;/span&gt;
+  &lt;span class="nt"&gt;environment&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;CATALINA_OPTS&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;-agentpath:/dynatrace/agent/lib64/libdtagent.so=name=tomcat,collector=127.0.0.1:9998&amp;quot;&lt;/span&gt;
+  &lt;span class="nt"&gt;command&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;catalina.sh run&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h5&gt;示例: NGINX&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;分析&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;优点&lt;/strong&gt;: 这种方法有助于巧妙地清晰地分离关注点，这是Docker世界的设计原则。此外，您不需要将agent放入您的基本映像中。在运行时进行一个简单的配置就可以监控您需要的容器的一切。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;缺点&lt;/strong&gt;: 虽然Docker运行时对容器之间交换volumes有很大的支持，但在容器编排平台（如kubernetes或openshift）上这样做会使您的应用程序配置过于复杂。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="_2"&gt;基于继承的方案&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;不建议使用此方法，仅在此处进行演示。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;从技术角度而言，Docker化应用程序通常涉及两个部分：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一个基本镜像, 如:&lt;code&gt;java:8&lt;/code&gt;或&lt;code&gt;node:7&lt;/code&gt;, 提供基础的执行环境&lt;/li&gt;
+&lt;li&gt;一个&lt;code&gt;Dockerfile&lt;/code&gt;, 用特定于应用程序的安装指令来扩充选定的基本镜像。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用你的&lt;code&gt;Dockerfile&lt;/code&gt;, 运行&lt;code&gt;docker build&lt;/code&gt;命令来创建需要的Docker 镜像.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://hub.docker.com/"&gt;Docker Hub&lt;/a&gt;上提供了一整套的基础镜像. 你可以阅读&lt;a href="https://www.digitalocean.com/community/tutorials/docker-explained-using-dockerfiles-to-automate-building-of-images"&gt;使用Dockerfiles自动化镜像构建&lt;/a&gt;和&lt;a href="https://docs.docker.com/articles/dockerfile_best-practices/"&gt;写Dockerfiles的最佳实践&lt;/a&gt;获取更多信息.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://www.EWhisper.cn/images/dynatrace_docker_2.png"&gt;&lt;/p&gt;
+&lt;h4&gt;示例&lt;/h4&gt;
+&lt;p&gt;你可以为准备监控的应用创建基础镜像. 把agent打包为基础的自动启用监控的镜像。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://www.EWhisper.cn/images/dynatrace_docker_3.png"&gt;&lt;/p&gt;
+&lt;h5&gt;示例: Java&lt;/h5&gt;
+&lt;p&gt;本例子展示了一个&lt;code&gt;Dockerfile&lt;/code&gt;, 来扩展官方的&lt;a href="https://github.com/docker-library/openjdk"&gt;openJDK Docker镜像&lt;/a&gt; 基础镜像, 并下载对应的agent. 为了遍历, 需要设置一些环境变量, 如&lt;code&gt;DT_AGENT_NAME&lt;/code&gt;和&lt;code&gt;DT_AGENT_COLLECTOR&lt;/code&gt;, 以后可以在这些变量中填入你自己的数据. 另外, &lt;code&gt;JAVA_OPTS&lt;/code&gt;添加一个指向&lt;code&gt;DT_AGENT_LIB64&lt;/code&gt;的&lt;code&gt;-agentpath&lt;/code&gt;参数.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; openjdk:8&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_INSTALLER_URL &lt;span class="s2"&gt;&amp;quot;http://files.dynatrace.com/downloads/OnPrem/dynaTrace/6.5/6.5.0.1289/dynatrace-agent-6.5.0.1289-unix.jar&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT                     &lt;span class="s2"&gt;&amp;quot;/dynatrace&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_LIB32         &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;/agent/lib/libdtagent.so&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_LIB64         &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;/agent/lib64/libdtagent.so&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_NAME          &lt;span class="s2"&gt;&amp;quot;java&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_COLLECTOR     &lt;span class="s2"&gt;&amp;quot;127.0.0.1:9998&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; JAVA_OPTS              &lt;span class="s2"&gt;&amp;quot;-agentpath:&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_LIB64&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;=name=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;,collector=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_COLLECTOR&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class="c"&gt;# Install the Agent&lt;/span&gt;
+&lt;span class="k"&gt;RUN&lt;/span&gt; curl -L -o /tmp/&lt;span class="sb"&gt;`&lt;/span&gt;basename &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt; &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    java -jar /tmp/&lt;span class="sb"&gt;`&lt;/span&gt;basename &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt; -t &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    rm -f /tmp/&lt;span class="sb"&gt;`&lt;/span&gt;basename &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;DT_AGENT_INSTALLER_URL&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;构建该Dockerfile使用&lt;code&gt;docker build . -t openjdk:8-dtappmon -f ./Dockerfile&lt;/code&gt;在本地Docker仓库创建一个新的Docker镜像, 名字为&lt;code&gt;openjdk&lt;/code&gt;, 标签为&lt;code&gt;8-dtappmon&lt;/code&gt;. 每个应用构建, 你可以通过扩展&lt;code&gt;openjdk:8-dtappmon&lt;/code&gt;来创建应用镜像(如下所示, &lt;code&gt;repo.internal&lt;/code&gt;指的是虚拟仓库, &lt;code&gt;my-app&lt;/code&gt;是虚拟应用.) 你也可以覆盖&lt;code&gt;DT_AGENT_NAME&lt;/code&gt;环境变量来在该镜像里更准确的配置.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; openjdk:8-dtappmon&lt;/span&gt;
+
+&lt;span class="k"&gt;ENV&lt;/span&gt; DT_AGENT_NAME &lt;span class="s2"&gt;&amp;quot;my-app&amp;quot;&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt; https://repo.internal/my-app/builds/latest.tar.gz /app
+
+&lt;span class="k"&gt;CMD&lt;/span&gt; java &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;JAVA_OPTS&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; -jar /app/my-app.jar
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h5&gt;示例: Nginx&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;分析&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;优点&lt;/strong&gt;: 一旦agent已经被放入你的Docker基础映像中，在哪个容器平台上运行你的应用程序并不重要. 此外，这种方案减少了appmon整合的准备工作，不会增加频繁building，shipping和running Dockerized 应用程序过程的任何开销。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;缺点&lt;/strong&gt;: 根据您的特定用例和您所使用的技术,您必须手动集成这些技术. 因为这个方案会在特定技术的基础镜像上, 与特定技术的agent(如Java agent)紧密绑定, 当切换到另一种技术或appmon的新版本时，这些基本镜像可能需要被全部重新创建. (其实这个不算什么大问题, 就是定期更新agent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="qa"&gt;Q&amp;amp;A&lt;a class="headerlink" href="#qa" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;我能监控运行在docker, alpine上的程序么?&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;我能监控在kubernetes或OpenShift上单 docker化应用么?&lt;/h4&gt;
+&lt;p&gt;是的. 参见下一章节.&lt;/p&gt;
+&lt;h4&gt;我能在docker中运行easyTravel(AppMon的demo程序)么?&lt;/h4&gt;
+&lt;p&gt;EasyTravel已经在GitHub的&lt;a href="https://github.com/dynatrace/Dynatrace-easytravel-docker"&gt;EasyTravel in Docker &lt;/a&gt;完全实现容器化了. 你可以使用&lt;a href="https://github.com/Dynatrace/Dynatrace-AppMon-Docker"&gt;Dynatrace in Docker&lt;/a&gt;项目来注入监控.&lt;/p&gt;
+&lt;h2 id="appmon-dockerized-apps-kubernetes-openshift"&gt;使用AppMon 监控 dockerized apps - Kubernetes 和 OpenShift&lt;a class="headerlink" href="#appmon-dockerized-apps-kubernetes-openshift" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;上一章描述了如何使用&lt;a href="https://www.dynatrace.com/solutions/application-monitoring/"&gt;AppMon&lt;/a&gt;监控 普通的Docker环境中的Dockerized apps.&lt;/p&gt;
+&lt;p&gt;本章阐述了如何监控在&lt;a href="http://kubernetes.io/"&gt;Kubernetes&lt;/a&gt;和&lt;a href="https://www.openshift.com/"&gt;Red Hat OpenShift(v3)&lt;/a&gt;的 Dockerized 应用. (OpenShift算是Kubernetes的商业化).&lt;/p&gt;
+&lt;p&gt;如上章"如何使用AppMon监控dockerized apps"所述, 根据于你的实际情况,  你可能会发现下列的方案更适合. 每种方案的利弊都已列出.&lt;/p&gt;
+&lt;h3 id="a"&gt;方案A: 基于继承的方案&lt;a class="headerlink" href="#a" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;基于继承的方案的目标是把AppMon的agent放到你的Docker基础镜像里. 因为Kubernetes和OpenShift都是容器平台, 这种方案允许你来在这些平台上复用你的启用监控的镜像. 然而, 因为OpenShift是一个安全加固的容器平台, 使用root运行容器和执行进程(大部分Docker都是这么构建的)默认会被禁止.  参考&lt;a href="https://docs.openshift.org/latest/creating_images/guidelines.html"&gt;OpenShift 容器镜像向导&lt;/a&gt;来学习如何为OpenShift准备你的Docker镜像. 参见&lt;a href="https://www.dynatrace.com/support/doc/appmon/application-monitoring/monitor-specific-applications/monitor-docker-apps/monitor-dockerized-apps-with-appmon/"&gt;如何使用AppMon监控dockerized apps&lt;/a&gt;获取如何应用本方案到你的Docker镜像.&lt;/p&gt;
+&lt;h4&gt;示例: Java&lt;/h4&gt;
+&lt;p&gt;因为在你的基础镜像中的特定技术已被appmon监控，因此只需简单的运行时配置设置即可将agent绑定到appmon collector。&lt;/p&gt;
+&lt;p&gt;下列例子为一个运行在&lt;a href="http://kubernetes.io/docs/user-guide/pods/"&gt;Pod&lt;/a&gt;上的一个叫做&lt;em&gt;catalog&lt;/em&gt;的容器定义了一个&lt;a href="http://kubernetes.io/docs/user-guide/replication-controller/"&gt;ReplicationController&lt;/a&gt;. 环境变量&lt;code&gt;DT_AGENT_NAME&lt;/code&gt;和&lt;code&gt;DT_AGENT_COLLECTOR&lt;/code&gt;(&lt;a href="https://www.dynatrace.com/support/doc/appmon/application-monitoring/monitor-specific-applications/monitor-docker-apps/monitor-dockerized-apps-with-appmon/"&gt;如何使用AppMon监控dockerized apps&lt;/a&gt;中已定义好)覆盖掉由基础的&lt;code&gt;acmeco/my-app&lt;/code&gt;镜像提供的各自的对应值.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;apiVersion&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;v1&lt;/span&gt;
+&lt;span class="nt"&gt;kind&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;ReplicationController&lt;/span&gt;
+&lt;span class="nt"&gt;metadata&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;my-app&lt;/span&gt;
+&lt;span class="nt"&gt;spec&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;template&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;spec&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="nt"&gt;containers&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;my-app&lt;/span&gt;
+        &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;acmeco/my-app&lt;/span&gt;
+        &lt;span class="nt"&gt;env&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;DT_AGENT_NAME&lt;/span&gt;
+          &lt;span class="nt"&gt;value&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;my-app&amp;quot;&lt;/span&gt;
+        &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;DT_AGENT_COLLECTOR&lt;/span&gt;
+          &lt;span class="nt"&gt;value&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;dtappmon-collector.acmeco.com:9998&amp;quot;&lt;/span&gt;
+        &lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;containerPort&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;8080&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;示例: Nginx&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;分析&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;优点&lt;/strong&gt;: 一旦agent已经被放入你的Docker基础映像中，在哪个容器平台上运行你的应用程序并不重要. 此外，这种方案减少了appmon整合的准备工作，不会增加频繁building，shipping和running Dockerized 应用程序过程的任何开销。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;缺点&lt;/strong&gt;: 根据您的特定用例和您所使用的技术,您必须手动集成这些技术. 因为这个方案会在特定技术的基础镜像上, 与特定技术的agent(如Java agent)紧密绑定, 当切换到另一种技术或appmon的新版本时，这些基本镜像可能需要被全部重新创建. (其实这个不算什么大问题, 就是定期更新agent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="b"&gt;B方案: 基于组合的方案&lt;a class="headerlink" href="#b" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充.&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Tue, 12 Mar 2019 10:58:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-12:/monitoring-docker-app-with-dynatrace.html</guid><category>APM</category><category>Dynatrace</category><category>docker</category></item></channel></rss>

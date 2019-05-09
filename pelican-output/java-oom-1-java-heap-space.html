@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="对于 java.lang.OutOfMemoryError: Java heap space , 最常见的原因很简单 -- 你把一个XXL号的应用放到了一个S号的Java heap space里了. 也就是说 -- 应用需要更多的Java heap space 来让它正常运行. 对于这个OutOfMemory, 其他的原因会更复杂, 通常是由于编程错误引起的." />
+<meta name="keywords" content="jvm, java, oom">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="8种Java 内存溢出之一:Java Heap Space"/>
+<meta property="og:description" content="对于 java.lang.OutOfMemoryError: Java heap space , 最常见的原因很简单 -- 你把一个XXL号的应用放到了一个S号的Java heap space里了. 也就是说 -- 应用需要更多的Java heap space 来让它正常运行. 对于这个OutOfMemory, 其他的原因会更复杂, 通常是由于编程错误引起的."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/java-oom-1-java-heap-space.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-03-12 10:48:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="jvm"/>
+<meta property="article:tag" content="java"/>
+<meta property="article:tag" content="oom"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 8种Java 内存溢出之一:Java Heap Space</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="java-oom-1-java-heap-space">8种Java 内存溢出之一:Java Heap Space</h1>
+    <p>
+      在 2019-03-12 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#11-javalangoutofmemoryerror-java-heap-space">1.1  java.lang.OutOfMemoryError: Java heap space 概述</a></li>
+<li><a href="#12">1.2 原因</a></li>
+<li><a href="#13">1.3 示例</a><ul>
+<li><a href="#131-1">1.3.1 示例1</a></li>
+<li><a href="#132">1.3.2 内存泄漏示例</a></li>
+</ul>
+</li>
+<li><a href="#14">1.4 解决方案</a></li>
+</ul>
+</div>
+<h2 id="11-javalangoutofmemoryerror-java-heap-space">1.1  java.lang.OutOfMemoryError: Java heap space 概述<a class="headerlink" href="#11-javalangoutofmemoryerror-java-heap-space" title="Permanent link">&para;</a></h2>
+<p>Java 应用只允许使用有限的内存。这个限制是在应用启动的时候指定的。展开来说， Java内存分成2个不同的区域。这两个区域叫做Heap Space （堆内存）和 Permgen （Permanent Generation，即永久代）。</p>
+<p><img alt="java内存结构" src="https://www.EWhisper.cn/images/java_memory.png"></p>
+<p>这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数<code>-Xmx</code> 和 <code>-XX:MaxPermSize</code>进行设置. 如果你没欧进行特别的设置, <strong>平台指定</strong>的默认配置会被使用.
+<code>java.lang.OutOfMemoryError: Java heap space</code> 错误会在应用尝试添加更多的数据到heap space, 但是heap区没有足够的空间时触发.</p>
+<p>需要注意的是即使<strong>物理内存</strong>可能有很多剩余, 但是只要JVM达到了heap size的限制, 就会抛出该错误.</p>
+<h2 id="12">1.2 原因<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<p>对于 <code>java.lang.OutOfMemoryError: Java heap space</code> , 最常见的原因很简单 -- 你把一个XXL号的应用放到了一个S号的Java heap space里了. 也就是说 -- 应用需要更多的Java heap space 来让它正常运行. 对于这个OutOfMemory, 其他的原因会更复杂, 通常是由于编程错误引起的:</p>
+<ul>
+<li><strong>用户/数据量出现峰值</strong> 该应用被设计来处理一定数量的用户和一定数量的数据. 当用户数或数据量突然冲高, 并且超过了期望的阈值, 在出现峰值停止之前的正常运行时的操作触发了 <code>java.lang.OutOfMemoryError: Java heap space</code> 错误.</li>
+<li><strong>内存泄漏</strong> 一种特定类型的编程错误导致应用频繁消耗更多的内存. 每当应用的泄漏的功能被使用时, 它就会在Java heap space种生成一些对象. 随着时间推移, 泄漏的对象消耗了所有可用的Java heap space, 并且触发了常见的<code>java.lang.OutOfMemoryError: Java heap space</code>  错误.</li>
+</ul>
+<h2 id="13">1.3 示例<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
+<h3 id="131-1">1.3.1 示例1<a class="headerlink" href="#131-1" title="Permanent link">&para;</a></h3>
+<p>第一个例子相当简单 -- 下列的Java 代码尝试分配200万个(2M) 整数数组. 当你编译该代码, 用一个12MB大小的Java heap space (<code>java -Xmx12m OOM</code>)运行. 它会运行失败, 抛出 <code>java.lang.OutOfMemoryError: Java heap space</code>  消息. 有13MB Java heap space, 这个程序就能正常运行...</p>
+<div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">OOM</span> <span class="o">{</span>
+  <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">SIZE</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span> <span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">a</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kt">int</span><span class="o">[]</span> <span class="n">i</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[</span><span class="n">SIZE</span><span class="o">]</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h3 id="132">1.3.2 内存泄漏示例<a class="headerlink" href="#132" title="Permanent link">&para;</a></h3>
+<p>第二个, 更现实一点的例子是内存泄漏. 在Java里, 当开发创建和使用新对象, 如: <code>new Integer(5)</code>, 他们不必自己分派内存 -- 这通过JVM来处理. 在应用生命周期种, JVM会周期性地检查内存中的哪个对象仍在使用, 哪个没有. 没有被使用的对象会被丢弃, 然后内存重新声明并重新使用. 这个过程叫做<strong>垃圾回收</strong>. 对应的JVM里的模块叫做<strong>垃圾收集器</strong>.</p>
+<p>Java的自动内存管理机制以来与GC来周期性地查找没用的对象并移除他们. 简而言之, Java内存泄漏是这么一种场景, 一些对象应用已经不用了, 但是GC却没有检查出来. 结果就是这些没用的对象仍然无限期地存在在Java heap space 中. 如此往复, 最终触发<code>java.lang.OutOfMemoryError: Java heap space</code>错误.</p>
+<p>构造一个满足内存泄漏定义的Java程序也相当容易:</p>
+<div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">KeylessEntry</span> <span class="o">{</span>
+  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Key</span> <span class="o">{</span>
+    <span class="n">Integer</span> <span class="n">id</span><span class="o">;</span>
+
+    <span class="n">Key</span><span class="o">(</span><span class="n">Integer</span> <span class="n">id</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">id</span> <span class="o">=</span> <span class="n">id</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">hashCode</span><span class="o">()</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">id</span><span class="o">.</span><span class="na">hashCode</span><span class="o">();</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Map</span> <span class="n">m</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">();</span>
+    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10000</span><span class="o">,</span> <span class="n">i</span><span class="o">++)</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">m</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="k">new</span> <span class="n">Key</span><span class="o">(</span><span class="n">i</span><span class="o">)))</span>
+          <span class="n">m</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="k">new</span> <span class="n">Key</span><span class="o">(</span><span class="n">i</span><span class="o">),</span> <span class="s">&quot;Nmber:&quot;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<p>当执行上面的代码时，您可能期望它永远运行而没有任何问题，假设原始缓存解决方案只将Map扩展到10,000个元素，除此之外，HashMap中已经包含了所有键. 然而, 事实上元素会持续增加因为Key这个类没有在它的<code>hashCode()</code>种包含一个适当的<code>equals()</code>实现.</p>
+<p>结果, 随着时间推移, 因为泄漏代码的不断的使用, "缓存"的结果会消耗大量的Java heap space. 当泄漏的内存填满了heap区的所有的可用内存, 并且垃圾收集器无法清理, 会抛出<code>java.lang.OutOfMemoryError: Java heap space</code>.</p>
+<p>解决办法也简单 -- 添加个<code>equals()</code>方法的实现在下边, 就能很好的运行了. 但是在你最终找到这个bug之前, 你会西欧爱好相当多的脑细胞.</p>
+<div class="highlight"><pre><span></span><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">equals</span><span class="o">(</span><span class="n">Object</span> <span class="n">o</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kt">boolean</span> <span class="n">response</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">o</span> <span class="k">instanceof</span> <span class="n">Key</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="o">(((</span><span class="n">Key</span><span class="o">)</span><span class="n">o</span><span class="o">).</span><span class="na">id</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">id</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="k">return</span> <span class="n">response</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h2 id="14">1.4 解决方案<a class="headerlink" href="#14" title="Permanent link">&para;</a></h2>
+<p>显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:
+<code>-Xmx1024m</code></p>
+<p>上述配置会给应用1024M的Java heap space. 你可以使用<code>g</code>或者<code>G</code>(单位是GB), <code>m</code>或<code>M</code>(MB), <code>k</code>或<code>K</code>(KB). 例如下列都是设置最大Java heap space为1GB:</p>
+<div class="highlight"><pre><span></span>java -Xmx1073741824 com.mycompany.MyClass
+java -Xmx1048576k com.mycompany.MyClass
+java -Xmx1024m com.mycompany.MyClass
+java -Xmx1g com.mycompany.MyClass
+</pre></div>
+
+
+<p>然而, 在很多案例种, 提供更多的Java heap space只是饮鸩止渴. 例如, 如果你的应用存在内存泄漏, 添加更多的heap只是延缓<code>java.lang.OutOfMemoryError: Java heap space</code>错误的出现, 并不能解决问题. 另外, 增加Java heap space也会导致GC暂停时间的增加, 从而影响你的应用的<a href="https://plumbr.eu/blog/gc-impact-on-throughput-and-latency">吞吐量和延迟</a>.</p>
+<p>如果你希望解决潜在的问题, 而不是头痛医头, 联系我就是最好的方式(＠￣ー￣＠). 当然, 有几个工具适合你. <strong>Debuggers</strong>, <strong>profiles</strong>, <strong>heap dump analyzers</strong> -- 供你选择.</p>
+<blockquote>
+<p>题外话:
+Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:
+《案例: Dynatrace分析某财险承保系统内存泄漏问题》</p>
+</blockquote>
+<p><strong>喜欢我的博客吗? 打赏一杯<img align="absmiddle" alt="☕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2615.png" title=":coffee:" width="20px">吧。您的支持是对我的最大鼓励～ 另外记得给我留言或订阅哦 <img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"></strong></p>
+<p><strong><a href="https://www.EWhisper.cn/pages/about.html">点击这里打赏<img align="absmiddle" alt="👉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f449.png" title=":point_right:" width="20px"></a></strong></p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/jvm.html">jvm</a>
+      <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+      <a href="https://www.EWhisper.cn/tag/oom.html">oom</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/write-python-framework-part-three.html" title="如何编写Python Web框架（三）">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/monitoring-docker-app-with-dynatrace.html" title="使用 Dynatrace AppMon 监控 Docker 应用">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/oracle-webLogic-server-11.1.1.9-release-notes.html">Oracle WebLogic Server 11.1.1.9发布说明</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>
