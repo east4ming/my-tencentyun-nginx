@@ -1,1 +1,1 @@
-sudo docker build -t my-tentcentyun-nginx .
+sudo docker build -t caseycui/my-tencentyun-nginx .

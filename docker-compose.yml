@@ -5,6 +5,7 @@ web:
    - default.d:/etc/nginx/default.d
    - conf.d:/etc/nginx/conf.d
    - pelican-output:/usr/share/nginx/html
+   - /etc/pki/nginx:/etc/pki/nginx
   ports:
-   - "8080:80"
+   - "80:80"
   command: [nginx, '-g', 'daemon off;']

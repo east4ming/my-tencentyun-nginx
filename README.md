@@ -1,5 +1,9 @@
 # my-tencentyun-nginx
 
+## TODO
+
+1. 部分内容变量化
+
 ## docker compose
 
 > :notebook
