@@ -8,4 +8,5 @@ web:
    - /etc/pki/nginx:/etc/pki/nginx:ro
   ports:
    - "80:80"
+   - "443:443"
   command: [nginx, '-g', 'daemon off;']
