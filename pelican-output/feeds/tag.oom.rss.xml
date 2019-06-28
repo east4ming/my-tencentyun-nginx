@@ -14,7 +14,7 @@
 &lt;h2 id="11-javalangoutofmemoryerror-java-heap-space"&gt;1.1  java.lang.OutOfMemoryError: Java heap space 概述&lt;a class="headerlink" href="#11-javalangoutofmemoryerror-java-heap-space" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Java 应用只允许使用有限的内存。这个限制是在应用启动的时候指定的。展开来说， Java内存分成2个不同的区域。这两个区域叫做Heap Space （堆内存）和 Permgen （Permanent Generation，即永久代）。&lt;/p&gt;
 &lt;p&gt;&lt;img alt="java内存结构" src="https://www.EWhisper.cn/images/java_memory.png"&gt;&lt;/p&gt;
-&lt;p&gt;这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数&lt;code&gt;-Xmx&lt;/code&gt; 和 &lt;code&gt;-XX:MaxPermSize&lt;/code&gt;进行设置. 如果你没欧进行特别的设置, &lt;strong&gt;平台指定&lt;/strong&gt;的默认配置会被使用.
+&lt;p&gt;这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数&lt;code&gt;-Xmx&lt;/code&gt; 和 &lt;code&gt;-XX:MaxPermSize&lt;/code&gt;进行设置. 如果你没欧进行特别的设置, &lt;strong&gt;平台指定&lt;/strong&gt;的默认配置会被使用.&lt;br&gt;
 &lt;code&gt;java.lang.OutOfMemoryError: Java heap space&lt;/code&gt; 错误会在应用尝试添加更多的数据到heap space, 但是heap区没有足够的空间时触发.&lt;/p&gt;
 &lt;p&gt;需要注意的是即使&lt;strong&gt;物理内存&lt;/strong&gt;可能有很多剩余, 但是只要JVM达到了heap size的限制, 就会抛出该错误.&lt;/p&gt;
 &lt;h2 id="12"&gt;1.2 原因&lt;a class="headerlink" href="#12" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
@@ -77,7 +77,7 @@
 
 
 &lt;h2 id="14"&gt;1.4 解决方案&lt;a class="headerlink" href="#14" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:
+&lt;p&gt;显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:&lt;br&gt;
 &lt;code&gt;-Xmx1024m&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;上述配置会给应用1024M的Java heap space. 你可以使用&lt;code&gt;g&lt;/code&gt;或者&lt;code&gt;G&lt;/code&gt;(单位是GB), &lt;code&gt;m&lt;/code&gt;或&lt;code&gt;M&lt;/code&gt;(MB), &lt;code&gt;k&lt;/code&gt;或&lt;code&gt;K&lt;/code&gt;(KB). 例如下列都是设置最大Java heap space为1GB:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;java -Xmx1073741824 com.mycompany.MyClass
@@ -90,8 +90,8 @@ java -Xmx1g com.mycompany.MyClass
 &lt;p&gt;然而, 在很多案例种, 提供更多的Java heap space只是饮鸩止渴. 例如, 如果你的应用存在内存泄漏, 添加更多的heap只是延缓&lt;code&gt;java.lang.OutOfMemoryError: Java heap space&lt;/code&gt;错误的出现, 并不能解决问题. 另外, 增加Java heap space也会导致GC暂停时间的增加, 从而影响你的应用的&lt;a href="https://plumbr.eu/blog/gc-impact-on-throughput-and-latency"&gt;吞吐量和延迟&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;如果你希望解决潜在的问题, 而不是头痛医头, 联系我就是最好的方式(＠￣ー￣＠). 当然, 有几个工具适合你. &lt;strong&gt;Debuggers&lt;/strong&gt;, &lt;strong&gt;profiles&lt;/strong&gt;, &lt;strong&gt;heap dump analyzers&lt;/strong&gt; -- 供你选择.&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;题外话:
-Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:
+&lt;p&gt;题外话:&lt;br&gt;
+Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:&lt;br&gt;
 《案例: Dynatrace分析某财险承保系统内存泄漏问题》&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;&lt;strong&gt;喜欢我的博客吗? 打赏一杯&lt;img align="absmiddle" alt="☕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2615.png" title=":coffee:" width="20px"&gt;吧。您的支持是对我的最大鼓励～ 另外记得给我留言或订阅哦 &lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;/strong&gt;&lt;/p&gt;

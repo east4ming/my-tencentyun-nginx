@@ -158,7 +158,7 @@
 <h2 id="11-javalangoutofmemoryerror-java-heap-space">1.1  java.lang.OutOfMemoryError: Java heap space 概述<a class="headerlink" href="#11-javalangoutofmemoryerror-java-heap-space" title="Permanent link">&para;</a></h2>
 <p>Java 应用只允许使用有限的内存。这个限制是在应用启动的时候指定的。展开来说， Java内存分成2个不同的区域。这两个区域叫做Heap Space （堆内存）和 Permgen （Permanent Generation，即永久代）。</p>
 <p><img alt="java内存结构" src="https://www.EWhisper.cn/images/java_memory.png"></p>
-<p>这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数<code>-Xmx</code> 和 <code>-XX:MaxPermSize</code>进行设置. 如果你没欧进行特别的设置, <strong>平台指定</strong>的默认配置会被使用.
+<p>这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数<code>-Xmx</code> 和 <code>-XX:MaxPermSize</code>进行设置. 如果你没欧进行特别的设置, <strong>平台指定</strong>的默认配置会被使用.<br>
 <code>java.lang.OutOfMemoryError: Java heap space</code> 错误会在应用尝试添加更多的数据到heap space, 但是heap区没有足够的空间时触发.</p>
 <p>需要注意的是即使<strong>物理内存</strong>可能有很多剩余, 但是只要JVM达到了heap size的限制, 就会抛出该错误.</p>
 <h2 id="12">1.2 原因<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
@@ -221,7 +221,7 @@
 
 
 <h2 id="14">1.4 解决方案<a class="headerlink" href="#14" title="Permanent link">&para;</a></h2>
-<p>显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:
+<p>显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:<br>
 <code>-Xmx1024m</code></p>
 <p>上述配置会给应用1024M的Java heap space. 你可以使用<code>g</code>或者<code>G</code>(单位是GB), <code>m</code>或<code>M</code>(MB), <code>k</code>或<code>K</code>(KB). 例如下列都是设置最大Java heap space为1GB:</p>
 <div class="highlight"><pre><span></span>java -Xmx1073741824 com.mycompany.MyClass
@@ -234,8 +234,8 @@ java -Xmx1g com.mycompany.MyClass
 <p>然而, 在很多案例种, 提供更多的Java heap space只是饮鸩止渴. 例如, 如果你的应用存在内存泄漏, 添加更多的heap只是延缓<code>java.lang.OutOfMemoryError: Java heap space</code>错误的出现, 并不能解决问题. 另外, 增加Java heap space也会导致GC暂停时间的增加, 从而影响你的应用的<a href="https://plumbr.eu/blog/gc-impact-on-throughput-and-latency">吞吐量和延迟</a>.</p>
 <p>如果你希望解决潜在的问题, 而不是头痛医头, 联系我就是最好的方式(＠￣ー￣＠). 当然, 有几个工具适合你. <strong>Debuggers</strong>, <strong>profiles</strong>, <strong>heap dump analyzers</strong> -- 供你选择.</p>
 <blockquote>
-<p>题外话:
-Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:
+<p>题外话:<br>
+Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:<br>
 《案例: Dynatrace分析某财险承保系统内存泄漏问题》</p>
 </blockquote>
 <p><strong>喜欢我的博客吗? 打赏一杯<img align="absmiddle" alt="☕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2615.png" title=":coffee:" width="20px">吧。您的支持是对我的最大鼓励～ 另外记得给我留言或订阅哦 <img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"></strong></p>

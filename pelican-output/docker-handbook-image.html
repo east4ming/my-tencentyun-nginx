@@ -151,28 +151,28 @@
 <h2 id="_4">删除镜像<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p><code>docker rmi</code></p>
 <blockquote>
-<p>当一个镜像拥有多个标签，<code>docker rmi</code>只是删除该镜像指定的标签，并不影响镜像文件
-当镜像只剩下一个标签时，再使用会彻底删除该镜像
+<p>当一个镜像拥有多个标签，<code>docker rmi</code>只是删除该镜像指定的标签，并不影响镜像文件<br>
+当镜像只剩下一个标签时，再使用会彻底删除该镜像<br>
 先删除该镜像的所有容器，再删除镜像</p>
 </blockquote>
 <h2 id="_5">创建镜像<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<p>3种方法：
-- 基于已有镜像的<strong>容器</strong>创建
-- 基于本地模板导入
+<p>3种方法：<br>
+- 基于已有镜像的<strong>容器</strong>创建<br>
+- 基于本地模板导入<br>
 - 基于Dockerfile创建</p>
 <h3 id="_6">基于已有镜像的容器创建<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
 <p><code>docker commit</code></p>
 <blockquote>
-<p>-a: 作者信息
--m: 提交信息
--p 提交时暂停容器运行
+<p>-a: 作者信息<br>
+-m: 提交信息<br>
+-p 提交时暂停容器运行<br>
 -c changelist</p>
 </blockquote>
 <h3 id="_7">基于本地模板的导入<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
-<p>推荐使用OpenVZ 提供的模板来创建。下载地址：https://openvz.org/Download/template/precreated
+<p>推荐使用OpenVZ 提供的模板来创建。下载地址：https://openvz.org/Download/template/precreated<br>
 <code>sudo cat ubuntu-16.04-x86_64.tar.gz | docker import - ubuntu:16.04</code></p>
 <h2 id="_8">导出和载入镜像<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
-<p><strong>导出</strong>：<code>sudo docker save -o ubuntu_16.04.tar ubuntu:16.04</code>
+<p><strong>导出</strong>：<code>sudo docker save -o ubuntu_16.04.tar ubuntu:16.04</code><br>
 <strong>载入</strong>：<code>sudo docker load --input ubuntu_16.04.tar</code> 或者 <code>sudo docker load &lt; ubuntu_16.04.tar</code></p>
 <blockquote>
 <p>该指令会载入镜像，以及其相关的元数据信息（包括标签等）. 关于<code>docker load</code>和<code>docker import</code>指令的区别见下一章.</p>

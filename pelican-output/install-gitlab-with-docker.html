@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="在个人电脑或公司测试环境使用docker或OpenShift快速搭建 Gitlab." />
+<meta name="keywords" content="docker, openshift, k8s, containers, git">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="使用 Docker 安装 Gitlab"/>
+<meta property="og:description" content="在个人电脑或公司测试环境使用docker或OpenShift快速搭建 Gitlab."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/install-gitlab-with-docker.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-26 21:24:52.610981+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="docker"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="containers"/>
+<meta property="article:tag" content="git"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 使用 Docker 安装 Gitlab</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="install-gitlab-with-docker">使用 Docker 安装 Gitlab</h1>
+    <p>
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <h2 id="docker">Docker 安装<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 说明:</p>
+<p>官网链接:<a href="https://docs.gitlab.com/omnibus/docker/">GitLab Docker images</a></p>
+<p><a href="https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/docker/Dockerfile">官网 Dockerfile</a></p>
+</blockquote>
+<div class="highlight"><pre><span></span>sudo docker pull gitlab/gitlab-ce  <span class="c1"># 下载</span>
+sudo docker run --detach <span class="se">\</span>
+  --hostname gitlab.example.com <span class="se">\</span>
+  --publish <span class="m">443</span>:443 --publish <span class="m">80</span>:80 --publish <span class="m">22</span>:22 <span class="se">\</span>
+  --name gitlab <span class="se">\</span>
+  --restart always <span class="se">\</span>
+  --volume /srv/gitlab/config:/etc/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/logs:/var/log/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/data:/var/opt/gitlab <span class="se">\</span>
+  gitlab/gitlab-ce:latest  <span class="c1"># 运行容器</span>
+</pre></div>
+
+
+<h3 id="_1">数据存在哪儿:<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th align="left">本地位置</th>
+<th align="left">容器位置</th>
+<th align="left">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>/srv/gitlab/data</code></td>
+<td align="left"><code>/var/opt/gitlab</code></td>
+<td align="left">用于存储应用数据</td>
+</tr>
+<tr>
+<td align="left"><code>/srv/gitlab/logs</code></td>
+<td align="left"><code>/var/log/gitlab</code></td>
+<td align="left">用于存储日志</td>
+</tr>
+<tr>
+<td align="left"><code>/srv/gitlab/config</code></td>
+<td align="left"><code>/etc/gitlab</code></td>
+<td align="left">用于存储GitLab配置文件</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gitlab">配置Gitlab:<a class="headerlink" href="#gitlab" title="Permanent link">&para;</a></h3>
+<p>配置文件位于: <code>/etc/gitlab/gitlab.rb</code></p>
+<p>几种配置方式:</p>
+<ul>
+<li><code>sudo docker exec -it gitlab /bin/bash</code> 进入到容器内, 然后通过<code>vi</code>编辑保存</li>
+<li><code>sudo docker exec -it gitlab editor /etc/gitlab/gitlab.rb</code> </li>
+</ul>
+<p>编辑完之后, 重启容器:<code>sudo docker restart gitlab</code></p>
+<h3 id="docker_1">预配置 Docker 容器<a class="headerlink" href="#docker_1" title="Permanent link">&para;</a></h3>
+<p>也可以通过将环境变量<code>GITLAB_OMNIBUS_CONFIG</code>添加到docker run命令来预配置GitLab Docker映像。此变量可以包含任何<code>gitlab.rb</code>设置，并在加载容器<code>gitlab.rb</code>文件之前进行加载。</p>
+<p>示例如下:</p>
+<div class="highlight"><pre><span></span>sudo docker run --detach <span class="se">\</span>
+  --hostname gitlab.example.com <span class="se">\</span>
+  --env <span class="nv">GITLAB_OMNIBUS_CONFIG</span><span class="o">=</span><span class="s2">&quot;external_url &#39;http://my.domain.com/&#39;; gitlab_rails[&#39;lfs_enabled&#39;] = true;&quot;</span> <span class="se">\</span>
+  --publish <span class="m">443</span>:443 --publish <span class="m">80</span>:80 --publish <span class="m">22</span>:22 <span class="se">\</span>
+  --name gitlab <span class="se">\</span>
+  --restart always <span class="se">\</span>
+  --volume /srv/gitlab/config:/etc/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/logs:/var/log/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/data:/var/opt/gitlab <span class="se">\</span>
+  gitlab/gitlab-ce:latest
+</pre></div>
+
+
+<h3 id="_2">启动容器后<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>可以通过<a href="http://localhost">http://localhost</a> 进行访问.</p>
+<p>可以通过 <code>sudo docker logs -f gitlab</code> 查看日志.</p>
+<h3 id="ip">发布到公网IP<a class="headerlink" href="#ip" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span>sudo docker run --detach <span class="se">\</span>
+  --hostname gitlab.example.com <span class="se">\</span>
+  --publish <span class="m">198</span>.51.100.1:443:443 <span class="se">\</span>
+  --publish <span class="m">198</span>.51.100.1:80:80 <span class="se">\</span>
+  --publish <span class="m">198</span>.51.100.1:22:22 <span class="se">\</span>
+  --name gitlab <span class="se">\</span>
+  --restart always <span class="se">\</span>
+  --volume /srv/gitlab/config:/etc/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/logs:/var/log/gitlab <span class="se">\</span>
+  --volume /srv/gitlab/data:/var/opt/gitlab <span class="se">\</span>
+  gitlab/gitlab-ce:latest
+</pre></div>
+
+
+<h3 id="docker-composegitlab">使用docker-compose安装GitLab<a class="headerlink" href="#docker-composegitlab" title="Permanent link">&para;</a></h3>
+<ol>
+<li>安装 docker compose</li>
+<li>创建<code>docker-compose.yml</code> 文件（或<a href="https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/docker/docker-compose.yml">下载示例</a>）: </li>
+</ol>
+<div class="highlight"><pre><span></span> <span class="nt">web</span><span class="p">:</span>
+   <span class="nt">image</span><span class="p">:</span> <span class="s">&#39;gitlab/gitlab-ce:latest&#39;</span>
+   <span class="nt">restart</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">always</span>
+   <span class="nt">hostname</span><span class="p">:</span> <span class="s">&#39;gitlab.example.com&#39;</span>
+   <span class="nt">environment</span><span class="p">:</span>
+     <span class="nt">GITLAB_OMNIBUS_CONFIG</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+       <span class="no">external_url &#39;https://gitlab.example.com&#39;</span>
+       <span class="no"># Add any other gitlab.rb configuration here, each on its own line</span>
+   <span class="nt">ports</span><span class="p">:</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;80:80&#39;</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;443:443&#39;</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;22:22&#39;</span>
+   <span class="nt">volumes</span><span class="p">:</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;/srv/gitlab/config:/etc/gitlab&#39;</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;/srv/gitlab/logs:/var/log/gitlab&#39;</span>
+     <span class="p p-Indicator">-</span> <span class="s">&#39;/srv/gitlab/data:/var/opt/gitlab&#39;</span>
+</pre></div>
+
+
+<ol start="3">
+<li>确保您<code>docker-compose.yml</code>与运行<code>docker-compose up -d</code> 在同一目录中以运行GitLab</li>
+</ol>
+<h2 id="openshift">OpenShift 安装<a class="headerlink" href="#openshift" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>目前Gitlab通过OpenShift 安装, 有一些已知的问题. 并且只在OpenShift 3.11版本上测试通过.</p>
+<p>另外, 安装是通过 Helm Chart方式进行安装的. 还是有点复杂的...</p>
+</blockquote>
+<h3 id="_3">已知的问题<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>以下问题是已知的，并且预计适用于OpenShift上的GitLab安装：</p>
+<ol>
+<li><code>anyuid</code>scc的要求：(OpenShift 的安全加固导致的)<ul>
+<li>GitLab的不同组件，如Sidekiq，unicorn等，使用UID 1000来运行服务。</li>
+<li>PostgreSQL chart以<code>root</code>用户身份运行服务。</li>
+<li><a href="https://gitlab.com/charts/gitlab/issues/752">问题＃752</a>是open状态，以调查更多有关解决此问题的信息。</li>
+</ul>
+</li>
+<li>如果使用<code>hostpath</code>卷，则需要为主机中的持久性卷目录授予<code>0777</code>权限，以授予所有用户对卷的访问权限。</li>
+<li>OpenShift的内置router 不支持通过SSH进行Git操作。 <a href="https://gitlab.com/charts/gitlab/issues/892">问题＃892</a> 是oepn状态，以调查更多有关解决此问题的信息。</li>
+<li>众所周知，GitLab Registry不能与OpenShift的内置router配合使用。 <a href="https://gitlab.com/charts/gitlab/issues/893">问题＃893</a>是open状态，以调查更多有关修复此问题的信息。</li>
+<li>从Let's Encrypt自动发出SSL证书不适用于OpenShift router。我们建议<a href="https://docs.gitlab.com/charts/installation/tls.html#option-2-use-your-own-wildcard-certificate">您使用自己的证书</a>。 <a href="https://gitlab.com/charts/gitlab/issues/894">问题＃894</a>开放，以调查更多有关解决此问题的信息。</li>
+</ol>
+<h3 id="_4">先决条件步骤<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p>请参阅<a href="https://www.okd.io/download.html#oc-platforms">官方文档</a> 以安装和配置群集。</p>
+</li>
+<li>
+<p>运行<code>oc cluster status</code>并确认群集正在运行：</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span>oc cluster status
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>输出应类似于：
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Web console URL: https://gitlab.example.com:8443/console/
+
+Config is at host directory
+Volumes are at host directory
+Persistent volumes are at host directory /home/okduser/openshift/openshift.local.clusterup/openshift.local.pv
+Data will be discarded when cluster is destroyed
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>请注意主机中Persistent Volumes的位置（在上例中`/home/okduser/openshift/openshift.local.clusterup/openshift.local.pv`）。以下命令需要`PV_HOST_DIRECTORY`环境变量中的路径。
+</pre></div>
+
+
+<ol start="3">
+<li>修改PV目录的权限（用以上值替换以下命令中的路径）：</li>
+</ol>
+<div class="highlight"><pre><span></span>sudo chmod -R a+rwx <span class="si">${</span><span class="nv">PV_HOST_DIRECTORY</span><span class="si">}</span>/*
+</pre></div>
+
+
+<ol start="4">
+<li>切换到系统管理员用户：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc login -u system:admin
+</pre></div>
+
+
+<ol start="5">
+<li>将<code>anyuid</code>scc 添加到系统用户：</li>
+</ol>
+<div class="highlight"><pre><span></span>oc adm policy add-scc-to-group anyuid system:authenticated
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>**警告**：此设置将应用于所有namespace，并将导致Docker镜像未明确指定USER作为`root`用户运行。 [问题＃895](https://gitlab.com/charts/gitlab/issues/895)是开放的，用于记录所需的不同服务帐户，并描述仅将scc添加到这些服务帐户，因此影响可能有限。
+</pre></div>
+
+
+<ol start="6">
+<li>创建服务帐户和<code>rolebinding</code>RBAC并<a href="https://docs.gitlab.com/charts/installation/tools.html#helm">安装Tiller</a>：</li>
+</ol>
+<div class="highlight"><pre><span></span>kubectl create -f https://gitlab.com/charts/gitlab/raw/master/doc/installation/examples/rbac-config.yaml
+helm init --service-account tiller
+</pre></div>
+
+
+<h3 id="_5">下一步<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>在群集启动并运行后，继续<a href="https://docs.gitlab.com/charts/installation/deployment.html">安装chart</a>，并准备好静态IP和DNS条目。</p>
+<p>在此之前，请注意常规 chart安装过程中的以下更改：</p>
+<ol>
+<li>我们将使用OpenShift的内置router，因此需要禁用chart中包含的nginx-ingress服务。将以下标志传递给<code>helm install</code>命令：</li>
+</ol>
+<div class="highlight"><pre><span></span>--set nginx-ingress.enabled<span class="o">=</span><span class="nb">false</span>
+</pre></div>
+
+
+<ol start="2">
+<li>由于已知内置注册表不能使用Helm Chart与OpenShift一起使用，因此请禁用注册表服务。将以下标志传递给 <code>helm install</code>命令：</li>
+</ol>
+<div class="highlight"><pre><span></span>--set registry.enabled=false
+</pre></div>
+
+
+<ol start="3">
+<li><a href="https://docs.gitlab.com/charts/installation/tls.html#option-2-use-your-own-wildcard-certificate">使用您自己的SSL证书</a></li>
+</ol>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+      <a href="https://www.EWhisper.cn/tag/git.html">git</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html" title="Dynatrace AppMon 实战手册 - 25.RESTful API">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html" title="Dynatrace AppMon 实战手册 - 26.分析诡异的应用性能问题">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html">容器自动伸缩</a></li>
+      <li><a href="https://www.EWhisper.cn/binary-builds-with-openshift.html">使用OpenShift进行二进制构建</a></li>
+      <li><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html">OpenShift 和 Kubernetes 有什么区别?</a></li>
+      <li><a href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html">OpenShift企业测试环境应用部署实战</a></li>
+      <li><a href="https://www.EWhisper.cn/ewhisper-blog-moved-to-docker.html">我的个人博客迁移到Docker啦</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

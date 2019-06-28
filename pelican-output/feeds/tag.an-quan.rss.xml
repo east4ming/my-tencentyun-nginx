@@ -1,5 +1,478 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>东风微鸣 Blog - 安全</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Fri, 29 Mar 2019 10:41:49 +0800</lastBuildDate><item><title>腾讯云申请免费SSL证书</title><link>https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html</link><description>&lt;h2 id="_1"&gt;前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+<rss version="2.0"><channel><title>东风微鸣 Blog - 安全</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 19 Jun 2019 20:24:00 +0800</lastBuildDate><item><title>NGINX 实战手册-安全-实用安全技巧</title><link>https://www.EWhisper.cn/nginx-handbook-2-10-security-tips.html</link><description>&lt;h2 id="210"&gt;2.10 实用安全技巧&lt;a class="headerlink" href="#210" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="2100"&gt;2.10.0 介绍&lt;a class="headerlink" href="#2100" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;安全是分层的, 就像一个洋葱, 你的安全模型确实要被多层加固. 在这部分, 我们介绍许多不同的方法来确保web应用程序NGINX和NGINX Plus. 很多的这些安全方法可以用来加固安全. 下面是一些实用的安全提示,以确保您的用户在使用HTTPS和告诉NGINX满足一个或多个安全方法。&lt;/p&gt;
+&lt;h3 id="2101-https"&gt;2.10.1 HTTPS 重定向&lt;a class="headerlink" href="#2101-https" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要重定向未加密的请求到HTTPS.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;rewrite&lt;/code&gt;来发送所有HTTP流量到HTTPS:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;server_name&lt;/span&gt; &lt;span class="s"&gt;_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;301&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$host$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个配置监听所有hostname的IPv4和IPv6的80端口作为默认的server. &lt;code&gt;return&lt;/code&gt;声明返回301永久重定向到同样的host和请求URI的HTTPS上.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;总是把适当的请求重定向到HTTPS是非常重要的. 你可能会发现你不需要重定向所有的请求, 而是在客户端和server之间传输敏感信息的那些请求. 在本例中, 你可能想要把&lt;code&gt;return&lt;/code&gt;声明放到特定的location里, 如&lt;code&gt;/login&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="2102-ssltlsnginxhttps"&gt;2.10.2 重定向SSL/TLS在NGINX之前已经结束的到HTTPS&lt;a class="headerlink" href="#2102-ssltlsnginxhttps" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要重定向到HTTPS, 然而, 在NGINX之前, 你已经结束了SSL/TLS.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用标准的&lt;code&gt;HTTP_X_Forwarded_Proto&lt;/code&gt; 头来决定是否你需要进行重定向:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;server_name&lt;/span&gt; &lt;span class="s"&gt;_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$http_x_forwarded_proto&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;http&amp;#39;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;301&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$host$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个配置和HTTPS重定向很像. 但是, 在这个配置中, 只有头&lt;code&gt;X_Forwarded_Proto&lt;/code&gt;等于HTTP才会重定向.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;这是一个在NGINX之前就结束了SSL/TLS的常见案例. 你可能要这么做的一个原因是节省计算开销. 但是, 你需要确保每个请求都是HTTPS, 但是结束了SSL/TLS的层没有重定向的能力. 但是, 可以设置代理头部. 这个配置可以在Amazon Web Services Elastic Load Balancer上工作, 因为这个如果没有额外的花钱的话就会卸载掉SSL/TLS. 这是一个方便的技巧以确保你的HTTP流量是安全的。&lt;/p&gt;
+&lt;h3 id="2103"&gt;2.10.3 满足任意数量的安全方法&lt;a class="headerlink" href="#2103" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要提供多种方式来传输安全到一个不公开的站点.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;satisfy&lt;/code&gt;指令来说明你想要使用任意数量的安全方法:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;satisfy&lt;/span&gt; &lt;span class="s"&gt;any&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;192&lt;/span&gt;&lt;span class="s"&gt;.168.1.0/24&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;deny&lt;/span&gt;  &lt;span class="s"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;auth_basic&lt;/span&gt;           &lt;span class="s"&gt;&amp;quot;closed&lt;/span&gt; &lt;span class="s"&gt;site&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;auth_basic_user_file&lt;/span&gt; &lt;span class="s"&gt;conf/htpasswd&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;该配置告诉NGINX用户请求&lt;code&gt;location /&lt;/code&gt;需要满足其中的一个安全方法: 或者该请求需要来自&lt;em&gt;192.168.1.0/24&lt;/em&gt; CIDR block, 或者能够提供在可以在&lt;code&gt;conf/htpasswd&lt;/code&gt;中找到的用户名密码. &lt;code&gt;satisfy&lt;/code&gt;指令有2个选项: &lt;code&gt;any&lt;/code&gt;或&lt;code&gt;all&lt;/code&gt;&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;satifsy&lt;/code&gt;指令是一个提供多种认证的很好的方式. 通过指定&lt;code&gt;any&lt;/code&gt;给&lt;code&gt;satisfy&lt;/code&gt;指令, 用户必须满足其中一个安全. 指定&lt;code&gt;all&lt;/code&gt;给&lt;code&gt;satisfy&lt;/code&gt;指令, 用户必须满足所有的安全认证. 该指令可以和2.1的&lt;code&gt;http_access_module&lt;/code&gt;结合, 2.4的&lt;code&gt;http_auth_basic_module&lt;/code&gt;, 2.5的&lt;code&gt;http_auth_request_module&lt;/code&gt;, 2.7的&lt;code&gt;http_auth_jwt_module&lt;/code&gt;. 只有各个层都安全, 才是真正的安全. &lt;code&gt;satisfy&lt;/code&gt;指令会帮助你为这个location或server实现需要的深度安全规则.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:24:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-10-security-tips.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-ModSecurity Web应用防火墙</title><link>https://www.EWhisper.cn/nginx-handbook-2-9-waf.html</link><description>&lt;h2 id="29-modsecurity-web"&gt;2.9 ModSecurity Web应用防火墙&lt;a class="headerlink" href="#29-modsecurity-web" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="290"&gt;2.9.0 介绍&lt;a class="headerlink" href="#290" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;ModSecurity 是一个开源的web应用防火墙(WAF), 首次被构建仅Apache web server. 在2012年, 它作为NGINX的一个模块可供使用, 2016加入NGINX Plus作为一个可选功能. 本章将详细介绍使用NGINX Plus的动态模块功能安装ModSecurity 3.0, 使用开源NGINX安装ModeSecurity 2.9. ModSecurity 3.0比ModSecurity 2.x的安全和性能更出众. 当从开源运行ModSecurity 2.9, 因为它仍然是在Apache上构造, 因此需要比3.0更多的开销, 而3.0是基于NGINX原生设计的.  ModSecurity 3.0 只能用于NGINX Plus订阅.&lt;/p&gt;
+&lt;h3 id="291-nginx-plusmodesecurity"&gt;2.9.1 为NGINX Plus安装ModeSecurity&lt;a class="headerlink" href="#291-nginx-plusmodesecurity" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;略过&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="292-nginx-plusmodsecurity"&gt;2.9.2 在NGINX Plus中配置ModSecurity&lt;a class="headerlink" href="#292-nginx-plusmodsecurity" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要配置NGINX Plus使用ModSecurity模块.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;在NGINX Plus配置中启用动态模块, 使用&lt;code&gt;modsecurity_rules_file&lt;/code&gt;来指向一个ModSecurity规则文件:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;load_module modules/ngx_http_modsecurity.so;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;load_module&lt;/code&gt;指令适用于主context, 意味着该指令可以在打开HTTP或Stream块之前使用.&lt;/p&gt;
+&lt;p&gt;开启ModeSecurity, 使用指定规则集:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="k"&gt;modsecurity&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;proxy_pass&lt;/span&gt; &lt;span class="s"&gt;http://backend&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;modsecurity_rules_file&lt;/span&gt; &lt;span class="s"&gt;rule-set-file&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+     &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;ModSecurity的规则可以阻止对常见的web servers和应用的漏洞利用. ModSecurity已知可以防御应用层的攻击, 如HTTP violations, SQL注入, 跨站脚本, 应用层, DDoS, 远程和本地文件攻击. 使用ModSecurity, 你可以订阅恶意用于的实时的黑名单, 来帮助在服务被攻击之前阻止问题. ModSecurity模块也可以启用日志帮助识别新的攻击模式和异常.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2fdZ7Dd"&gt;OWASP ModSecurity 核心规则集&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2eJYuAx"&gt;TrustWave ModSecurity 付费规则集&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="293-modsecurity"&gt;2.9.3 源码安装ModSecurity&lt;a class="headerlink" href="#293-modsecurity" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要在CentOS或RHEL系统上使用NGINX运行ModSecurity.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;从源码编译ModSecurity和NGINX来使用ModSecurity模块.&lt;/p&gt;
+&lt;p&gt;首先升级security并安装依赖:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ yum --security update -y &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    yum -y install automake &lt;span class="se"&gt;\&lt;/span&gt;
+    autoconf &lt;span class="se"&gt;\&lt;/span&gt;
+    curl &lt;span class="se"&gt;\&lt;/span&gt;
+    curl-devel &lt;span class="se"&gt;\&lt;/span&gt;
+    gcc &lt;span class="se"&gt;\&lt;/span&gt;
+    gcc-c++ &lt;span class="se"&gt;\&lt;/span&gt;
+    httpd-devel &lt;span class="se"&gt;\&lt;/span&gt;
+    libxml2 &lt;span class="se"&gt;\&lt;/span&gt;
+    libxml2-devel &lt;span class="se"&gt;\&lt;/span&gt;
+    make &lt;span class="se"&gt;\&lt;/span&gt;
+    openssl &lt;span class="se"&gt;\&lt;/span&gt;
+    openssl-devel &lt;span class="se"&gt;\&lt;/span&gt;
+    perl &lt;span class="se"&gt;\&lt;/span&gt;
+    wget
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;接下来, 下载安装PCRE库:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; /opt &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    wget http://ftp.exim.org/pub/pcre/pcre-8.39.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    tar -zxf pcre-8.39.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="nb"&gt;cd&lt;/span&gt; pcre-8.39 &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    ./configure &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;下载zlib源码并安装:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; /opt &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    wget http://zlib.net/zlib-1.2.8.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    tar -zxf zlib-1.2.8.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="nb"&gt;cd&lt;/span&gt; zlib-1.2.8 &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    ./configure &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;下载ModSecurity源码并安装:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; /opt &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  wget &lt;span class="se"&gt;\&lt;/span&gt;
+  https://www.modsecurity.org/tarball/2.9.1/modsecurity-2.9.1.&lt;span class="se"&gt;\&lt;/span&gt;
+tar.gz&lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  tar -zxf modsecurity-2.9.1.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nb"&gt;cd&lt;/span&gt; modsecurity-2.9.1 &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  ./configure --enable-standalone-module &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  make
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;从源码下载安装NGINX, 并在配置脚本里包含你需要的所有模块. 本次我们的关注点是ModSecurity:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; /opt &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    wget http://nginx.org/download/nginx-1.11.4.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    tar zxf nginx-1.11.4.tar.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="nb"&gt;cd&lt;/span&gt; nginx-1.11.4 &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    ./configure &lt;span class="se"&gt;\&lt;/span&gt;
+        --sbin-path&lt;span class="o"&gt;=&lt;/span&gt;/usr/local/nginx/nginx &lt;span class="se"&gt;\&lt;/span&gt;
+        --conf-path&lt;span class="o"&gt;=&lt;/span&gt;/etc/nginx/nginx.conf &lt;span class="se"&gt;\&lt;/span&gt;
+        --pid-path&lt;span class="o"&gt;=&lt;/span&gt;/usr/local/nginx/nginx.pid &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-pcre&lt;span class="o"&gt;=&lt;/span&gt;../pcre-8.39 &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-zlib&lt;span class="o"&gt;=&lt;/span&gt;../zlib-1.2.8 &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-http_ssl_module &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-stream &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-http_ssl_module &lt;span class="se"&gt;\&lt;/span&gt;
+        --with-http_secure_link_module &lt;span class="se"&gt;\&lt;/span&gt;
+        --add-module&lt;span class="o"&gt;=&lt;/span&gt;../modsecurity-2.9.1/nginx/modsecurity &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    make install &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    ln -s /usr/local/nginx/nginx /usr/bin/nginx
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这将会把ModSecurity 2.9.1 模块编译并和NGINX一起安装. 从现在开始, 我们可以使用&lt;code&gt;ModSecurityEnabled&lt;/code&gt;和&lt;code&gt;ModSecurityConfig&lt;/code&gt;指令:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;listen&lt;/span&gt; &lt;span class="s"&gt;[::]:80&lt;/span&gt; &lt;span class="s"&gt;default_server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;server_name&lt;/span&gt; &lt;span class="s"&gt;_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="kn"&gt;ModSecurityEnabled&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+      &lt;span class="kn"&gt;ModSecurityConfig&lt;/span&gt; &lt;span class="s"&gt;modsecurity.conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;NGINX server的配置会为&lt;code&gt;location /&lt;/code&gt;启用ModSecurity, 并使用位于NGINX配置目录下的ModSecurity配置文件.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;这一节从NGINX源码编译, 并把ModSecurity编译到NGINX中. 推荐从源码编译NGINX的时候, 总是检查你是否使用了最新的稳定版的包. 通过之前的案例, 你可以使用有ModSecurity的开源版本的NGINX来构建你的开源web应用防火墙.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://github.com/SpiderLabs/ModSecurity"&gt;ModSecurity源码&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2eJYuAx"&gt;Updated and maintained ModSecurity Rules from SpiderLabs&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:22:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-9-waf.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-安全链接</title><link>https://www.EWhisper.cn/nginx-handbook-2-6-secure-link.html</link><description>&lt;h2 id="26"&gt;2.6 安全链接&lt;a class="headerlink" href="#26" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="260"&gt;2.6.0 介绍&lt;a class="headerlink" href="#260" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;安全链接(secure links)是一种使用&lt;em&gt;md5&lt;/em&gt;哈希算法保证静态资源安全的方式. 使用这个模块, 你也可以限制该链接接收请求的时长. 使用安全链接使NGINX应用程序服务器确保静态内容安全而无需应用服务器承担这种责任. 这个模块包含在免费开源的NGINX里. 但是, 它没有打进标准的NGINX包, 而是放到了&lt;code&gt;nginx-extras&lt;/code&gt;包里. 当从源码构建NGINX时, 可以选择使用配置参数&lt;code&gt;--with-http_secure_link_module&lt;/code&gt;来启用.&lt;/p&gt;
+&lt;h3 id="261-location"&gt;2.6.1 加密Location&lt;a class="headerlink" href="#261-location" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要使用一个密钥来加密一个location块.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用安全链接模块, &lt;code&gt;secure_link_secret&lt;/code&gt;指令来限制对资源的访问的用户有一个安全的链接:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/resources&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;secure_link_secret&lt;/span&gt; &lt;span class="s"&gt;mySecret&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$secure_link&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="kn"&gt;rewrite&lt;/span&gt; &lt;span class="s"&gt;^&lt;/span&gt; &lt;span class="s"&gt;/secured/&lt;/span&gt;&lt;span class="nv"&gt;$secure_link&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/secured&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;internal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;root&lt;/span&gt; &lt;span class="s"&gt;/var/www&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;该配置创建了一个内部和一个外部的location块. 外部的location块&lt;code&gt;/resources&lt;/code&gt;会返回403 Forbidden, 除非请求URI包含一个&lt;em&gt;md5&lt;/em&gt;哈希字符串, 这个字符串可以被&lt;code&gt;secure_link_secret&lt;/code&gt;指令提供的secret验证. &lt;code&gt;$secure_link&lt;/code&gt;变量是一个空字符串, 除非在URI的哈希被验证.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;使用secret加密资源是一个很好的确保你的文件受保护的方法. 该secret用于和URI串联 . 该字符串然后会被&lt;code&gt;md5&lt;/code&gt;哈希, &lt;code&gt;md5&lt;/code&gt;哈希后的16禁止数字被用在该URI中. 该哈希被放到链接中, 由NGINX计算. NGINX会知道URI想要访问的路径, 因为哈希后就在URI中 . NGINX也会直到你的secret, 因为指令&lt;code&gt;secure_link_secret&lt;/code&gt;会提供. NGINX能够迅速验证&lt;code&gt;md5&lt;/code&gt;哈希, 并存储在URI的&lt;code&gt;$secure_link&lt;/code&gt;变量中. 如果哈希无法验证, 该变量就是空字符串. 需要注意, 传给&lt;code&gt;secure_link_secret&lt;/code&gt;的参数必须是一个静态字符串, 不能是变量.&lt;/p&gt;
+&lt;h3 id="262-secret"&gt;2.6.2 使用secret生成一个安全链接&lt;a class="headerlink" href="#262-secret" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要使用secret从你的应用生成一个安全链接.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;NGINX的安全链接模块接收一个md5哈希(URI路径和secret的联接)过的16进制字符串. 基于上一节, 我们会创建安全的连接, 可以工作在上个配置, 比如&lt;code&gt;/var/www/secured/index.html&lt;/code&gt;. 要生成md5哈希的16进制字符串, 我们可以使用Unix openssl命令:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s1"&gt;&amp;#39;index.htmlmySecret&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; openssl md5 -hex
+&lt;span class="o"&gt;(&lt;/span&gt;stdin&lt;span class="o"&gt;)=&lt;/span&gt; a53bee08a4bf0bbea978ddf736363a12
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;保护的URI: &lt;em&gt;index.html&lt;/em&gt;; secret: &lt;em&gt;mySecret&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;下边是使用Python 2.7和&lt;em&gt;md5&lt;/em&gt;库生成的:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;md5&lt;/span&gt;
+&lt;span class="n"&gt;md5&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;index.htmlmySecret&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hexdigest&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="s1"&gt;&amp;#39;a53bee08a4bf0bbea978ddf736363a12&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;那么我们访问的地址应该是如下所示, 要访问&lt;code&gt;/var/www/secured/index.html&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;www.example.com/resources/a53bee08a4bf0bbea978ddf736363a12/\
+index.html
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;要生成这个数字可以由很多种方式, 很多语言都可以实现. 要记住的是: URI路径在secret之前, 字符串中没有回车, 并且使用&lt;em&gt;md5&lt;/em&gt;哈希的16进制数字.&lt;/p&gt;
+&lt;h3 id="263-expire-datelocation"&gt;2.6.3 使用Expire Date加密Location&lt;a class="headerlink" href="#263-expire-datelocation" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要生成一个在一段时间后过期的链接.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;利用在安全链接模块的其他指令来在你的加密链接中设置过期日志和使用变量:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/resources&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;root&lt;/span&gt; &lt;span class="s"&gt;/var/www&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;secure_link&lt;/span&gt; &lt;span class="nv"&gt;$arg_md5,$arg_expires&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;secure_link_md5&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$secure_link_expires$uri$remote_addr&lt;/span&gt;
+   &lt;span class="s"&gt;mySecret&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$secure_link&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="kn"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$secure_link&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;0&amp;quot;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;410&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;secure_link&lt;/code&gt;指令有2个用逗号隔开的字段. 第一个字段是&lt;em&gt;md5&lt;/em&gt;哈希的变量. 这个例子使用一个HTTP参数的md5。第二个字段是放置以Unix元年时间格式的链接过期时间的变量. &lt;code&gt;secure_link_md5&lt;/code&gt;指令占用一个单独的字段, 声明用于构造&lt;em&gt;md5&lt;/em&gt;哈希的的格式的字符串. 和其他配置一样, 如果hash没有通过验证, &lt;code&gt;$secure_link&lt;/code&gt;变量设置为空字符串. 或者, 如果哈希匹配但是时间过期, &lt;code&gt;$secure_link&lt;/code&gt;变量设置为0.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;这种用法比之前2.6.1中的更灵活, 看起来更干净. 使用这些指令, 你可以使用可以用在NGINX哈希字符串中的任意数量的变量. 在哈希字符串中使用用户相关的变量会加强安全性, 因为用户不能够得到加密的资源. 推荐使用像是&lt;code&gt;$remote_addr&lt;/code&gt;或&lt;code&gt;$http_x_forwarded_for&lt;/code&gt;或由应用生成的会话cookie作为变量. &lt;code&gt;secure_link&lt;/code&gt;的参数可以来自你喜欢的任何变量, 他们可以被命名为任意合适的名字. 在&lt;code&gt;$secure_link&lt;/code&gt;变量中的条件可以被设置返回已知的Forbidder和Gone的HTTP代码. HTTP 410, Gone, 对于过期链接非常适用, 因为这个条件被认为是永久的.&lt;/p&gt;
+&lt;h3 id="264"&gt;2.6.4 生成一个有过期时间的链接&lt;a class="headerlink" href="#264" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要生成一个有过期时间的链接.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;用Unix时间戳格式生成一个过期时间戳. 在Unix系统上, 你可以这样操作:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ date -d &lt;span class="s2"&gt;&amp;quot;2020-12-31 00:00&amp;quot;&lt;/span&gt; +%s
+&lt;span class="m"&gt;1609390800&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;接下来你需要连接用在&lt;code&gt;secure_link_md5&lt;/code&gt;指令中的哈希字符串. 在本例中, 使用&lt;code&gt;1293771600/resources/index.html127.0.0.1  mySecret&lt;/code&gt;. md5哈希和刚刚的16进制数字有一些不同. 它是一个二进制格式的md5哈希, 采用base64加密, 用加号(+)转换为连接符(-), 斜杠(/)转换为下划线(_), 等号(=)被移除. 如下所示:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; -n &lt;span class="s1"&gt;&amp;#39;1609390800/resources/index.html127.0.0.1 mySecret&amp;#39;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="p"&gt;|&lt;/span&gt; openssl md5 -binary &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="p"&gt;|&lt;/span&gt; openssl base64 &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="p"&gt;|&lt;/span&gt; tr +/ -_ &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="p"&gt;|&lt;/span&gt; tr -d &lt;span class="o"&gt;=&lt;/span&gt;
+81CYyxXFADhLHaQD36_BK
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;就得到了哈希, 我们可以用它后边跟着过期日期作为参数.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/resources/index.html?md5=81CYyxXFADhLHaQD36_BK&amp;amp;expires=1609390800'&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;以下是使用Python 2.7的标准库的例子:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;b64encode&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;md5&lt;/span&gt;
+&lt;span class="n"&gt;resource&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;/resources/index.html&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;remote_addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;127.0.0.1&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;host&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;www.example.com&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;expire&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2020&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;31&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;uncoded&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;expire&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;resource&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;remote_addr&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39; mySecret&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;md5hashed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;md5&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;uncoded&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;digest&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;b64&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b64encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;md5hashed&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;hash&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;replace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;+&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;-&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;replace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;_&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;replace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;=&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;linkformat&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;{}{}?md5={}?expires{}&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;securelink&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;linkformat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;resource&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nb"&gt;hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;expire&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;使用这种方式, 我们能生成用于URL中的特殊格式的加密链接. 提供安全保障的secret绝不会发给客户端. 你可以用尽可能的你需要的其他变量来加密location. md5哈希和base64加密很常见, 轻量, 几乎在所有语言中都可用.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:15:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-6-secure-link.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-使用JWT API的安全认证</title><link>https://www.EWhisper.cn/nginx-handbook-2-7-jwt-api-auth.html</link><description>&lt;h2 id="27-jwtapi"&gt;2.7 使用JWT的API认证&lt;a class="headerlink" href="#27-jwtapi" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="270"&gt;2.7.0 介绍&lt;a class="headerlink" href="#270" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;JSON Web Tokens (JWTs)迅速成为一种广为使用和受欢迎的认证方式. 这些认证tokens有能力存储一些用户和用户的认证信息到token里. 这些tokens也可以异步验证, 这意味着负载均衡和代理可以使用公钥来验证该token, 而不需要用于签发token的私钥, 以此提高安全和灵活性.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;NGINX Plus的功能, 略过.&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:15:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-7-jwt-api-auth.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-HTTP 子请求认证</title><link>https://www.EWhisper.cn/nginx-handbook-2-5-http-subrequest-auth.html</link><description>&lt;h3 id="251"&gt;2.5.1 介绍&lt;a class="headerlink" href="#251" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;伴随着很多不同的认证方法, NGINX通过启用自请求mid-flight 来使验证认证广泛的认证系统变得容易. HTTP认证请求模块可以启用如LDAP或自定义认证微服务的认证系统. 在请求被执行之前, 认证机制会代理该请求到认证服务. 在这个代理中, 通过NGINX的能力可以操纵需要身份验证服务的请求。因此,它非常灵活。&lt;/p&gt;
+&lt;h3 id="252"&gt;2.5.2 认证子请求&lt;a class="headerlink" href="#252" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你有一个第三方的认证系统, 请求认证需要用到这个系统.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;http_auth_request_module&lt;/code&gt;在请求执行前, 让请求到对应的认证服务来进行验证:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;private&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="err"&gt;auth_request&lt;/span&gt; &lt;span class="err"&gt;/auth&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;auth_request_set&lt;/span&gt; &lt;span class="err"&gt;$auth_status&lt;/span&gt; &lt;span class="err"&gt;$upstream_status&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;auth&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="err"&gt;internal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;auth-server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;proxy_pass_request_body&lt;/span&gt; &lt;span class="err"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;proxy_set_header&lt;/span&gt; &lt;span class="err"&gt;Content-length&lt;/span&gt; &lt;span class="err"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;proxy_set_header&lt;/span&gt; &lt;span class="err"&gt;X-Original-URI&lt;/span&gt; &lt;span class="err"&gt;$request_uri&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;auth_request&lt;/code&gt;指令使用必须是local internal location的URI参数. &lt;code&gt;auth_request_set&lt;/code&gt;指令允许你从认证自请求来设置变量.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;http_auth_request_module&lt;/code&gt;允许对每个NGINX处理的请求做认证. 在响应原服务之前, 会生成一个子请求, 来决定这个请求是否可以访问它请求的资源.  整个请求会被代理到自请求块 location. 通过自请求的状态码来确定是否可以访问资源. 如果自请求返回200 HTTP 状态码, 认证成功, 请求被响应. 如果返回HTTP 401或403, 会向原请求返回同样的代码.&lt;/p&gt;
+&lt;p&gt;如果你的认证服务不需要请求body, 你可以抛弃掉请求body, 通过&lt;code&gt;proxy_pass_reqeust_body&lt;/code&gt;指令(如上例子所示). 这会减少请求size和时间. 因为请求体被忽略, &lt;code&gt;Content-Length&lt;/code&gt; header可以设为空字符串. 如果你的认证服务需要直到原请求的URI, 你可以把这个值放到一个自定义的header, 让你的认证服务来检查和验证. 如果从子请求到认证服务见你想要保留一些东西, 你可以使用  &lt;code&gt;auth_request_set&lt;/code&gt;指令来创建相应数据之外新的变量.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:13:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-5-http-subrequest-auth.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-加密</title><link>https://www.EWhisper.cn/nginx-handbook-2-3-encrypt.html</link><description>&lt;h2 id="23"&gt;2.3 加密&lt;a class="headerlink" href="#23" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="230"&gt;2.3.0 介绍&lt;a class="headerlink" href="#230" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;网络是个很可怕的地方, 但不需太过担心. 加密传输信息变得越来越容易, 越来越唾手可得, 因为签名证书在&lt;em&gt;Let's Encrypt&lt;/em&gt;和&lt;em&gt;Amazon Web Services&lt;/em&gt;变得越来越便宜. 二者都提供有限用途的免费证书. 在本章, 我们将讨论如何确保NGINX和客户端之间, 以及NGINX和upstream之间的信息安全.&lt;/p&gt;
+&lt;h3 id="231"&gt;2.3.1 客户端加密&lt;a class="headerlink" href="#231" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;需要加密NGINX和客户端之间的流量.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用SSL模块, 如&lt;code&gt;ngx_http_ssl_module&lt;/code&gt;或&lt;code&gt;ngx_stream_ssl_module&lt;/code&gt;来加密流量.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;All&lt;/span&gt; &lt;span class="err"&gt;directives&lt;/span&gt; &lt;span class="err"&gt;used&lt;/span&gt; &lt;span class="err"&gt;below&lt;/span&gt; &lt;span class="err"&gt;are&lt;/span&gt; &lt;span class="err"&gt;also&lt;/span&gt; &lt;span class="err"&gt;valid&lt;/span&gt; &lt;span class="err"&gt;in&lt;/span&gt; &lt;span class="err"&gt;stream&lt;/span&gt;
+    &lt;span class="err"&gt;server&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+        &lt;span class="err"&gt;listen&lt;/span&gt; &lt;span class="err"&gt;8083&lt;/span&gt; &lt;span class="err"&gt;ssl&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_protocols&lt;/span&gt;       &lt;span class="err"&gt;TLSv1.2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;协议&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_ciphers&lt;/span&gt;         &lt;span class="n"&gt;AES128-SHA&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;AES256-SHA&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;密码套件&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_certificate&lt;/span&gt;     &lt;span class="err"&gt;/usr/local/nginx/conf/cert.pem&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;证书&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_certificate_key&lt;/span&gt; &lt;span class="err"&gt;/usr/local/nginx/conf/cert.key&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;密钥&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_session_cache&lt;/span&gt;   &lt;span class="n"&gt;shared&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;SSL&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;ssl会话缓存&lt;/span&gt;
+        &lt;span class="err"&gt;ssl_session_timeout&lt;/span&gt; &lt;span class="err"&gt;10m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="err"&gt;ssl会话超时&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;不要使用SSL(Secure Socket Layer)协议, 1 - 3版都被认为不安全&lt;/li&gt;
+&lt;li&gt;TLS是默认的协议(Transport Layer Security), TLS还算安全.&lt;/li&gt;
+&lt;li&gt;当使用签名证书, 你需要把证书和证书认证链连接到一块. 你的证书应该在证书链文件的上方.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;SSL会话缓存, 缓存后无需negotiate 版本和密码套件, 可以提升性能.&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="232-upstream"&gt;2.3.2 Upstream 加密&lt;a class="headerlink" href="#232-upstream" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;为了合规, 或者你的upstream在你的安全网络之外, 你需要加密NGINX和upstream之间的流量.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用HTTP 代理模块的SSL指令&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="err"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;upstream&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;example&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="err"&gt;proxy_ssl_verify&lt;/span&gt; &lt;span class="err"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="err"&gt;proxy_ssl_verify_depth&lt;/span&gt; &lt;span class="err"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="err"&gt;proxy_ssl_protocols&lt;/span&gt; &lt;span class="err"&gt;TLSv1.2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;配置的指令确保NGINX在upsteam上验证证书和证书链2层认证深度是合法的. 默认NGINX&lt;strong&gt;不验证&lt;/strong&gt;upstream证书, 接收所有TLS版本.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;如果要加密upstream 流量, 你至少应该开启验证.&lt;/li&gt;
+&lt;li&gt;其他可用指令, 如&lt;code&gt;proxy_ssl_certificate&lt;/code&gt;和&lt;code&gt;proxy_ssl_certificate_key&lt;/code&gt;, 允许你锁定upstream加密以增强安全性.&lt;/li&gt;
+&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:08:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-3-encrypt.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-HTTP 基本认证</title><link>https://www.EWhisper.cn/nginx-handbook-2-4-http-basic-auth.html</link><description>&lt;h2 id="24-http"&gt;2.4 HTTP基本认证&lt;a class="headerlink" href="#24-http" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="240"&gt;2.4.0 介绍&lt;a class="headerlink" href="#240" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;基本认证是一个保护私有内容的简单方法. 这个认证方法可以很容易的用于隐藏&lt;strong&gt;开发网站&lt;/strong&gt;或者隐藏特权的内容. 推荐在需要基本认证的locations或servers上设置一个速率限制来组织暴力攻击. 也推荐如上章那样, 使用HTTPS, 因为每个认证请求, 用户名和密码是通过base64加密字符串, 作为一个header发送到server的. 如果使用HTTP, 意味着用户名和密码都可以被捕获.&lt;/p&gt;
+&lt;h3 id="241-user-file"&gt;2.4.1 创建一个User File&lt;a class="headerlink" href="#241-user-file" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要一个HTTP基本认证用户文件来存储用户名和密码.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;生成一个下列格式的文件, 密码可以通过以下允许的格式来加密或哈希:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# comment
+name1:password1
+name2:password2:comment
+name3:password3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;NGINX可以理解几种格式的密码, 其中一种加密是用C函数&lt;code&gt;crypt()&lt;/code&gt;. 该函数被暴露给&lt;code&gt;openssl passwd&lt;/code&gt;命令, 可以用如下方式生成加密字符串:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ openssl passwd MyPassword1234&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;会输出一个字符串, NGINX可以用在密码文件里.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;也可以用Apache的&lt;code&gt;htpasswd&lt;/code&gt;来生成密码. &lt;code&gt;htpasswd&lt;/code&gt;和&lt;code&gt;openssl&lt;/code&gt; 都会生成&lt;em&gt;apr1&lt;/em&gt; 算法的密码. 密码也可以用LDAP和Dovecot使用的加盐sha-1 格式. NGINX支持更多的格式和哈希算法, 但是, 大部分都被认为不安全, 因为可以被轻易破解.&lt;/p&gt;
+&lt;h3 id="242"&gt;2.4.2 使用基本认证&lt;a class="headerlink" href="#242" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要用基本认证来保护NGINX location或server.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;location / {
+    auth_basic          &amp;quot;Private site&amp;quot;;
+    auth_basic_user_file conf.d/passwd;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;auth_basic&lt;/code&gt;指令可以用于HTTP, server, 或location块里. 当未认证用户访问, &lt;code&gt;auth_basic&lt;/code&gt;指令会把字符串显示到基本认证的弹出窗口.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;基本认证通过server返回一个带有&lt;code&gt;WWW-Authenticate&lt;/code&gt;的401未认证HTTP code. 该header会有一个值&lt;code&gt;Basic realm="your string."&lt;/code&gt;. 该响应会导致浏览器提示输入用户名和密码. 输入的用户名和密码会通过base64加密, 通过一个叫做&lt;code&gt;Authorization&lt;/code&gt;的请求头发送. Server会机密密码, 并根据&lt;code&gt;auth_basic_user_file&lt;/code&gt;提供的密码做验证. 因为用户名密码仅仅是通过base64加密. 所以推荐使用HTTPS传输.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:08:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-4-http-basic-auth.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-限制使用</title><link>https://www.EWhisper.cn/nginx-handbook-2-2-limit-usage.html</link><description>&lt;h2 id="22"&gt;2.2 限制使用&lt;a class="headerlink" href="#22" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="220"&gt;2.2.0 介绍&lt;a class="headerlink" href="#220" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;该章节关注于: 限制使用和滥用, 连接数, 请求服务速率, 带宽使用量. 区分开连接和请求是很重要的: 连接(TCP连接)是网络层, 在这层上, 请求被执行, 因此两者并不一样.&lt;/p&gt;
+&lt;p&gt;在HTTP/1和HTTP/1.1中, 一个连接请求只能使用一次; 而在HTTP/2中, 多个请求可以使用同一个TCP连接.&lt;/p&gt;
+&lt;h3 id="221"&gt;2.2.1 限制连接&lt;a class="headerlink" href="#221" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要基于预定义的key来限制连接数, 比如key是客户端IP地址.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;创建一个共享内存区域来存放连接metrics, 并使用&lt;code&gt;limit_conn&lt;/code&gt; 指令来限制打开的连接数:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;limit_conn_zone&lt;/span&gt; &lt;span class="nv"&gt;$binary_remote_addr&lt;/span&gt; &lt;span class="s"&gt;zone=limitbyaddr:10m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;limit_conn_status&lt;/span&gt; &lt;span class="mi"&gt;429&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;...&lt;/span&gt;
+  &lt;span class="s"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+      &lt;span class="s"&gt;limit_conn&lt;/span&gt; &lt;span class="s"&gt;limitbyaddr&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="✔" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2714.png" title=":heavy_check_mark:" width="20px"&gt;  &lt;/p&gt;
+&lt;p&gt;429: Too Many Requests&lt;/p&gt;
+&lt;p&gt;预定义的key用的是:二进制格式的客户端IP地址.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;使用IP地址, 就像上个例子中那样, 如果很多用户都在同一个网络来自同一个IP可能很危险, 比如用的是一个NAT(网络地址转换). 整个组都会被限制. &lt;code&gt;limit_conn_zone&lt;/code&gt;指令只适用于HTTP块. 可以利用在HTTP块中的NGINX的任何变量来构建一个字符串来限制. 利用变量可以在应用级别识别具体的用户, 像是session cookie, 基于使用案例可能是一个更干净的解决方案. &lt;code&gt;limit_conn&lt;/code&gt;和&lt;code&gt;limit_conn_status&lt;/code&gt;指令在HTTP, server, 和location块中都能用. &lt;code&gt;limit_conn_status&lt;/code&gt;默认是503, 服务不可用. 429会更合适, 因为500界别的服务不可用意味着错误.&lt;/p&gt;
+&lt;h3 id="222"&gt;2.2.2 限制速率&lt;a class="headerlink" href="#222" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要基于预定义的key来限制请求速率, 比如客户端IP地址.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;利用速率限制模块来限制:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;limit_req_zone&lt;/span&gt; &lt;span class="nv"&gt;$binary_remote_addr&lt;/span&gt; &lt;span class="s"&gt;zone=limitbyaddr:10m&lt;/span&gt; &lt;span class="s"&gt;rate=1r/s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;limit_req_status&lt;/span&gt; &lt;span class="mi"&gt;429&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;...&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+      &lt;span class="s"&gt;limit_req&lt;/span&gt; &lt;span class="s"&gt;zone=limitbyaddr&lt;/span&gt; &lt;span class="s"&gt;burst=10&lt;/span&gt; &lt;span class="s"&gt;nodelay&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个zone用关键字参数设置了速率. &lt;code&gt;limit_req&lt;/code&gt;指令有2个关键字参数: &lt;code&gt;zone&lt;/code&gt;和&lt;code&gt;burst&lt;/code&gt;. 当给定zone的请求速率超出了, 请求会延迟直到达到他们的最大burst size, 这个由&lt;code&gt;burst&lt;/code&gt;关键字参数提供. 默认&lt;code&gt;burst&lt;/code&gt;关键字参数为0. &lt;code&gt;limit_req&lt;/code&gt;也有第三个可选的参数, &lt;code&gt;nodelay&lt;/code&gt;. 这个参数允许客户端在被限制之前使用它的&lt;code&gt;burst&lt;/code&gt;而不用延迟. &lt;code&gt;limit_req_status&lt;/code&gt; 和&lt;code&gt;limit_req&lt;/code&gt; 可以用在HTTP, server, 和location. &lt;code&gt;limit_req_zone&lt;/code&gt;只适用于HTTP块.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;速率限制模块在组织恶意请求, 同时仍为每个人提供一定质量的服务时非常有用. 有很多限制请求速率的原因, 其中之一就是安全. 你可以通过在你的登陆页面设置非常严格的限制来防止恶意攻击. 你可以通过设置对所有请求的完善的限制来阻止恶意用户尝试对你的应用使用拒绝式服务攻击或浪费资源的计划. 速率限制模块的配置和2.2.1中的很类似. 速率可以被设置为每秒多少请求或每分钟多少请求. 当超过限制, 会记录事件日志. 例子中没有提到这个指令&lt;code&gt;limit_req_log_level&lt;/code&gt; , 默认是&lt;code&gt;error&lt;/code&gt;, 但是也可以设置为&lt;code&gt;info&lt;/code&gt; , &lt;code&gt;notice&lt;/code&gt;, &lt;code&gt;warn&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id="223"&gt;2.2.3 限制带宽&lt;a class="headerlink" href="#223" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;待补充&lt;/p&gt;
+&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:05:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-2-limit-usage.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-安全-访问控制</title><link>https://www.EWhisper.cn/nginx-handbook-2-1-control-access.html</link><description>&lt;h2 id="211"&gt;2.1.1 介绍&lt;a class="headerlink" href="#211" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;控制你的web应用或你的web应用的子网的访问是很重要的业务. 在NGINX中, 访问控制有多种形式, 像是在网络层拒绝掉, 基于认证策略的允许, 或 HTTP指令浏览器如何响应. 本章我们将讨论基于网络属性, 认证和如何防止&lt;em&gt;跨域资源共享(Cross-Origin Resource Sharing(CORS))&lt;/em&gt;的访问控制.&lt;/p&gt;
+&lt;h2 id="212-ip"&gt;2.1.2 基于IP地址的访问&lt;a class="headerlink" href="#212-ip" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="_1"&gt;问题&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;你需要基于客户端的IP地址的控制.&lt;/p&gt;
+&lt;h3 id="_2"&gt;解决方案&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;使用HTTP访问模块来控制对受保护资源的访问:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="err"&gt;deny&lt;/span&gt; &lt;span class="err"&gt;10.0.0.1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;allow&lt;/span&gt; &lt;span class="err"&gt;10.0.0.0/20&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;allow&lt;/span&gt; &lt;span class="err"&gt;2001:0&lt;/span&gt;&lt;span class="n"&gt;db8&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;:/&lt;/span&gt;&lt;span class="mi"&gt;32&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="err"&gt;deny&lt;/span&gt; &lt;span class="err"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在HTTP, server, 和location上下文中, &lt;code&gt;allow&lt;/code&gt;和&lt;code&gt;deny&lt;/code&gt;指令提供对给出的client, IP, CIDR range, Unix socket, 或all 关键字的允许和禁止访问的能力. 规则被依次检查, 直到发现匹配的地址.&lt;/p&gt;
+&lt;h3 id="_3"&gt;讨论&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;保护在互联网上的有价值的资源和服务必须在对应的层上做. NGINX提供对其中一些层的能力. &lt;code&gt;deny&lt;/code&gt; 指令组织访问给定的上下文, &lt;code&gt;allow&lt;/code&gt;指令可以用于限制访问. 你可以使用IP地址, IPv4或IPv6, CIDR block ranges, 关键字&lt;code&gt;all&lt;/code&gt;, 和Unix socket. 通常要保护某个资源, 应该允许特定区域的内网IP地址, 并拒绝所有.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-2-1-control-access.html</guid><category>nginx</category><category>安全</category><category>译文</category><category>最佳实践</category></item><item><title>腾讯云申请免费SSL证书</title><link>https://www.EWhisper.cn/tencentyun-apply-ssl-certificate.html</link><description>&lt;h2 id="_1"&gt;前言&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;现在申请SSL证书的门槛和费用都大大降低了. 出现了很多免费提供加密证书的机构, 比较知名的是国外的&lt;a href="https://letsencrypt.org/"&gt;Let’s Encrypt&lt;/a&gt;, 免费, 自动化, 开放. 国内的云服务商也会提供免费的SSL证书. 下面是我在腾讯云上申请SSL证书的步骤.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="SSL" src="./images/SSL-Certificate.png"&gt;&lt;/p&gt;
 &lt;h2 id="_2"&gt;步骤&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;

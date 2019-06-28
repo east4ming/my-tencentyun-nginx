@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0"><channel><title>东风微鸣 Blog - WebLogic</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Thu, 14 Mar 2019 22:06:00 +0800</lastBuildDate><item><title>Oracle WebLogic Server 11.1.1.9发布说明</title><link>https://www.EWhisper.cn/oracle-webLogic-server-11.1.1.9-release-notes.html</link><description>&lt;p&gt;&lt;a href="https://docs.oracle.com/middleware/11119/wls/WLSRN/issues.htm#WLSRN114"&gt;参照链接&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id="oracle-weblogic-server"&gt;Oracle WebLogic Server问题&lt;a class="headerlink" href="#oracle-weblogic-server" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。
-一般性问题和解决办法
-管理控制台问题和解决办法
-Apache Beehive支持问题和解决办法
-集群问题和解决办法
-配置问题和解决办法
-连接器（资源适配器）问题和解决办法
-控制台扩展问题和解决办法
-核心服务器和核心工作管理器问题和解决办法
-部署问题和解决办法
-EJB问题和解决办法
-示例问题和解决办法
-HTTP问题发布/订阅服务器问题和解决办法
-安装问题和解决办法
-JavaEE问题和解决办法
-JDBC问题和解决办法
-JMS问题和解决办法
-JBDI问题和解决办法
-JSP和Servlet问题和解决办法
-JTA问题和解决办法
-Java虚拟机（JVM）和解决办法
-监测问题和解决办法
-节点管理器问题和解决办法
-操作、管理和受管理问题及解决办法
-Oracle Kodo问题和解决办法
-插件问题和解决办法
-协议问题和解决办法
-RMI-IIOP问题和解决办法
-安全问题和解决办法
-SNMP问题和解决办法
-WebLogic Server上Spring框架的问题和解决办法
-系统组件体系解救（SCA）问题和解决办法
-升级问题和解决办法
-Web应用程序问题和解决办法
-WebLogic Server脚本工具（WLST）问题及解决办法
-!!!
-Web服务器插件问题和解决方法
-Web服务和XML问题及解决办法
+&lt;p&gt;本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。&lt;br&gt;
+一般性问题和解决办法&lt;br&gt;
+管理控制台问题和解决办法&lt;br&gt;
+Apache Beehive支持问题和解决办法&lt;br&gt;
+集群问题和解决办法&lt;br&gt;
+配置问题和解决办法&lt;br&gt;
+连接器（资源适配器）问题和解决办法&lt;br&gt;
+控制台扩展问题和解决办法&lt;br&gt;
+核心服务器和核心工作管理器问题和解决办法&lt;br&gt;
+部署问题和解决办法&lt;br&gt;
+EJB问题和解决办法&lt;br&gt;
+示例问题和解决办法&lt;br&gt;
+HTTP问题发布/订阅服务器问题和解决办法&lt;br&gt;
+安装问题和解决办法&lt;br&gt;
+JavaEE问题和解决办法&lt;br&gt;
+JDBC问题和解决办法&lt;br&gt;
+JMS问题和解决办法&lt;br&gt;
+JBDI问题和解决办法&lt;br&gt;
+JSP和Servlet问题和解决办法&lt;br&gt;
+JTA问题和解决办法&lt;br&gt;
+Java虚拟机（JVM）和解决办法&lt;br&gt;
+监测问题和解决办法&lt;br&gt;
+节点管理器问题和解决办法&lt;br&gt;
+操作、管理和受管理问题及解决办法&lt;br&gt;
+Oracle Kodo问题和解决办法&lt;br&gt;
+插件问题和解决办法&lt;br&gt;
+协议问题和解决办法&lt;br&gt;
+RMI-IIOP问题和解决办法&lt;br&gt;
+安全问题和解决办法&lt;br&gt;
+SNMP问题和解决办法&lt;br&gt;
+WebLogic Server上Spring框架的问题和解决办法&lt;br&gt;
+系统组件体系解救（SCA）问题和解决办法&lt;br&gt;
+升级问题和解决办法&lt;br&gt;
+Web应用程序问题和解决办法&lt;br&gt;
+WebLogic Server脚本工具（WLST）问题及解决办法&lt;br&gt;
+!!!&lt;br&gt;
+Web服务器插件问题和解决方法&lt;br&gt;
+Web服务和XML问题及解决办法&lt;br&gt;
 文件 Errata&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;注：
+&lt;p&gt;注：&lt;br&gt;
 获取WebLogic Server 11g（10.3.6）修复的Bug列表，请在直属库字段中输入以下文档ID 1302753.1&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h3 id="_1"&gt;一般性问题和解决办法&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
@@ -57,10 +57,10 @@ Web服务和XML问题及解决办法
 &lt;li&gt;IBM JDK SR16 FP3或 JDK 7.0 SR8 FP10修复程序的可用性&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h4&gt;使用Safari时，多字节字符在文件名中显示错误&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
-当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码
-&lt;strong&gt;解决方案&lt;/strong&gt;
-在受管服务器上设置&lt;code&gt;UserHeaderEncoding&lt;/code&gt; 为 &lt;code&gt;true&lt;/code&gt; .
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
+当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码&lt;br&gt;
+&lt;strong&gt;解决方案&lt;/strong&gt;&lt;br&gt;
+在受管服务器上设置&lt;code&gt;UserHeaderEncoding&lt;/code&gt; 为 &lt;code&gt;true&lt;/code&gt; .&lt;br&gt;
 使用如下WLST命令实现：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;connect(&amp;quot;admin_name&amp;quot;, &amp;quot;admin_password&amp;quot;, &amp;quot;t3://localhost:port&amp;quot;)
 edit()
@@ -74,18 +74,18 @@ exit()
 
 
 &lt;h4&gt;Oracle WebLogic Server 版本号&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
 Oracle融合中间件11g包含Oracle WebLogic Server 11g. Oracle WebLogic Server版本为10.3.6.&lt;/p&gt;
 &lt;h4&gt;Oracle ojdbc14.jar文件更改为ojdbc6.jar&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
 Oracle ojdbc14.jar 更改为为ojdbc6.jar，使用JDK 5或者JDK 6，因此，您对ojdbc14.jar的任何显示引用都必须更改为ojdbc6.jar&lt;/p&gt;
 &lt;h4&gt;强密码强制执行可能导致WLST离线脚本出现问题&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
-在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。
-&lt;strong&gt;解决方案&lt;/strong&gt;
-&lt;em&gt; 将&lt;code&gt;ACKWARD_COMPAT_PW_CHECK&lt;/code&gt;境变量设置为&lt;code&gt;ture&lt;/code&gt;.
-&lt;/em&gt; 使用WLST时，引用参数&lt;code&gt;-Dbackward.compat.pw.check=true&lt;/code&gt;
-&amp;lt;未完待续&amp;gt;
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
+在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。&lt;br&gt;
+&lt;strong&gt;解决方案&lt;/strong&gt;&lt;br&gt;
+&lt;em&gt; 将&lt;code&gt;ACKWARD_COMPAT_PW_CHECK&lt;/code&gt;境变量设置为&lt;code&gt;ture&lt;/code&gt;.&lt;br&gt;
+&lt;/em&gt; 使用WLST时，引用参数&lt;code&gt;-Dbackward.compat.pw.check=true&lt;/code&gt;&lt;br&gt;
+&amp;lt;未完待续&amp;gt;&lt;br&gt;
 Oracle建议您更改密码以复核新的密码要求，因为此变量和选项将在未来的WebLogic Server版本中删除。&lt;/p&gt;
 &lt;h4&gt;在土耳其地区，mds初始化失败&lt;/h4&gt;
 &lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">HelloWorDomain</dc:creator><pubDate>Thu, 14 Mar 2019 22:06:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-14:/oracle-webLogic-server-11.1.1.9-release-notes.html</guid><category>WebLogic</category><category>译文</category><category>java</category></item></channel></rss>

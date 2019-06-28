@@ -126,24 +126,103 @@
 
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/write-python-framework-part-one.html#write-python-framework-part-one">如何编写Python Web框架（一）</a></h2>
+    <h2><a href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html#deploy-app-with-openshift-in-enterprise-env">OpenShift企业测试环境应用部署实战</a></h2>
     <p>
-      在 2019-03-01 Friday 发布于 <a href="https://www.EWhisper.cn/category/python.html">Python</a> 分类
+      在 2019-05-20 Monday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/python.html">python</a>,              <a href="https://www.EWhisper.cn/tag/webkuang-jia.html">web框架</a>
+              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+        &#8226; 4 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/illustration-com-container-party.png">
+      <p>OpenShift用起来挺爽的. 实战2小时就把禅道开源版部署到测试环境, 无需申请主机、存储、数据库、中间件和域名。部署好了直接域名访问。</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html#deploy-app-with-openshift-in-enterprise-env">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">容器自动伸缩</a></h2>
+    <p>
+      在 2019-05-14 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
         &#8226; 3 min read
     </p>
   </header>
   <div>
-        <img src="/images/web-frameworks.jpg">
-      <p>编写自己的Python Web框架, 实现: WSGI兼容; 请求处理程序; 路由：简单和参数化</p>
+        <img src="/images/Matrix-agent-Smith-clones.jpg">
+      <p>OpenShift 容器云平台可以对容器进行自动缩放, 当前, 自动缩放只能根据以下2个指标进行判断: CPU使用率和内存使用率.</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/write-python-framework-part-one.html#write-python-framework-part-one">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/ewhisper-blog-moved-to-docker.html#ewhisper-blog-moved-to-docker">我的个人博客迁移到Docker啦</a></h2>
+    <p>
+      在 2019-05-10 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/nginx.html">nginx</a>,              <a href="https://www.EWhisper.cn/tag/github.html">github</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+        &#8226; 2 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/illustration-com-container-party.png">
+      <p>我的个人博客迁移到Docker中去了. 简单的总结一下容器化的步骤以及我的网站的架构.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/ewhisper-blog-moved-to-docker.html#ewhisper-blog-moved-to-docker">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/binary-builds-with-openshift.html#binary-builds-with-openshift">使用OpenShift进行二进制构建</a></h2>
+    <p>
+      在 2019-05-08 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>,              <a href="https://www.EWhisper.cn/tag/git.html">git</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+        &#8226; 2 min read
+    </p>
+  </header>
+  <div>
+        <img src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png">
+      <p>OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景: 1.开发人员本地开发调试代码并构建; 2. OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/binary-builds-with-openshift.html#binary-builds-with-openshift">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">OpenShift 和 Kubernetes 有什么区别?</a></h2>
+    <p>
+      在 2019-05-03 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/paas.html">PAAS</a>
+        &#8226; 2 min read
+    </p>
+  </header>
+  <div>
+        <img src="./images/openshift-architecture-overview.png">
+      <p>K8S越来越火, 而我们公司使用的是红帽的OpenShift, 它也是基于K8S. 那么, OpenShift 和 K8S 究竟有什么区别?</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">阅读全文</a>
   </div>
 </article>
 
   <div class="pagination">
+    <a class="btn float-left" href="https://www.EWhisper.cn/index10.html">
+      <i class="fa fa-angle-left"></i> 更旧的文章
+    </a>
     <a class="btn float-right" href="https://www.EWhisper.cn/index8.html">
       更新的文章 <i class="fa fa-angle-right"></i>
     </a>

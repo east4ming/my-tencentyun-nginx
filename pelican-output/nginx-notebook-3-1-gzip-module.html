@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="NGINX 学习笔记系列文章的NGINX服务器Gzip压缩部分. 本文介绍NGINX ngx_http_gzip_module 模块." />
+<meta name="keywords" content="nginx, 最佳实践">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="NGINX 学习笔记-Gzip压缩-`ngx_http_gzip_module`"/>
+<meta property="og:description" content="NGINX 学习笔记系列文章的NGINX服务器Gzip压缩部分. 本文介绍NGINX ngx_http_gzip_module 模块."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/nginx-notebook-3-1-gzip-module.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-06-23 16:33:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="nginx"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; NGINX 学习笔记-Gzip压缩-`ngx_http_gzip_module`</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="nginx-notebook-3-1-gzip-module">NGINX 学习笔记-Gzip压缩-`ngx_http_gzip_module`</h1>
+    <p>
+      在 2019-06-23 Sunday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 3 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p>本系列文章主要讨论与gzip 压缩相关的Nginx 指令.</p>
+<blockquote>
+<p>相关模块: <code>ngx_http_gzip_module ngx_http_gzip_static_module ngx_http_gunzip_module</code></p>
+</blockquote>
+<h2 id="1-ngx_http_gzip_module">1 ngx_http_gzip_module<a class="headerlink" href="#1-ngx_http_gzip_module" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>gzip on | off</code></li>
+<li><code>gzip_buffers</code></li>
+</ol>
+<p>用于设置Gzip压缩文件使用缓存空间的大小.</p>
+<p><code>gzip_buffers number size;    # number 缓存空间个数; size 每个空间大小</code></p>
+<p>默认<em>number × size</em> 为128. size的值推荐取系统内存页一页的大小, 为4KB 或者8KB. 即<code>gzip_buffers 32 4k | 16 8k</code></p>
+<ol start="3">
+<li><code>gzip_comp_level</code></li>
+</ol>
+<p>设定Gzip压缩程度, 包括1到9. 1压缩程度最低, 9最高. 默认为1.</p>
+<ol start="4">
+<li><code>gzip_disable</code></li>
+</ol>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px">备注</p>
+<p>针对不同种类客户端发起的请求, 可以选择性地开启和关闭gzip功能.</p>
+<p>PC端：</p>
+<p>safari 5.1 – MAC</p>
+<p>User-Agent:Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 &gt; (KHTML, like Gecko) Version/5.1 Safari/534.50</p>
+<p>safari 5.1 – Windows</p>
+<p>User-Agent:Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, &gt; like Gecko) Version/5.1 Safari/534.50</p>
+<p>IE 9.0</p>
+<p>User-Agent:Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0;</p>
+<p>IE 8.0</p>
+<p>User-Agent:Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)</p>
+<p>IE 7.0</p>
+<p>User-Agent:Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)</p>
+<p>IE 6.0</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)</p>
+<p>Firefox 4.0.1 – MAC</p>
+<p>User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 &gt; Firefox/4.0.1</p>
+<p>Firefox 4.0.1 – Windows</p>
+<p>User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1</p>
+<p>Opera 11.11 – MAC</p>
+<p>User-Agent:Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/&gt; 11.11</p>
+<p>Opera 11.11 – Windows</p>
+<p>User-Agent:Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11</p>
+<p>Chrome 17.0 – MAC</p>
+<p>User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, &gt; like Gecko) Chrome/17.0.963.56 Safari/535.11</p>
+<p>傲游（Maxthon）</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)</p>
+<p>腾讯TT</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)</p>
+<p>世界之窗（The World） 2.x</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)</p>
+<p>世界之窗（The World） 3.x</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; The World)</p>
+<p>搜狗浏览器 1.x</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X &gt; MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)</p>
+<p>360浏览器</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)</p>
+<p>Avant</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)</p>
+<p>Green Browser</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)</p>
+<p>移动设备端：</p>
+<p>safari iOS 4.33 – iPhone</p>
+<p>User-Agent:Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) &gt; AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5</p>
+<p>safari iOS 4.33 – iPod Touch</p>
+<p>User-Agent:Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/&gt; 533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5</p>
+<p>safari iOS 4.33 – iPad</p>
+<p>User-Agent:Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/&gt; 533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5</p>
+<p>Android N1</p>
+<p>User-Agent: Mozilla/5.0 (Linux; U; Android 2.3.7; en-us; Nexus One Build/FRF91) &gt; AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1</p>
+<p>Android QQ浏览器 For android</p>
+<p>User-Agent: MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/&gt; GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/&gt; 533.1</p>
+<p>Android Opera Mobile</p>
+<p>User-Agent: Opera/9.80 (Android 2.3.4; Linux; Opera Mobi/build-1107180945; U; en-GB) &gt; Presto/2.8.149 Version/11.10</p>
+<p>Android Pad Moto Xoom</p>
+<p>User-Agent: Mozilla/5.0 (Linux; U; Android 3.0; en-us; Xoom Build/HRI39) AppleWebKit/&gt; 534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13</p>
+<p>BlackBerry</p>
+<p>User-Agent: Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en) AppleWebKit/534.1+ (KHTML, &gt; like Gecko) Version/6.0.0.337 Mobile Safari/534.1+</p>
+<p>WebOS HP Touchpad</p>
+<p>User-Agent: Mozilla/5.0 (hp-tablet; Linux; hpwOS/3.0.0; U; en-US) AppleWebKit/534.6 &gt; (KHTML, like Gecko) wOSBrowser/233.70 Safari/534.6 TouchPad/1.0</p>
+<p>Nokia N97</p>
+<p>User-Agent: Mozilla/5.0 (SymbianOS/9.4; Series60/5.0 NokiaN97-1/20.0.019; Profile/&gt; MIDP-2.1 Configuration/CLDC-1.1) AppleWebKit/525 (KHTML, like Gecko) BrowserNG/7.1.18124</p>
+<p>Windows Phone Mango</p>
+<p>User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; &gt; IEMobile/9.0; HTC; Titan)</p>
+<p>UC无</p>
+<p>User-Agent: UCWEB7.0.2.37/28/999</p>
+<p>UC标准</p>
+<p>User-Agent: NOKIA5700/ UCWEB7.0.2.37/28/999</p>
+<p>UCOpenwave</p>
+<p>User-Agent: Openwave/ UCWEB7.0.2.37/28/999</p>
+<p>UC Opera</p>
+<p>User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; ) Opera/UCWEB7.0.2.37/28/999<br>
+</p>
+</blockquote>
+<p>示例:</p>
+<p><code>gzip_disable MSIE [4-6]\.</code></p>
+<ol start="5">
+<li><code>gzip_http_version</code></li>
+</ol>
+<p><code>gzip_http_version 1.0 | 1.1</code> 默认设置为1.1版本.即只有客户端使用1.1及以上版本的HTTP协议时, 才使用Gzip功能. 一般使用默认值.</p>
+<ol start="6">
+<li><code>gzip_min_length</code></li>
+</ol>
+<p>如果压缩很小的数据, 可能出现越压缩数据量越大的情况. 因此根据响应页面的大小, 选择性地开启或者关闭Gzip功能. 该指令设置页面的字节数. <strong>响应页面的大小通过HTTP响应头部中的Content-Length指令获取, 但是如果使用了Chunk 编码动态压缩, Content-Length或不存在或被忽略, 该指令不起作用</strong>. 默认设置为20. 设置为0时统统压缩. 建议该值为<strong>1KB或以上</strong>.</p>
+<p><code>gzip_min_length 1024</code></p>
+<ol start="7">
+<li><code>gzip_proxied</code></li>
+</ol>
+<p>该指令在使用Nginx服务器的反向代理功能时有效, 前提是在后端服务器返回的响应页头部中, Requests 部分包含用于通知代理服务器的Via头域.  主要用于设置Nginx服务器是否对后端服务器返回的结果进行Gzip压缩.</p>
+<div class="highlight"><pre><span></span><span class="n">Syntax</span><span class="o">:</span>    <span class="n">gzip_proxied</span> <span class="n">off</span> <span class="o">|</span> <span class="n">expired</span> <span class="o">|</span> <span class="n">no</span><span class="o">-</span><span class="n">cache</span> <span class="o">|</span> <span class="n">no</span><span class="o">-</span><span class="n">store</span> <span class="o">|</span> <span class="kd">private</span> <span class="o">|</span><span class="n">no_last_modified</span> <span class="o">|</span> <span class="n">no_etag</span> <span class="o">|</span> <span class="n">auth</span> <span class="o">|</span> <span class="n">any</span> <span class="o">...;</span>
+<span class="n">Default</span><span class="o">:</span>    <span class="n">gzip_proxied</span> <span class="n">off</span><span class="o">;</span>
+<span class="n">Context</span><span class="o">:</span>    <span class="n">http</span><span class="o">,</span> <span class="n">server</span><span class="o">,</span> <span class="n">location</span>
+</pre></div>
+
+
+<ul>
+<li>off 关闭, 默认设置;</li>
+<li>expired 当后端服务器响应页头部包含用于支持响应数据过期事件的expired头域时, 启用Gzip.</li>
+<li>no-cache 当后端包含Cache-Control头域, 且其指令值为no-cache时, 启用.</li>
+<li>no-store 当后端包含Cache-Control头域, 且其指令值为no-store时, 启用.</li>
+<li>private 当后端包含Cache-Control头域, 且其指令值为private时, 启用.</li>
+<li>no_last_modified 当后端服务器响应头不包含用于指明需要获取数据最后修改时间的Last-Modified 域时, 启用.</li>
+<li>no_etag 不包含ETag时, 启用.</li>
+<li>auth 包含Authorization, 启用</li>
+<li>any 无条件启用压缩.</li>
+</ul>
+<ol start="8">
+<li><code>gzip_types</code></li>
+</ol>
+<p>根据响应页的MIME类型选择性地开启Gzip压缩功能.  默认为text/html. 还可以取'*', 表示对所有MIME类型进行Gzip压缩. 推荐设置:(通常文本/图片/js都可以压缩)</p>
+<p><code>gzip_types       text/plain application/x-javascript text/css application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png;</code></p>
+<ol start="9">
+<li><code>gzip_vary</code></li>
+</ol>
+<p>默认为off. 推荐开启. 开启后的效果实在响应头部添加了Accept-Encoding: gzip, 这对于本身不支持Gzip压缩的客户端浏览器是有用的.</p>
+<p>也可以通过add_header达到相同的效果:<code>add_header Vary Accept-Encoding gzip;</code></p>
+<blockquote>
+<p>:heavy_exclamation_mark: 该指令在使用过程中存在bug, 会导致IE4及以上的浏览器的数据缓存功能失效.</p>
+</blockquote>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/nginx.html">nginx</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/nginx-notebook-2-3-network-directives.html" title="NGINX 学习笔记-高级配置-与网络连接相关的指令">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/nginx-notebook-2-4-events-directives.html" title="NGINX 学习笔记-高级配置-事件驱动模型相关的配置指令">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/nginx-notebook-3-3-gunzip-module.html">NGINX 学习笔记-Gzip压缩-`ngx_http_gunzip_module`</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-notebook-3-4-gzip-howto.html">NGINX 学习笔记-Gzip压缩-Gzip压缩功能的使用</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-notebook-3-2-gzip-static-module.html">NGINX 学习笔记-Gzip压缩-`ngx_http_gzip_static_module`</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-notebook-2-4-events-directives.html">NGINX 学习笔记-高级配置-事件驱动模型相关的配置指令</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-notebook-2-3-network-directives.html">NGINX 学习笔记-高级配置-与网络连接相关的指令</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

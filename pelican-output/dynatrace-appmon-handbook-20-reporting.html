@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十篇, 主要介绍如何自动手动生成各类报告." />
+<meta name="keywords" content="Dynatrace, Observability">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Dynatrace AppMon 实战手册 - 20.报告功能"/>
+<meta property="og:description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十篇, 主要介绍如何自动手动生成各类报告."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/dynatrace-appmon-handbook-20-reporting.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-26 10:02:54.688046+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Observability"/>
+<meta property="article:tag" content="Dynatrace"/>
+<meta property="article:tag" content="Observability"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Dynatrace AppMon 实战手册 - 20.报告功能</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="dynatrace-appmon-handbook-20-reporting">Dynatrace AppMon 实战手册 - 20.报告功能</h1>
+    <p>
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <h2 id="_1">综述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>dynaTrace可以将dashboard和dashlet转换为自定义的报告。<br>
+报告可以有客户端或者服务端生成。计划报告是一种服务端报告。</p>
+<h2 id="_2">类型和格式<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>dynaTrace包括下列自定义报告格式：</p>
+<ul>
+<li>
+<p>PDF</p>
+</li>
+<li>
+<p>HTML</p>
+</li>
+<li>
+<p>XML</p>
+</li>
+<li>
+<p>Excel和Excel2007</p>
+</li>
+<li>
+<p>CSV</p>
+</li>
+</ul>
+<p><img alt="PDF" src="http://pic.yupoo.com/east4ming_v/FhuunmKR/medium.jpg"></p>
+<p><img alt="HTML" src="http://pic.yupoo.com/east4ming_v/FhuumWhj/medium.jpg"></p>
+<p><img alt="xml" src="http://pic.yupoo.com/east4ming_v/FhuuoRBf/medium.jpg"></p>
+<p><img alt="Excel" src="http://pic.yupoo.com/east4ming_v/FhuunQEO/medium.jpg"></p>
+<p><img alt="CSV" src="http://pic.yupoo.com/east4ming_v/FhuumrDF/medium.jpg"></p>
+<h2 id="_3">客户端报告<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="_4">默认报告<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>可以通过下列操作创建报告：</p>
+<ul>
+<li>
+<p>创建一个dashboard，从<strong>Dashboard</strong>按钮或者右击在右上方的dashboard图标，选择<strong>Report</strong>。</p>
+</li>
+<li>
+<p>生成单个dashlet的报告，邮寄dashlet的标签并且选择<strong>Report</strong>。</p>
+</li>
+</ul>
+<p>之后会出现<strong>Generate Report</strong>对话框，可以进行细节项设置。</p>
+<p><img alt="创建报告对话框" src="http://pic.yupoo.com/east4ming_v/FhuyMfcb/medium.jpg"></p>
+<ol>
+<li>报告标题和描述自动由dashboard创建。可以进行修改。</li>
+<li>选择报告格式。</li>
+<li>更改纸张方向和纸张大小。</li>
+<li>定义输出路径</li>
+<li>点击<strong>Generate</strong>创建报告。完成后，会自动打开。<br>
+这些变更只会应用在一个报告里。</li>
+</ol>
+<h3 id="dashboard">自定义dashboard报告<a class="headerlink" href="#dashboard" title="Permanent link">&para;</a></h3>
+<p>在dashboard属性里选择<strong>Reporting</strong>标签页来改变下列设置：</p>
+<ul>
+<li>
+<p>默认格式</p>
+</li>
+<li>
+<p>纸张方向和纸张大小</p>
+</li>
+<li>
+<p>自定义页眉图片</p>
+</li>
+<li>
+<p>dashlet顺序和包含项</p>
+</li>
+<li>
+<p>按计划生成报告</p>
+</li>
+</ul>
+<p><img alt="Reporting标签页" src="http://pic.yupoo.com/east4ming_v/FhuFqY65/medium.jpg"></p>
+<p><img alt="自定义项" src="http://pic.yupoo.com/east4ming_v/FhuGlt9I/medium.jpg"></p>
+<p>这些变更将会应用到由这个dashboard生成的每份报告里。</p>
+<h2 id="_5">计划报告<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h3 id="_6">计划报告<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>报告可以在给定的时间间隔自动生成，并且储存在dynaTrace Server端的文件系统或者通过email发送。计划报告由dynaTrace Server创建。<br>
+创建报告任务，执行如下步骤：</p>
+<ol>
+<li>打开你想要生成报告的dashboard</li>
+<li>邮寄dashboard或者打开dashboard菜单，选择<strong>Report</strong></li>
+<li>自定义报告，可以更改标题、描述、格式、纸张方向和大小、文件名。</li>
+<li>点击<strong>Create Schedule</strong></li>
+<li>自定义后处理--通过email发送或储存在dynaTrace Server文件系统。</li>
+<li>选择<strong>Schedule</strong>标签页</li>
+<li>在Schedules Editor增加或编辑计划。</li>
+</ol>
+<p><img alt="计划报告_1" src="http://pic.yupoo.com/east4ming_v/FhuKKVdo/medium.jpg"></p>
+<p><img alt="计划报告_2" src="http://pic.yupoo.com/east4ming_v/FhuKM5hh/medium.jpg"></p>
+<p><img alt="计划报告_3" src="http://pic.yupoo.com/east4ming_v/FhuKKZ7B/medium.jpg"></p>
+<h3 id="server">Server端自动报告任务<a class="headerlink" href="#server" title="Permanent link">&para;</a></h3>
+<h4>为什么需要自动化报告？</h4>
+<p>通过自动化报告，你可以展示累计数据给利益相关者或者发送每日的KPI状态更新到你的邮箱。报告是必须的，而且你不想花费太多时间收集数据，设计报告，执行。如果你曾做同一个报告2次，那么你应该使用dynaTrace的报告功能来自动化生成报告。</p>
+<h4>目标演练</h4>
+<p>本次目标演练展示了dynaTrace的报告功能，以及如何更容易的生成报告。学习如何生成你的计划报告。</p>
+<h4>需求</h4>
+<p>创建你自己的dashboard或者使用dynaTrace自带的。如果你没有System Profile，没有来自agent的数据的话，使用自监控的内置dashboard。</p>
+<h4>详细步骤</h4>
+<p>根据以下步骤自动化生成报告：</p>
+<ol>
+<li>打开报告对话框到报告文档</li>
+<li>自定义必须的信息</li>
+<li>创建一个报告计划</li>
+<li>基于计划自动化生成报告</li>
+</ol>
+<h4>创建报告计划</h4>
+<p>如果你想通过邮件每天、每周、或者发报告或者发送给多个接收者，那么可以创建报告计划。到<strong>Report</strong>设置项，创建计划。比如，可以创建计划，发送PDF报告，每天8点到你的邮箱，每周到你经理的邮箱。你必须创建两个计划。<br>
+对于每天的计划，使用下列的定义：</p>
+<ul>
+<li>
+<p>Start on：每天</p>
+</li>
+<li>
+<p>Time to Send：8:00AM</p>
+</li>
+<li>
+<p>End：永久</p>
+</li>
+<li>
+<p>Recurrence：每天</p>
+</li>
+</ul>
+<p>定义周六、周日例外：</p>
+<ul>
+<li>
+<p>Schedule Exclusion：总是排除</p>
+</li>
+<li>
+<p>On：周六、周日</p>
+</li>
+<li>
+<p>In：每月</p>
+</li>
+</ul>
+<p><img alt="创建报告计划_1" src="http://pic.yupoo.com/east4ming_v/Fhw8OvM2/medium.jpg"></p>
+<p><img alt="创建报告计划_2" src="http://pic.yupoo.com/east4ming_v/Fhw8PIOd/medium.jpg"></p>
+<p><img alt="创建报告计划_3" src="http://pic.yupoo.com/east4ming_v/FhuKM5hh/medium.jpg"></p>
+<p><img alt="创建报告计划_4" src="http://pic.yupoo.com/east4ming_v/Fhw8PHcr/medium.jpg"></p>
+<p>第二个计划每月第一天执行</p>
+<ul>
+<li>
+<p>Start on:每月第一天</p>
+</li>
+<li>
+<p>End：永久</p>
+</li>
+<li>
+<p>Recurrence：每月</p>
+</li>
+<li>
+<p>月度计划：每月第一天发送报告</p>
+</li>
+</ul>
+<p><img alt="创建报告计划_5" src="http://pic.yupoo.com/east4ming_v/Fhw8RcHJ/medium.jpg"></p>
+<h4>总结</h4>
+<p>你用dashboard相关的数据配置后，自动报告节省了很多时间。而且自动化的技能可以作为一个数据导出引擎将数据发送到你的工具上。定时拿到数据或者把数据发送到自动化工具以备之后处理。</p>
+<h2 id="_7">报告的限制<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<h3 id="_8">客户端报告限制<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>客户端报告有明确的限制：</p>
+<ul>
+<li>
+<p>只有客户端上有数据展示才会报告-报告之前不会触发刷新</p>
+</li>
+<li>
+<p>客户端报告会跳过没有激活的dashlet。要确保所有dashlet的数据显示在报告里，你必须在创建报告前手动刷新。这项不适用于通过REST的server端报告或计划报告。</p>
+</li>
+</ul>
+<h3 id="_9">大小限制<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<p>dynaTrace限制报告大小，这样dynaTrace Server或客户端不会受到非常大的报告的影响。要生成大的报告，使用下列配置项：</p>
+<h4>软限制：每个dashlet 100行</h4>
+<p>dashlet和dashboard被设置每个表100行。该设置会被具体的dashboard和dashlet的设置覆盖。如果你设置高于硬限制：5000行，硬限制仍然起作用。</p>
+<h4>硬限制：每个报告5000行</h4>
+<p>所有dashlet的报告不能超过5000行。如果你需要更大值，你可以设置下列系统属性：<br>
+<img alt="硬限制" src="http://pic.yupoo.com/east4ming_v/Fhwjvk0s/14Nfau.jpg"></p>
+<p>你可能需要设置该项在多个地方。下列描述了报告类型和相应的设置：</p>
+<h4>客户端报告：本地安装的客户端</h4>
+<p>本地安装的客户端配置位是<em>dtclient.ini</em>,位于C:/Users/$username/.dynaTrace/dynaTrace $version/dtclient.ini(Liunx/Mac OS X 是 ~/.dynaTrace/..)</p>
+<div class="highlight"><pre><span></span><span class="na">-vargs</span>
+
+<span class="na">-Dcom.dynatrace.diagnostics.reporting.maxTableRows</span><span class="o">=</span><span class="s">10000</span>
+<span class="na">-Xmx512M</span>
+</pre></div>
+
+
+<p>直接增加该设置到<em>-vmargs</em>。</p>
+<h4>每个报告最多50个dashlets</h4>
+<p>为了防止超大的报告导致性能问题而作此设置。当然，你可以创建多个有50个dashlets的报告。</p>
+<h4>客户端报告：通过dynaTrace Server站点的Webstart客户端</h4>
+<p>没有本地安装，因此当你使用Webstart客户端时，必须在dynaTrace Server设置。位置：  C:\Program Files\dynaTrace\dynaTrace $version\server\conf\plugins\c.d.d.autoupdate.client.common_$version\common\plugin.properties.在文件末尾增加如下配置。</p>
+<div class="highlight"><pre><span></span><span class="na">...osgi.user.area</span><span class="o">=</span><span class="s">@user.home/$$workdingdir</span>
+<span class="na">osgi.install.area</span> <span class="o">=</span> <span class="s">file:</span>
+<span class="na">com.dynatrace.diagnostics.reporting.maxTableRows</span><span class="o">=</span><span class="s">10000</span>
+</pre></div>
+
+
+<h3 id="serverrest">Server端报告：计划报告和REST报告<a class="headerlink" href="#serverrest" title="Permanent link">&para;</a></h3>
+<p>当你通过计划任务或REST接口创建报告时，dynaTrace Server创建的报告。如果必须要配置更高的限制。在<em>dtserver.ini</em>,位于$dynaTrace Installation\dtserver.ini,例如 C:\Program Files\dynaTrace\dynaTrace 5.5.0\dtserver.ini</p>
+<div class="highlight"><pre><span></span><span class="na">-restartonfailure</span>
+
+<span class="na">-vmargs</span>
+
+<span class="na">-Dcom.dynatrace.diagnostics.reporting.maxTableRows</span><span class="o">=</span><span class="s">10000</span>
+<span class="na">-Xmx1920M</span>
+</pre></div>
+
+
+<p>加到<em>-vmargs</em>之后。</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<ul>
+<li>配置应用，server或客户端重启后，第一份报告触发后，你应该在日志文件里看到下面信息：</li>
+</ul>
+<blockquote>
+<p>2015-14-03 09:26:53 INFO [ServerReportManager] Using non-default limit of table rows per report: '10000'<br>
+如果没有出现，验证配置文件，并且重启server和客户端来激活新的变更。</p>
+</blockquote>
+<ul>
+<li>
+<p>你也必须在dashboard或dashlet修改软限制，因为软限制仍然是100行。</p>
+</li>
+<li>
+<p><em>dtclient.ini</em>文件只位于C:\Users.如果该文件位于像是这样的位置：C:\Program Files (x86)\dynaTrace\dynaTrace $version,删除掉。</p>
+</li>
+</ul>
+<h3 id="_10">非拉丁语脚本<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<p>要启用PDF报告的非拉丁语系脚本，需要设置系统属性com。dynatrace.diagnostics.reporting.pdf.english为<em>false</em>。这可能会导致连字符错误，但是允许从右到左书写。<br>
+取决于报告是由dynaTrace Client还是dynaTrace Server创建，对应的系统属性也必须设置在<em>dtclient.ini</em>或<em>dtserver.ini</em>。</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>
+      <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html" title="OpenShift企业测试环境应用部署实战">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-24-mobile-adk.html" title="Dynatrace AppMon 实战手册 - 24.手机ADK">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem.html">Dynatrace AppMon 实战手册 - 29.某保险公司核心系统变慢问题分析</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-28-update-migrate-guide.html">Dynatrace AppMon 实战手册 - 28.Dynatrace 6.5升级和迁移向导</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console.html">Dynatrace AppMon 实战手册 - 27.Dynatrace Web 客户端使用说明</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html">Dynatrace AppMon 实战手册 - 26.分析诡异的应用性能问题</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html">Dynatrace AppMon 实战手册 - 25.RESTful API</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

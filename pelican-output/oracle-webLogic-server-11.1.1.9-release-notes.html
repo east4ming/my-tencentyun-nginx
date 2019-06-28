@@ -145,47 +145,47 @@
   <div>
     <p><a href="https://docs.oracle.com/middleware/11119/wls/WLSRN/issues.htm#WLSRN114">参照链接</a></p>
 <h2 id="oracle-weblogic-server">Oracle WebLogic Server问题<a class="headerlink" href="#oracle-weblogic-server" title="Permanent link">&para;</a></h2>
-<p>本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。
-一般性问题和解决办法
-管理控制台问题和解决办法
-Apache Beehive支持问题和解决办法
-集群问题和解决办法
-配置问题和解决办法
-连接器（资源适配器）问题和解决办法
-控制台扩展问题和解决办法
-核心服务器和核心工作管理器问题和解决办法
-部署问题和解决办法
-EJB问题和解决办法
-示例问题和解决办法
-HTTP问题发布/订阅服务器问题和解决办法
-安装问题和解决办法
-JavaEE问题和解决办法
-JDBC问题和解决办法
-JMS问题和解决办法
-JBDI问题和解决办法
-JSP和Servlet问题和解决办法
-JTA问题和解决办法
-Java虚拟机（JVM）和解决办法
-监测问题和解决办法
-节点管理器问题和解决办法
-操作、管理和受管理问题及解决办法
-Oracle Kodo问题和解决办法
-插件问题和解决办法
-协议问题和解决办法
-RMI-IIOP问题和解决办法
-安全问题和解决办法
-SNMP问题和解决办法
-WebLogic Server上Spring框架的问题和解决办法
-系统组件体系解救（SCA）问题和解决办法
-升级问题和解决办法
-Web应用程序问题和解决办法
-WebLogic Server脚本工具（WLST）问题及解决办法
-!!!
-Web服务器插件问题和解决方法
-Web服务和XML问题及解决办法
+<p>本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。<br>
+一般性问题和解决办法<br>
+管理控制台问题和解决办法<br>
+Apache Beehive支持问题和解决办法<br>
+集群问题和解决办法<br>
+配置问题和解决办法<br>
+连接器（资源适配器）问题和解决办法<br>
+控制台扩展问题和解决办法<br>
+核心服务器和核心工作管理器问题和解决办法<br>
+部署问题和解决办法<br>
+EJB问题和解决办法<br>
+示例问题和解决办法<br>
+HTTP问题发布/订阅服务器问题和解决办法<br>
+安装问题和解决办法<br>
+JavaEE问题和解决办法<br>
+JDBC问题和解决办法<br>
+JMS问题和解决办法<br>
+JBDI问题和解决办法<br>
+JSP和Servlet问题和解决办法<br>
+JTA问题和解决办法<br>
+Java虚拟机（JVM）和解决办法<br>
+监测问题和解决办法<br>
+节点管理器问题和解决办法<br>
+操作、管理和受管理问题及解决办法<br>
+Oracle Kodo问题和解决办法<br>
+插件问题和解决办法<br>
+协议问题和解决办法<br>
+RMI-IIOP问题和解决办法<br>
+安全问题和解决办法<br>
+SNMP问题和解决办法<br>
+WebLogic Server上Spring框架的问题和解决办法<br>
+系统组件体系解救（SCA）问题和解决办法<br>
+升级问题和解决办法<br>
+Web应用程序问题和解决办法<br>
+WebLogic Server脚本工具（WLST）问题及解决办法<br>
+!!!<br>
+Web服务器插件问题和解决方法<br>
+Web服务和XML问题及解决办法<br>
 文件 Errata</p>
 <blockquote>
-<p>注：
+<p>注：<br>
 获取WebLogic Server 11g（10.3.6）修复的Bug列表，请在直属库字段中输入以下文档ID 1302753.1</p>
 </blockquote>
 <h3 id="_1">一般性问题和解决办法<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
@@ -201,10 +201,10 @@ Web服务和XML问题及解决办法
 <li>IBM JDK SR16 FP3或 JDK 7.0 SR8 FP10修复程序的可用性</li>
 </ul>
 <h4>使用Safari时，多字节字符在文件名中显示错误</h4>
-<p><strong>平台：</strong> 全部
-当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码
-<strong>解决方案</strong>
-在受管服务器上设置<code>UserHeaderEncoding</code> 为 <code>true</code> .
+<p><strong>平台：</strong> 全部<br>
+当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码<br>
+<strong>解决方案</strong><br>
+在受管服务器上设置<code>UserHeaderEncoding</code> 为 <code>true</code> .<br>
 使用如下WLST命令实现：</p>
 <div class="highlight"><pre><span></span>connect(&quot;admin_name&quot;, &quot;admin_password&quot;, &quot;t3://localhost:port&quot;)
 edit()
@@ -218,18 +218,18 @@ exit()
 
 
 <h4>Oracle WebLogic Server 版本号</h4>
-<p><strong>平台：</strong> 全部
+<p><strong>平台：</strong> 全部<br>
 Oracle融合中间件11g包含Oracle WebLogic Server 11g. Oracle WebLogic Server版本为10.3.6.</p>
 <h4>Oracle ojdbc14.jar文件更改为ojdbc6.jar</h4>
-<p><strong>平台：</strong> 全部
+<p><strong>平台：</strong> 全部<br>
 Oracle ojdbc14.jar 更改为为ojdbc6.jar，使用JDK 5或者JDK 6，因此，您对ojdbc14.jar的任何显示引用都必须更改为ojdbc6.jar</p>
 <h4>强密码强制执行可能导致WLST离线脚本出现问题</h4>
-<p><strong>平台：</strong> 全部
-在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。
-<strong>解决方案</strong>
-<em> 将<code>ACKWARD_COMPAT_PW_CHECK</code>境变量设置为<code>ture</code>.
-</em> 使用WLST时，引用参数<code>-Dbackward.compat.pw.check=true</code>
-&lt;未完待续&gt;
+<p><strong>平台：</strong> 全部<br>
+在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。<br>
+<strong>解决方案</strong><br>
+<em> 将<code>ACKWARD_COMPAT_PW_CHECK</code>境变量设置为<code>ture</code>.<br>
+</em> 使用WLST时，引用参数<code>-Dbackward.compat.pw.check=true</code><br>
+&lt;未完待续&gt;<br>
 Oracle建议您更改密码以复核新的密码要求，因为此变量和选项将在未来的WebLogic Server版本中删除。</p>
 <h4>在土耳其地区，mds初始化失败</h4>
 <p><strong>平台：</strong> 全部</p>
@@ -261,7 +261,11 @@ Oracle建议您更改密码以复核新的密码要求，因为此变量和选�
   <div class="related-posts">
     <h4>您可能还喜欢</h4>
     <ul class="related-posts">
-      <li><a href="https://www.EWhisper.cn/java-oom-1-java-heap-space.html">8种Java 内存溢出之一:Java Heap Space</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-11-operation-best-practices.html">NGINX 实战手册-运维-实用运维Tips和总结</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-7-ab-test.html">NGINX 实战手册-运维-使用`split_clients`进行A-B测试</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-8-use-geoip-to-get-users-location.html">NGINX 实战手册-运维-使用GeoIP模块通过IP地址定位用户</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-6-automatation.html">NGINX 实战手册-运维-自动化</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-0-foreword.html">NGINX 实战手册-运维-前言和介绍</a></li>
     </ul>
   </div>
 

@@ -1,0 +1,375 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="NGINX 实战手册系列文章的运维部分. 本文主要介绍如何使用Puppet/Chef/Ansible/SaltStack部署." />
+<meta name="keywords" content="nginx, devops, 译文, 最佳实践">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="NGINX 实战手册-运维-使用Puppet/Chef/Ansible/SaltStack部署"/>
+<meta property="og:description" content="NGINX 实战手册系列文章的运维部分. 本文主要介绍如何使用Puppet/Chef/Ansible/SaltStack部署."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/nginx-handbook-3-5-nginx-autoconf-tools.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-06-19 20:28:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="nginx"/>
+<meta property="article:tag" content="devops"/>
+<meta property="article:tag" content="译文"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; NGINX 实战手册-运维-使用Puppet/Chef/Ansible/SaltStack部署</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="nginx-handbook-3-5-nginx-autoconf-tools">NGINX 实战手册-运维-使用Puppet/Chef/Ansible/SaltStack部署</h1>
+    <p>
+      在 2019-06-19 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <h2 id="35-puppetchefansiblesaltstack">3.5 使用Puppet/Chef/Ansible/SaltStack<a class="headerlink" href="#35-puppetchefansiblesaltstack" title="Permanent link">&para;</a></h2>
+<h3 id="350">3.5.0 介绍<a class="headerlink" href="#350" title="Permanent link">&para;</a></h3>
+<p>在云的时代, 配置管理工具是无价之宝. 大规模web应用的工程师无法通过代码手把手配置servers, 但是使用其中任何一个配置管理工具都可以做到. 配置管理工具允许工程师一次写入配置和代码到很多有相同配置的server, 通过使用一种可重复, 可测试, 模块化的方式. 本章讨论几个流行的配置管理工具, 以及如何使用他们安装NIGINX和从模版创建一个基本配置. 这些例子非常基础, 但是展示了如何通过每个平台来启动NGINX.</p>
+<h3 id="351-puppet">3.5.1 使用Puppet安装<a class="headerlink" href="#351-puppet" title="Permanent link">&para;</a></h3>
+<h4>问题</h4>
+<p>你需要通过Puppet安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他Puppet配置.</p>
+<h4>解决方案</h4>
+<p>创建一个模块, 用于安装NGINX, 管理你需要的文件, 确保NGINX在运行:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="n">nginx</span> <span class="p">{</span>
+    <span class="n">package</span> <span class="p">{</span><span class="s2">&quot;nginx&quot;</span><span class="p">:</span> <span class="k">ensure</span> <span class="o">=&gt;</span> <span class="s1">&#39;installed&#39;</span><span class="p">,}</span>
+    <span class="n">service</span> <span class="p">{</span><span class="s2">&quot;nginx&quot;</span><span class="p">:</span>
+        <span class="k">ensure</span> <span class="o">=&gt;</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span>
+        <span class="n">hasrestart</span> <span class="o">=&gt;</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span>
+        <span class="n">restart</span> <span class="o">=&gt;</span> <span class="s1">&#39;/etc/init.d/nginx reload&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">file</span> <span class="p">{</span> <span class="s2">&quot;nginx.conf&quot;</span><span class="p">:</span>
+        <span class="n">path</span>    <span class="o">=&gt;</span> <span class="s1">&#39;/etc/nginx/nginx.conf&#39;</span><span class="p">,</span>
+        <span class="nb">require</span> <span class="o">=&gt;</span> <span class="no">Package</span><span class="o">[</span><span class="s1">&#39;nginx&#39;</span><span class="o">]</span><span class="p">,</span>
+        <span class="n">notify</span>  <span class="o">=&gt;</span> <span class="no">Service</span><span class="o">[</span><span class="s1">&#39;nginx&#39;</span><span class="o">]</span><span class="p">,</span>
+        <span class="n">content</span> <span class="o">=&gt;</span> <span class="n">template</span><span class="p">(</span><span class="s1">&#39;nginx/templates/nginx.conf.erb&#39;</span><span class="p">),</span>
+        <span class="n">user</span><span class="o">=&gt;</span><span class="s1">&#39;root&#39;</span><span class="p">,</span>
+        <span class="n">group</span><span class="o">=&gt;</span><span class="s1">&#39;root&#39;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;0644&#39;</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>该模块使用包管理工具来确保NGINX被安装. 也会确保NGINX在启动时在运行和可用. 该配置通知Puppet, 该服务有重启命令, 通过<code>hasrestart</code>指令, 并且我们用NGINX reload命令覆盖<code>restart</code>命令. 它通过内置Ruby(ERB)模版语言来管理和模板化<code>nginx.conf</code>文件. 文件的模板化会发生在NGINX包被安装之后(通过<code>require</code>指令). 但是, 它会通过<code>notify</code>指令通知NGINX服务来reload. 该模版化配置文件没有包括. 另外, 它可以简单安装一个默认的NGINX配置文件, 或是使用内置Ruby(ERB)或内置Puppet(EPP)模版语言的循环和变量替换.</p>
+<h4>讨论</h4>
+<p>Puppet是基于Ruby语言的配置管理工具. 模块被构建进一个特定域的语言, 并通过定义给定server配置的manifest文件调用. Puppet可以用主从或masterless模式运行. 使用Puppet, manifest运行在master上, 然后发到slave上. 这很重要, 因为它确保slave只是被交付对它有用的配置, 对其他server的其他配置是不会给这个slave的. Puppet有很多非常高级的公用模块. 通过这些模块, 会在配置上帮助你飞起. 在GitHub上来自voxpupuli的公共NGINX模块会为你模板化NGINX配置.</p>
+<h4>参见</h4>
+<p><a href="https://docs.puppet.com/">Puppet documentation</a></p>
+<p><a href="http://bit.ly/2jfgpm4">Puppet package documentation</a></p>
+<p><a href="http://bit.ly/2jMq2cx">Puppet service documentation</a></p>
+<p><a href="http://bit.ly/2jMz4q3">Puppet file documentation</a></p>
+<p><a href="http://bit.ly/2isqAlP">Puppet templating documentation</a></p>
+<p><a href="http://bit.ly/2jMspMn">Voxpupuli NGINX module</a></p>
+<h3 id="352-chef">3.5.2 使用Chef安装<a class="headerlink" href="#352-chef" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>略</p>
+</blockquote>
+<h3 id="353-ansible">3.5.3 使用Ansible安装<a class="headerlink" href="#353-ansible" title="Permanent link">&para;</a></h3>
+<h4>问题</h4>
+<p>你需要使用Ansible来安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他Ansible配置.</p>
+<h4>解决方案</h4>
+<p>创建一个安装NGINX和管理<em>nginx.conf</em>文件playbook. 下列是一个示例的任务文件.</p>
+<div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">NGINX | Installing NGINX</span>
+  <span class="nt">package</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">name=nginx state=present</span>
+
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">NGINX | Starting NGINX</span>
+  <span class="nt">service</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+    <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">started</span>
+    <span class="nt">enabled</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Copy nginx configuration in place.</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">src</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx.conf.j2</span>
+    <span class="nt">dest</span><span class="p">:</span> <span class="s">&quot;/etc/nginx/nginx.conf&quot;</span>
+    <span class="nt">owner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0644</span>
+  <span class="nt">notify</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">reload nginx</span>
+</pre></div>
+
+
+<p><code>package</code>块安装NGINX. <code>service</code>块确保NGINX在启动时被启动和可用. <code>template</code>块模板化一个<em>Jinja2</em>文件, 并把结果以root用户和组放到<code>/etc/nginx.conf</code>中. 该模版块也设置<em>mode</em>为644, 并通知nginx服务reload. 模板化配置文件没有包含在内. 但是, 可以通过默认的NGINX配置文件来简单, 或者通过Jinja2模版语言的循环和变量替换生成很复杂的模版.</p>
+<h4>讨论</h4>
+<p>Ansible是用Python编写的广泛使用的强大配置管理工具. 任务配置使用YAML, 使用Jinja2模版语言生成文件模版. Ansible提供一个有master的叫做Ansible Tower的订阅版. 但是, 它经常用于本地机器或构建服务器直接到客户端或者使用masterless模式. Ansible打包SSH到它的server并运行配置. 和其他配置工具类似, 有很多社区提供的公共roles, Ansible把它叫做Ansible Galaxy. 你可以找到可以用于你的playbook的非常复杂的roles.</p>
+<h4>参见</h4>
+<p><a href="http://docs.ansible.com/">Ansible documentation</a></p>
+<p><a href="http://bit.ly/2jfiwGv">Ansible packages</a></p>
+<p><a href="http://bit.ly/2jMGF7E">Ansible service</a></p>
+<p><a href="http://bit.ly/2j8j526">Ansible template</a></p>
+<p><a href="https://galaxy.ansible.com/">Ansible Galaxy</a></p>
+<h3 id="354-saltstack">3.5.4 使用SaltStack安装<a class="headerlink" href="#354-saltstack" title="Permanent link">&para;</a></h3>
+<h4>问题</h4>
+<p>你需要使用SaltStack来安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他SaltStack配置.</p>
+<h4>解决方案</h4>
+<div class="highlight"><pre><span></span><span class="nt">nginx</span><span class="p">:</span>
+  <span class="nt">pkg</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">installed</span>
+  <span class="nt">service</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">running</span>
+    <span class="p p-Indicator">-</span> <span class="nt">enable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
+    <span class="p p-Indicator">-</span> <span class="nt">reload</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
+    <span class="p p-Indicator">-</span> <span class="nt">watch</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">file</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/nginx/nginx.conf</span>
+
+<span class="nt">/etc/nginx/nginx.conf</span><span class="p">:</span>
+  <span class="nt">file</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">managed</span>
+    <span class="p p-Indicator">-</span> <span class="nt">source</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">salt://path/to/nginx.conf</span>
+    <span class="p p-Indicator">-</span> <span class="nt">user</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="p p-Indicator">-</span> <span class="nt">group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root</span>
+    <span class="p p-Indicator">-</span> <span class="nt">template</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jinja</span>
+    <span class="p p-Indicator">-</span> <span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">644</span>
+    <span class="p p-Indicator">-</span> <span class="nt">require</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">pkg</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+</pre></div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/nginx.html">nginx</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+      <a href="https://www.EWhisper.cn/tag/yi-wen.html">译文</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/nginx-handbook-2-10-security-tips.html" title="NGINX 实战手册-安全-实用安全技巧">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/nginx-handbook-3-4-nginx-docker.html" title="NGINX 实战手册-运维-在Docker 上部署">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-11-operation-best-practices.html">NGINX 实战手册-运维-实用运维Tips和总结</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-7-ab-test.html">NGINX 实战手册-运维-使用`split_clients`进行A-B测试</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-8-use-geoip-to-get-users-location.html">NGINX 实战手册-运维-使用GeoIP模块通过IP地址定位用户</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-6-automatation.html">NGINX 实战手册-运维-自动化</a></li>
+      <li><a href="https://www.EWhisper.cn/nginx-handbook-3-0-foreword.html">NGINX 实战手册-运维-前言和介绍</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

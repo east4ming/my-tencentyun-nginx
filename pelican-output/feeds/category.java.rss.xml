@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0"><channel><title>东风微鸣 Blog - Java</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Thu, 14 Mar 2019 22:06:00 +0800</lastBuildDate><item><title>Oracle WebLogic Server 11.1.1.9发布说明</title><link>https://www.EWhisper.cn/oracle-webLogic-server-11.1.1.9-release-notes.html</link><description>&lt;p&gt;&lt;a href="https://docs.oracle.com/middleware/11119/wls/WLSRN/issues.htm#WLSRN114"&gt;参照链接&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id="oracle-weblogic-server"&gt;Oracle WebLogic Server问题&lt;a class="headerlink" href="#oracle-weblogic-server" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。
-一般性问题和解决办法
-管理控制台问题和解决办法
-Apache Beehive支持问题和解决办法
-集群问题和解决办法
-配置问题和解决办法
-连接器（资源适配器）问题和解决办法
-控制台扩展问题和解决办法
-核心服务器和核心工作管理器问题和解决办法
-部署问题和解决办法
-EJB问题和解决办法
-示例问题和解决办法
-HTTP问题发布/订阅服务器问题和解决办法
-安装问题和解决办法
-JavaEE问题和解决办法
-JDBC问题和解决办法
-JMS问题和解决办法
-JBDI问题和解决办法
-JSP和Servlet问题和解决办法
-JTA问题和解决办法
-Java虚拟机（JVM）和解决办法
-监测问题和解决办法
-节点管理器问题和解决办法
-操作、管理和受管理问题及解决办法
-Oracle Kodo问题和解决办法
-插件问题和解决办法
-协议问题和解决办法
-RMI-IIOP问题和解决办法
-安全问题和解决办法
-SNMP问题和解决办法
-WebLogic Server上Spring框架的问题和解决办法
-系统组件体系解救（SCA）问题和解决办法
-升级问题和解决办法
-Web应用程序问题和解决办法
-WebLogic Server脚本工具（WLST）问题及解决办法
-!!!
-Web服务器插件问题和解决方法
-Web服务和XML问题及解决办法
+&lt;p&gt;本章节描述了Oracle WebLogic Server相关的问题。它包含以下主题。&lt;br&gt;
+一般性问题和解决办法&lt;br&gt;
+管理控制台问题和解决办法&lt;br&gt;
+Apache Beehive支持问题和解决办法&lt;br&gt;
+集群问题和解决办法&lt;br&gt;
+配置问题和解决办法&lt;br&gt;
+连接器（资源适配器）问题和解决办法&lt;br&gt;
+控制台扩展问题和解决办法&lt;br&gt;
+核心服务器和核心工作管理器问题和解决办法&lt;br&gt;
+部署问题和解决办法&lt;br&gt;
+EJB问题和解决办法&lt;br&gt;
+示例问题和解决办法&lt;br&gt;
+HTTP问题发布/订阅服务器问题和解决办法&lt;br&gt;
+安装问题和解决办法&lt;br&gt;
+JavaEE问题和解决办法&lt;br&gt;
+JDBC问题和解决办法&lt;br&gt;
+JMS问题和解决办法&lt;br&gt;
+JBDI问题和解决办法&lt;br&gt;
+JSP和Servlet问题和解决办法&lt;br&gt;
+JTA问题和解决办法&lt;br&gt;
+Java虚拟机（JVM）和解决办法&lt;br&gt;
+监测问题和解决办法&lt;br&gt;
+节点管理器问题和解决办法&lt;br&gt;
+操作、管理和受管理问题及解决办法&lt;br&gt;
+Oracle Kodo问题和解决办法&lt;br&gt;
+插件问题和解决办法&lt;br&gt;
+协议问题和解决办法&lt;br&gt;
+RMI-IIOP问题和解决办法&lt;br&gt;
+安全问题和解决办法&lt;br&gt;
+SNMP问题和解决办法&lt;br&gt;
+WebLogic Server上Spring框架的问题和解决办法&lt;br&gt;
+系统组件体系解救（SCA）问题和解决办法&lt;br&gt;
+升级问题和解决办法&lt;br&gt;
+Web应用程序问题和解决办法&lt;br&gt;
+WebLogic Server脚本工具（WLST）问题及解决办法&lt;br&gt;
+!!!&lt;br&gt;
+Web服务器插件问题和解决方法&lt;br&gt;
+Web服务和XML问题及解决办法&lt;br&gt;
 文件 Errata&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;注：
+&lt;p&gt;注：&lt;br&gt;
 获取WebLogic Server 11g（10.3.6）修复的Bug列表，请在直属库字段中输入以下文档ID 1302753.1&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h3 id="_1"&gt;一般性问题和解决办法&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
@@ -57,10 +57,10 @@ Web服务和XML问题及解决办法
 &lt;li&gt;IBM JDK SR16 FP3或 JDK 7.0 SR8 FP10修复程序的可用性&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h4&gt;使用Safari时，多字节字符在文件名中显示错误&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
-当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码
-&lt;strong&gt;解决方案&lt;/strong&gt;
-在受管服务器上设置&lt;code&gt;UserHeaderEncoding&lt;/code&gt; 为 &lt;code&gt;true&lt;/code&gt; .
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
+当使用Safari浏览器下载内容时，如果文件名包含多字节字符，则这些字符在文件中显示为乱码&lt;br&gt;
+&lt;strong&gt;解决方案&lt;/strong&gt;&lt;br&gt;
+在受管服务器上设置&lt;code&gt;UserHeaderEncoding&lt;/code&gt; 为 &lt;code&gt;true&lt;/code&gt; .&lt;br&gt;
 使用如下WLST命令实现：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;connect(&amp;quot;admin_name&amp;quot;, &amp;quot;admin_password&amp;quot;, &amp;quot;t3://localhost:port&amp;quot;)
 edit()
@@ -74,18 +74,18 @@ exit()
 
 
 &lt;h4&gt;Oracle WebLogic Server 版本号&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
 Oracle融合中间件11g包含Oracle WebLogic Server 11g. Oracle WebLogic Server版本为10.3.6.&lt;/p&gt;
 &lt;h4&gt;Oracle ojdbc14.jar文件更改为ojdbc6.jar&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
 Oracle ojdbc14.jar 更改为为ojdbc6.jar，使用JDK 5或者JDK 6，因此，您对ojdbc14.jar的任何显示引用都必须更改为ojdbc6.jar&lt;/p&gt;
 &lt;h4&gt;强密码强制执行可能导致WLST离线脚本出现问题&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部
-在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。
-&lt;strong&gt;解决方案&lt;/strong&gt;
-&lt;em&gt; 将&lt;code&gt;ACKWARD_COMPAT_PW_CHECK&lt;/code&gt;境变量设置为&lt;code&gt;ture&lt;/code&gt;.
-&lt;/em&gt; 使用WLST时，引用参数&lt;code&gt;-Dbackward.compat.pw.check=true&lt;/code&gt;
-&amp;lt;未完待续&amp;gt;
+&lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;br&gt;
+在此版本的WebLogic Server中实施强密码实施（最少8个字符，带有一个数字或特殊字符），现有脚本可能遇到问题。&lt;br&gt;
+&lt;strong&gt;解决方案&lt;/strong&gt;&lt;br&gt;
+&lt;em&gt; 将&lt;code&gt;ACKWARD_COMPAT_PW_CHECK&lt;/code&gt;境变量设置为&lt;code&gt;ture&lt;/code&gt;.&lt;br&gt;
+&lt;/em&gt; 使用WLST时，引用参数&lt;code&gt;-Dbackward.compat.pw.check=true&lt;/code&gt;&lt;br&gt;
+&amp;lt;未完待续&amp;gt;&lt;br&gt;
 Oracle建议您更改密码以复核新的密码要求，因为此变量和选项将在未来的WebLogic Server版本中删除。&lt;/p&gt;
 &lt;h4&gt;在土耳其地区，mds初始化失败&lt;/h4&gt;
 &lt;p&gt;&lt;strong&gt;平台：&lt;/strong&gt; 全部&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">HelloWorDomain</dc:creator><pubDate>Thu, 14 Mar 2019 22:06:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-03-14:/oracle-webLogic-server-11.1.1.9-release-notes.html</guid><category>WebLogic</category><category>译文</category><category>java</category></item><item><title>8种Java 内存溢出之一:Java Heap Space</title><link>https://www.EWhisper.cn/java-oom-1-java-heap-space.html</link><description>&lt;div class="toc"&gt;
@@ -103,7 +103,7 @@ Oracle建议您更改密码以复核新的密码要求，因为此变量和选�
 &lt;h2 id="11-javalangoutofmemoryerror-java-heap-space"&gt;1.1  java.lang.OutOfMemoryError: Java heap space 概述&lt;a class="headerlink" href="#11-javalangoutofmemoryerror-java-heap-space" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Java 应用只允许使用有限的内存。这个限制是在应用启动的时候指定的。展开来说， Java内存分成2个不同的区域。这两个区域叫做Heap Space （堆内存）和 Permgen （Permanent Generation，即永久代）。&lt;/p&gt;
 &lt;p&gt;&lt;img alt="java内存结构" src="https://www.EWhisper.cn/images/java_memory.png"&gt;&lt;/p&gt;
-&lt;p&gt;这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数&lt;code&gt;-Xmx&lt;/code&gt; 和 &lt;code&gt;-XX:MaxPermSize&lt;/code&gt;进行设置. 如果你没欧进行特别的设置, &lt;strong&gt;平台指定&lt;/strong&gt;的默认配置会被使用.
+&lt;p&gt;这两个区的大小是在JVM启动的时候设置, 可以通过JVM参数&lt;code&gt;-Xmx&lt;/code&gt; 和 &lt;code&gt;-XX:MaxPermSize&lt;/code&gt;进行设置. 如果你没欧进行特别的设置, &lt;strong&gt;平台指定&lt;/strong&gt;的默认配置会被使用.&lt;br&gt;
 &lt;code&gt;java.lang.OutOfMemoryError: Java heap space&lt;/code&gt; 错误会在应用尝试添加更多的数据到heap space, 但是heap区没有足够的空间时触发.&lt;/p&gt;
 &lt;p&gt;需要注意的是即使&lt;strong&gt;物理内存&lt;/strong&gt;可能有很多剩余, 但是只要JVM达到了heap size的限制, 就会抛出该错误.&lt;/p&gt;
 &lt;h2 id="12"&gt;1.2 原因&lt;a class="headerlink" href="#12" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
@@ -166,7 +166,7 @@ Oracle建议您更改密码以复核新的密码要求，因为此变量和选�
 
 
 &lt;h2 id="14"&gt;1.4 解决方案&lt;a class="headerlink" href="#14" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:
+&lt;p&gt;显然第一个解决方案就是 -- 当你的JVM特定资源耗尽了, 你应该增加那个资源的量. 在这个案例种: 当你的应用没有足够的Java heap space内存来正常运行, 只需要在运行JVM的时候配置并添加(或修改现有的)如下参数:&lt;br&gt;
 &lt;code&gt;-Xmx1024m&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;上述配置会给应用1024M的Java heap space. 你可以使用&lt;code&gt;g&lt;/code&gt;或者&lt;code&gt;G&lt;/code&gt;(单位是GB), &lt;code&gt;m&lt;/code&gt;或&lt;code&gt;M&lt;/code&gt;(MB), &lt;code&gt;k&lt;/code&gt;或&lt;code&gt;K&lt;/code&gt;(KB). 例如下列都是设置最大Java heap space为1GB:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;java -Xmx1073741824 com.mycompany.MyClass
@@ -179,8 +179,8 @@ java -Xmx1g com.mycompany.MyClass
 &lt;p&gt;然而, 在很多案例种, 提供更多的Java heap space只是饮鸩止渴. 例如, 如果你的应用存在内存泄漏, 添加更多的heap只是延缓&lt;code&gt;java.lang.OutOfMemoryError: Java heap space&lt;/code&gt;错误的出现, 并不能解决问题. 另外, 增加Java heap space也会导致GC暂停时间的增加, 从而影响你的应用的&lt;a href="https://plumbr.eu/blog/gc-impact-on-throughput-and-latency"&gt;吞吐量和延迟&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;如果你希望解决潜在的问题, 而不是头痛医头, 联系我就是最好的方式(＠￣ー￣＠). 当然, 有几个工具适合你. &lt;strong&gt;Debuggers&lt;/strong&gt;, &lt;strong&gt;profiles&lt;/strong&gt;, &lt;strong&gt;heap dump analyzers&lt;/strong&gt; -- 供你选择.&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;题外话:
-Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:
+&lt;p&gt;题外话:&lt;br&gt;
+Dynatrace 也是个分析OOM问题的好工具.感兴趣的可以参考这篇文章:&lt;br&gt;
 《案例: Dynatrace分析某财险承保系统内存泄漏问题》&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;&lt;strong&gt;喜欢我的博客吗? 打赏一杯&lt;img align="absmiddle" alt="☕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2615.png" title=":coffee:" width="20px"&gt;吧。您的支持是对我的最大鼓励～ 另外记得给我留言或订阅哦 &lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"&gt;&lt;/strong&gt;&lt;/p&gt;

@@ -1,0 +1,1308 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十四篇, 主要介绍Dynatrace监控手机APP所用到的应用开发套件(ADK)." />
+<meta name="keywords" content="Dynatrace, Observability">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Dynatrace AppMon 实战手册 - 24.手机ADK"/>
+<meta property="og:description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十四篇, 主要介绍Dynatrace监控手机APP所用到的应用开发套件(ADK)."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/dynatrace-appmon-handbook-24-mobile-adk.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-26 10:02:54.689045+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Observability"/>
+<meta property="article:tag" content="Dynatrace"/>
+<meta property="article:tag" content="Observability"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Dynatrace AppMon 实战手册 - 24.手机ADK</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="dynatrace-appmon-handbook-24-mobile-adk">Dynatrace AppMon 实战手册 - 24.手机ADK</h1>
+    <p>
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+        &#8226; 5 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">支持平台</a></li>
+<li><a href="#adk">下载ADK</a></li>
+<li><a href="#dynatrace">配置dynaTrace</a></li>
+<li><a href="#_2">和应用整合</a><ul>
+<li><a href="#_3">本地应用</a></li>
+</ul>
+</li>
+<li><a href="#web">关联Web请求</a></li>
+<li><a href="#ios-adk">iOS ADK安装和使用说明</a><ul>
+<li><a href="#adk_1">ADK安装</a></li>
+<li><a href="#_4">使用说明</a></li>
+<li><a href="#_5">日志</a></li>
+<li><a href="#_6">生命周期说明</a></li>
+<li><a href="#_7">总结</a></li>
+</ul>
+</li>
+<li><a href="#iosauto-instrumentation">iOS自动感知（Auto-Instrumentation）</a><ul>
+<li><a href="#_8">自动化功能</a></li>
+<li><a href="#_9">自动感知概览</a></li>
+<li><a href="#_10">限制</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="_1">支持平台<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Apple iOS 5或更高（armv7,armv7s或更高架构）</p>
+</li>
+<li>
+<p>谷歌Android2.2或更高</p>
+</li>
+</ul>
+<h2 id="adk">下载ADK<a class="headerlink" href="#adk" title="Permanent link">&para;</a></h2>
+<p>从<a href="http://www.dynatrace.com/downloads/Downloads.aspx">http://www.dynatrace.com/downloads/Downloads.aspx</a>下载<em>dynatrace-mobile-adk-$VERSION.$BUILD.zip</em></p>
+<h2 id="dynatrace">配置dynaTrace<a class="headerlink" href="#dynatrace" title="Permanent link">&para;</a></h2>
+<p>安装步骤和安装UEM类似：</p>
+<ul>
+<li>
+<p>进行基本的dynaTrace安装。</p>
+</li>
+<li>
+<p>应用UEM license，包括访问数。</p>
+</li>
+<li>
+<p>安装Agent和用户体验Sensor在应用服务器或web服务器上。</p>
+</li>
+</ul>
+<h2 id="_2">和应用整合<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>对于和把ADK和手机应用整合的具体细节，参见下面的相关章节。</p>
+<h3 id="_3">本地应用<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4>iOS ADK</h4>
+<p>参见<strong>iOS ADK安装和使用说明</strong></p>
+<h4>iOS 自动化使用说明</h4>
+<p>参见<strong>iOS自动化使用说明</strong></p>
+<h4>Android ADK</h4>
+<p>参见<strong>Android ADK安装和使用说明</strong></p>
+<h4>Android应用（APK）使用说明</h4>
+<p>参见<strong>Android使用说明</strong></p>
+<h4>Hybrid应用</h4>
+<p>参见<strong>Hybrid应用安装和使用说明</strong></p>
+<h2 id="web">关联Web请求<a class="headerlink" href="#web" title="Permanent link">&para;</a></h2>
+<h2 id="ios-adk">iOS ADK安装和使用说明<a class="headerlink" href="#ios-adk" title="Permanent link">&para;</a></h2>
+<h3 id="adk_1">ADK安装<a class="headerlink" href="#adk_1" title="Permanent link">&para;</a></h3>
+<h4>1. 解包ADK到任意目录</h4>
+<h4>2. 添加这些文件到你的Xcode项目和iOS target：</h4>
+<ul>
+<li>
+<p>libCompuwareUEM.a</p>
+</li>
+<li>
+<p>CompuwareUEM.h</p>
+</li>
+</ul>
+<h4>3. 添加需要的框架和库到你的Xcode项目。</h4>
+<p>在项目导航里，选择你的项目，选择target，选择<strong>Build Phases</strong>标签页，展开<strong>Link Binaries with Libraries</strong>，点击 <strong>+</strong> 按钮，选择下列框架和库：</p>
+<ul>
+<li>
+<p>libsqlite3.dylib</p>
+</li>
+<li>
+<p>CoreLocation.framework</p>
+</li>
+<li>
+<p>CoreTelephony.framework</p>
+</li>
+<li>
+<p>Security.framework</p>
+</li>
+<li>
+<p>SystemConfiguration.framework</p>
+</li>
+<li>
+<p>libz.dylib</p>
+</li>
+<li>
+<p>libc++.dylib</p>
+</li>
+<li>
+<p>MessageUI.framework</p>
+</li>
+</ul>
+<h4>4. 添加flags到<strong>Other Linker Flags</strong></h4>
+<p>在项目导航里，选择你的项目，选择你的target，选择<strong>Build Settings</strong>，添加如下设置到<strong>Other Linker Flags</strong>设置：</p>
+<ul>
+<li>-Objc</li>
+</ul>
+<h4>5. 设置编译选项<strong>Strip Style</strong>为<strong>Debugging Symbols</strong></h4>
+<p>这会使你的包稍微增大，但是会保留完整的设备崩溃信息。</p>
+<h4>6. 添加文档到Xcode：</h4>
+<p>复制<em>com.compuware.uem.iOS.CompuwareUEM.docset</em>*到下列路径 ~/Library/Developer/Shared/Documentation/DocSets</p>
+<h4>7. 基于Swift编程app的手工操作说明：</h4>
+<ul>
+<li>创建一个包括Mobile Agent header的Bridging header</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="p">#</span><span class="n">ifndef</span> <span class="n">myApp_Bridging_Header_h</span>
+
+<span class="p">#</span><span class="n">define</span> <span class="n">myApp_Bridging_Header_h</span>
+
+<span class="p">#</span><span class="kd">import</span> <span class="s">&quot;CompuwareUEM.h&quot;</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+
+
+<ul>
+<li>在项目导航，选择你的项目，选择你的target，选择<strong>Build Settings</strong>，添加先下列选项到<strong>Objective-C Bridging Header</strong> 设置：$(SRCROOT)/myApp/Bridging-Header.h</li>
+</ul>
+<h3 id="_4">使用说明<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>CompuwareUEM.h中定义了2个类来instrument你的iOS app。CompuwareUEM类用于管理ADK的操作。UEMAction类用于创建行为和相关报告。</p>
+<h4>CompuwareUEM</h4>
+<h5>setMonitorCookie</h5>
+<div class="highlight"><pre><span></span>`+ (void) setMonitorCookie:(NSString *)cookieString`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cookieString</td>
+<td>A cookie string such as MIGRATION_FLAG=3 or n1=v1; n2=v2. Pass nil to remove the Cookie header from requests.</td>
+</tr>
+</tbody>
+</table>
+<p>设置由ADK发送（当和后端建立链接或者发送数据到后端）的HTTP Cookie header的每个HTTP GET/POST请求。只有当你的网络架构里需要该cookie，这个方法才是必须的。这个方法必须被包含在startupWithApplicationName:serverURL:allowAnyCert:certificatePath:之前，来确保最早的请求也包括该cookie。它可以随时被再次调用（invoke）来改变cookie string。</p>
+<h5>startupWithApplicationName</h5>
+<div class="highlight"><pre><span></span>+ (CPWR_StatusCode) startupWithApplicationName:(NSString *)applicationId
+                                      serverURL:(NSString *)serverURL
+                                   allowAnyCert:(BOOL)allowAnyCert
+                                certificatePath:(NSString *)pathToCertificateAsDER
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>applicatonName</td>
+<td>用户定义的应用识别符 (eg. @"EasyTravel" ). 在应用名称里不要使用下划线（_）。</td>
+</tr>
+<tr>
+<td>serverURL</td>
+<td>嵌入UEM agent的web server的URL (e.g. <code>http://myhost.mydomain.com:8080/agentLocation/</code>). 包括使用的传输协议( https or   http ) 和这个应用的dynaTrace UEM设置里指定的Agent 位置.</td>
+</tr>
+<tr>
+<td>allowAnyCert</td>
+<td>允许https通讯的任何认证。这个参数只在server name里指定https协议时生效</td>
+</tr>
+<tr>
+<td>pathToCertificateAsDER</td>
+<td>在DER规格料理的到证书（自签署）的路径；或nil。</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>ADK成功启动</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td><em>applicatonName</em>或<em>serverURL</em>参数为nil或空字符串。</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td><em>applicatonName</em>超过255个字符。</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotInitialized</td>
+<td>数据库没有初始化</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>关闭中；完成后重启</td>
+</tr>
+</tbody>
+</table>
+<p>调用该方法来实例化ADK。<strong>该方法必须在任何其他方法调用前被引用（invoked）。</strong>如果在ADK没有关闭前，对该方法的多次调用将被忽略。如果<em>allowAnyCert</em>和使用自签名证书，那么需要用DER格式认证，它是被用作一个额外的锚点（anchor）来验证HTTPS通讯。例如：</p>
+<div class="highlight"><pre><span></span><span class="bp">NSString</span> <span class="o">*</span><span class="n">pathToCertificateAsDER</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSBundle</span> <span class="n">mainBundle</span><span class="p">]</span> <span class="nl">pathForResource</span><span class="p">:</span><span class="s">@&quot;easyTravelServerCert&quot;</span> <span class="nl">ofType</span><span class="p">:</span><span class="s">@&quot;der&quot;</span><span class="p">];</span>
+</pre></div>
+
+
+<h5>shutdown</h5>
+<div class="highlight"><pre><span></span>+ (CPWR_StatusCode) shutdown
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOff</td>
+<td>成功关闭</td>
+</tr>
+<tr>
+<td>调用该方法来关闭ADK。收集的数据被发送到dynaTrace Server。这个方法直到本次操作成功或失败才会返回值。你不应该在主线程中调用该方法，因为它会导致你的UI无响应。如果操作失败，数据会保留。在数据过期前如果ADK被重启，数据会之后再次发送。</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5>enableCrashReportingWithReport</h5>
+<p>取决于使用的语法，<em>enableCrashReportingWithReport</em>方法可以发送crash报告到dynaTrace Server， HockeyApp Server，Quincy Server或Victory Server，或发送crash电子邮件报告到指定接收者。</p>
+<h6>dynaTrace Server</h6>
+<div class="highlight"><pre><span></span>`+ (CPWR_StatusCode) enableCrashReportingWithReport:(BOOL)sendCrashReport`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sendCrashReport</td>
+<td><em>True</em>：发送完整crash报告。<em>False</em>：只发送crash事件，不包含全部细节。</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_CrashReportingUnavailable</td>
+<td>无法启用crash报告</td>
+</tr>
+<tr>
+<td>CPWR_CrashReportingAvailable</td>
+<td>crash报告已启用</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK没有初始化或ADK没有在收集数据</td>
+</tr>
+<tr>
+<td>这个方法会激活ADK中的KSCrash框架来抓取信号和未处理的例外。crash发生时，在设备上一份报告被保存。app下次启动后，报告会被处理。如果参数为<em>True</em>，完整的iOS crash报告被发送到dynaTrace Server.否则包括一些关于crash线程的信息被发送，而不是完整的报告。如果在七天内相同的例外再次发生，crash数据不会被再次报告，但是附带之前已被报告的crash数据的crash事件会被报告。</td>
+<td></td>
+</tr>
+<tr>
+<td>~~关于发送到其他Server，略。~~</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5>setGpsLocation</h5>
+<div class="highlight"><pre><span></span>`+ (CPWR_StatusCode) setGpsLocation:(id)gpsLocation`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gpsLocation</td>
+<td>从用户应用获得的带有GPS坐标的<em>CLLocation</em>对象</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>ADK实例化，GPS坐标被接收。</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK没有实例化，GPS坐标被接收。</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td>参数非法</td>
+</tr>
+</tbody>
+</table>
+<p>使用该方法记录用户的当前GPS位置。ADK不会自动收集任何位置信息。当前dynaTrace Server版本不会对GPS位置信息进行处理，但是未来版本的dynaTrace会。</p>
+<h5>lastErrorCode</h5>
+<div class="highlight"><pre><span></span>`+ (CPWR_StatusCode) lastErrorCode`
+</pre></div>
+
+
+<p>返回与最近的内部ADK错误有关的错误代码。返回<em>0</em>表示没有错误。</p>
+<h5>lastErrorMsg</h5>
+<div class="highlight"><pre><span></span>`+ (NSString *) lastErrorMsg`
+</pre></div>
+
+
+<p>返回与最近的内部ADK错误有关的错误信息。如果没有错误会返回nil。</p>
+<h5>flushEvents</h5>
+<div class="highlight"><pre><span></span>`+ (CPWR_StatusCode) flushEvents`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>ADK实例化。</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK没有实例化。</td>
+</tr>
+<tr>
+<td>立即发送所有收集到的事件。为了减少网络阻塞/使用，收集的事件通常以包的形式来发送，最老的事件超过9分钟。使用该方法强制发送所有的收集到的事件而不管事件的收集时间。</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4>UEMAction</h4>
+<h5>enterActionWithName</h5>
+<div class="highlight"><pre><span></span>    + (UEMAction *) enterActionWithName:(NSString *)actionName
+    + (UEMAction *) enterActionWithName:(NSString *)actionName
+                           parentAction:(UEMAction *)parentAction
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>actionName</td>
+<td>行为名</td>
+</tr>
+<tr>
+<td>parentAction</td>
+<td>当前行为的UEMAction对象</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td><em>parentAction</em>为nil，<em>parentAction</em>已经结束，或行为名为nil或空</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK没有实例化</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td>行为名被缩短到最大长度。这是warning；行为仍然会创建。</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>ADK内部错误发生</td>
+</tr>
+<tr>
+<td>启动一个行为，会在dynaTrace里产生一条手机行为。在你想计时的代码的开头调用该方法。你必须通过调用<em>leaveAction</em>设置行为结束。如果行为被成功创建，返回值是non-nil。如果报错，返回值是nil。调用lastErrorCode 或 lastErrorMsg来定位错误。</td>
+<td></td>
+</tr>
+<tr>
+<td>返回的<em>UEMAction</em>被保留，因此它如果不再需要那么必须被释放（只在non-ARC环境合法）。</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5>leaveAction</h5>
+<div class="highlight"><pre><span></span>`- (CPWR_StatusCode) leaveAction`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>行为成功结束</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK已经关闭</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionEnded</td>
+<td><em>UEMAction</em>已经结束。这意味着<em>leaveAction</em>已经在该行为或其父行为被调用</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>发生数据库错误</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionNotFound</td>
+<td>行为不再存在。如果行为保持打开的时间大于发送间隔会发生。</td>
+</tr>
+<tr>
+<td>结束以前开始的行为。所有在一个行为开始结束之间的报告事件，值，或被标记的web请求讲师行为的一部分，例如嵌入手机行为的PurePath。调用该方法在你想计时的代码结尾。</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5>endVisit</h5>
+<div class="highlight"><pre><span></span>- (CPWR_StatusCode) endVisit
++ (CPWR_StatusCode) endVisit
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>行为成功结束</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK已经关闭</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionEnded</td>
+<td><em>UEMAction</em>已经关闭。这意味着<em>leaveAction</em>已经被该行为或其父行为调用</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>数据库错误</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotSupportedInFreeMode</td>
+<td>该操作只支持更高版本</td>
+</tr>
+</tbody>
+</table>
+<p>结束当前访问，关闭所有当前行为（actions），传输期间的数据给server，然后开始一个新的访问。</p>
+<h5>reportEventWithName</h5>
+<div class="highlight"><pre><span></span>`- (CPWR_StatusCode) reportEventWithName:(NSString *)eventName`
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>eventName</td>
+<td>事件名</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>行为成功结束</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK已经关闭</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionEnded</td>
+<td><em>UEMAction</em>已经关闭。这意味着<em>leaveAction</em>已经被该行为或其父行为调用</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td>事件名为nil或空</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td>事件名被压缩到最大长度。这是warning；事件仍然会被创建</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>发生数据库错误</td>
+</tr>
+</tbody>
+</table>
+<p>发送一个事件到dynaTrace，会产生一个节点的手机行为PurePath.</p>
+<h5>reportValueWithName</h5>
+<div class="highlight"><pre><span></span>    - (CPWR_StatusCode) reportValueWithName:(NSString *)valueName
+                                   intValue:(NSInteger)value
+    - (CPWR_StatusCode) reportValueWithName:(NSString *)valueName
+                                doubleValue:(double)doubleValue
+    - (CPWR_StatusCode) reportValueWithName:(NSString *)valueName
+                                stringValue:(NSString *)stringValue
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>valueName</td>
+<td>值的名称</td>
+</tr>
+<tr>
+<td>intValue</td>
+<td>0-2147483的整型值</td>
+</tr>
+<tr>
+<td>doubleValue</td>
+<td>double值</td>
+</tr>
+<tr>
+<td>stringValue</td>
+<td>字符串值</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>值被成功创建</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK已经关闭</td>
+</tr>
+<tr>
+<td>CPWR_Error_actionEnded</td>
+<td><em>UEMAction</em>已经结束。这意味着<em>leaveAction</em>已经被该行为或其父行为调用</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td>值的名称为nil或空</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td>值的名称已经被限制到最大长度。这是warning：事件仍会创建</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>数据库发生错误</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotSupprotedInFreeMode</td>
+<td>免费版不支持含有<em>doubleValue</em>的<em>reportValueWithName</em></td>
+</tr>
+<tr>
+<td>发送一个键/值对到dynaTrace，会产生一个节点的手机行为PurePath。这个值可以通过方法进行图表处理。</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5>reportErrorWithName</h5>
+<div class="highlight"><pre><span></span>    - (CPWR_StatusCode) reportErrorWithName:(NSString *)errorName
+                                 errorValue:(NSInteger)errorValue
+    - (CPWR_StatusCode) reportErrorWithName:(NSString *)errorName
+                                  exception:(NSException *)exception
+    + (CPWR_StatusCode) reportErrorWithName:(NSString *)errorName
+                                 errorValue:(NSInteger)errorValue
+    + (CPWR_StatusCode) reportErrorWithName:(NSString *)errorName
+                                  exception:(NSException *)exception
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>errorName</td>
+<td>值的名称</td>
+</tr>
+<tr>
+<td>errorValue</td>
+<td>错误整型值</td>
+</tr>
+<tr>
+<td>exception</td>
+<td>例外描述被发送到Server</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOn</td>
+<td>错误值被成功创建</td>
+</tr>
+<tr>
+<td>CPWR_UemOff</td>
+<td>ADK已经关闭（或类的方法还没有实例化）</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionEnded</td>
+<td><em>UEMAction</em>已经被关闭。这意味着<em>leaveAction</em>已经被该行为或其副行为调用。</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td>值名称为nil或空</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td>错误名已经被压缩至最大长度，这是warning；错误仍然会被创建。</td>
+</tr>
+<tr>
+<td>CPWR_Error_InternalError</td>
+<td>发生数据库错误。</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotSupportedInFreeMode</td>
+<td>带有<em>exception</em>的<em>reportErrorWithName</em>在免费版中不受支持。</td>
+</tr>
+</tbody>
+</table>
+<h5>getRequestTagHeader</h5>
+<div class="highlight"><pre><span></span>`- (NSString *) getRequestTagHeader`
+</pre></div>
+
+
+<p>你必须添加一个Web请求到dynaTrace Server，链接<em>UEMAction</em>到PurePath中，会返回HTTP头的名称。你不应该像平常那样调用该方法，因为该自动化请求标签应该抓取所有的网络请求。</p>
+<h5>getRequestTagValue</h5>
+<div class="highlight"><pre><span></span>`- (NSString *) getRequestTagValue`
+</pre></div>
+
+
+<p>返回由<em>getRequestTagHeader</em>返回的HTTP头的值。你不应该像平常那样调用该方法，因为该自动化请求标签应该抓取所有的网络请求。</p>
+<h4>返回值定义</h4>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPWR_UemOff</td>
+<td>1</td>
+<td>数据抓取关闭</td>
+</tr>
+<tr>
+<td>CPWR_UemOn</td>
+<td>2</td>
+<td>数据抓取开启，或方法被成功调用。</td>
+</tr>
+<tr>
+<td>CPWR_CrashReportingUnavailable</td>
+<td>4</td>
+<td><em>KSCrash</em>框架无法实例化</td>
+</tr>
+<tr>
+<td>CPWR_CrashReportingAvailable</td>
+<td>5</td>
+<td><em>KSCrash</em>成功实例化。</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotInitialized</td>
+<td>-1</td>
+<td>ADK实例化失败</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidRange</td>
+<td>-2</td>
+<td>整型值超过界限0-2147483</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionNotFound</td>
+<td>-4</td>
+<td>当使用JavaScript bridge，这意味着行为名没有找到</td>
+</tr>
+<tr>
+<td>CPWR_Error_InvalidParameter</td>
+<td>-5</td>
+<td>非法字段被发送给一个ADK方法</td>
+</tr>
+<tr>
+<td>CPWR_Error_ActionEnded</td>
+<td>-6</td>
+<td>在已经被<em>leaveAction</em>方法结束的行为执行了一个操作</td>
+</tr>
+<tr>
+<td>CPWR_ReportErrorOff</td>
+<td>-8</td>
+<td>dynaTrace Server已禁用错误报告。</td>
+</tr>
+<tr>
+<td>CPWR_TruncatedEventName</td>
+<td>-9</td>
+<td>一个行为，错误，或值名称太长而被压缩。</td>
+</tr>
+<tr>
+<td>CPWR_Error_NotSupportedInFreeMode</td>
+<td>-11</td>
+<td>该方法在免费版不被支持</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_5">日志<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>你可以启用日志并且通过添加<em>cpwrUEM_logging</em>来设置日志级别。日志关键词在应用的<em>info.plist</em>文件。参见<strong>iOS自动安装说明</strong>。</p>
+</blockquote>
+<p>实例说明<br>
+像这样，下列代码将创建一个用户行为PurePath：<br>
+<em>示例PurePath</em><br>
+<img alt="用户行为PurePath" src="http://pic.yupoo.com/east4ming_v/FjNDMj8O/medium.jpg"></p>
+<p>```swift<br>
+    #import "CompuwareUEM.h"<br>
+    - (BOOL)application:(UIApplication <em>)application didFinishLaunchingWithOptions:(NSDictionary </em>)launchOptions<br>
+    {<br>
+        ...<br>
+        // initialize CompuwareUEM here or anywhere else (mind that actions and events that occur before initialization are not reported to dynaTrace!)<br>
+        [CompuwareUEM startupWithApplicationName:@"easyTravel"<br>
+                                       serverURL:@"http://easytravel.example.com:8080/eT/"<br>
+                                    allowAnyCert:NO<br>
+                                 certificatePath:nil];<br>
+        ...<br>
+    }</p>
+<div class="highlight"><pre><span></span><span class="p">-</span> <span class="p">(</span><span class="kt">IBAction</span><span class="p">)</span><span class="nf">performSearch:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">sender</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+    <span class="c1">// [1a] start action &quot;search&quot;</span>
+    <span class="n">UEMAction</span> <span class="o">*</span><span class="n">action</span> <span class="o">=</span> <span class="p">[</span><span class="n">UEMAction</span> <span class="nl">enterActionWithName</span><span class="p">:</span><span class="s">@&quot;search&quot;</span><span class="p">];</span>
+    <span class="c1">// [2] named event inside an action</span>
+    <span class="p">[</span><span class="n">action</span> <span class="nl">reportEventWithName</span><span class="p">:</span><span class="s">@&quot;searchStart&quot;</span><span class="p">];</span>
+    <span class="c1">// [3a] starting sub-action</span>
+    <span class="n">UEMAction</span> <span class="o">*</span><span class="n">child</span> <span class="o">=</span> <span class="p">[</span><span class="n">UEMAction</span> <span class="nl">enterActionWithName</span><span class="p">:</span><span class="s">@&quot;searchRequest&quot;</span>
+                                         <span class="nl">parentAction</span><span class="p">:</span><span class="n">action</span><span class="p">];</span>
+    <span class="c1">// [4] NSURLRequest and NSMutableURLReqest are tagged automatically</span>
+    <span class="bp">NSError</span><span class="o">*</span> <span class="n">error</span><span class="p">;</span>
+    <span class="bp">NSHTTPURLResponse</span><span class="o">*</span> <span class="n">response</span><span class="p">;</span>
+    <span class="bp">NSURL</span> <span class="o">*</span><span class="n">searchURL</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSURL</span> <span class="nl">URLWithString</span><span class="p">:</span>
+                         <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="s">@&quot;http://127.0.0.1:8080/ajax/TimeService?tz=GMT&quot;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">sender</span> <span class="n">query</span><span class="p">]]]</span> <span class="k">retain</span><span class="p">];</span>
+    <span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSURLConnection</span> <span class="nl">sendSynchronousRequest</span><span class="p">:[</span><span class="bp">NSURLRequest</span> <span class="nl">requestWithURL</span><span class="p">:</span><span class="n">searchURL</span><span class="p">]</span>
+                                         <span class="nl">returningResponse</span><span class="p">:</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">response</span> <span class="nl">error</span><span class="p">:</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">error</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">searchURL</span> <span class="k">release</span><span class="p">];</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">data</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">){</span>
+        <span class="c1">// [x] report an error if communication fails</span>
+        <span class="p">[</span><span class="n">action</span> <span class="nl">reportErrorWithName</span><span class="p">:</span><span class="s">@&quot;CommunicationError&quot;</span> <span class="nl">errorValue</span><span class="p">:[</span><span class="n">error</span> <span class="n">code</span><span class="p">]];</span>
+    <span class="p">}</span>
+    <span class="c1">// [5] custom value inside an action</span>
+    <span class="p">[</span><span class="n">child</span> <span class="nl">reportValueWithName</span><span class="p">:</span><span class="s">@&quot;responseCode&quot;</span> <span class="nl">intValue</span><span class="p">:[</span><span class="n">response</span> <span class="n">statusCode</span><span class="p">]];</span>
+    <span class="c1">// [3b] end action &quot;searchRequest&quot;</span>
+    <span class="p">[</span><span class="n">child</span> <span class="n">leaveAction</span><span class="p">];</span>
+    <span class="c1">// [6] named event on successful completion</span>
+    <span class="p">[</span><span class="n">action</span> <span class="nl">reportEventWithName</span><span class="p">:</span><span class="s">@&quot;searchEnd&quot;</span><span class="p">];</span>
+    <span class="c1">// [1b] end action &quot;search&quot;</span>
+    <span class="p">[</span><span class="n">action</span> <span class="n">leaveAction</span><span class="p">];</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="_6">生命周期说明<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>在应用中很早实例化ADK来抓取初始视图展现或者使用自动启动功能。从<em>main()</em>调用<em>startupWithApplicationName</em>是可以的。</p>
+<h4>限制</h4>
+<p>在dynaTrace5.6之前的版本，在<strong>System Profile-Error Detection</strong>条件中的特殊字符（如：空格）被ADK使用下划线自动替换。确定你有正确的比较字符串，因为5.6及以后版本的ADK不会替换这些字符串。</p>
+<h3 id="_7">总结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>添加iOS ADK到应用会增加如下大小：</p>
+<table>
+<thead>
+<tr>
+<th>架构</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>armv7</td>
+<td>340KB</td>
+</tr>
+<tr>
+<td>armv7s</td>
+<td>340KB</td>
+</tr>
+<tr>
+<td>arm64</td>
+<td>325KB</td>
+</tr>
+<tr>
+<td>All three</td>
+<td>980KB</td>
+</tr>
+</tbody>
+</table>
+<p>行为，事件，错误被自动创建或者通过ADK API被储存在一个在应用的Document路径的SQLite 数据库。平均下来，这些项在数据库中大概占用150 bytes。大小取决于项中的字符串的长度，像名称、错误信息。<br>
+默认情况下，ADK储存项在数据库中一直到2min在发送给Server端或者删除。你可以在dynaTrace 客户端管理发送间隔。</p>
+<h2 id="iosauto-instrumentation">iOS自动感知（Auto-Instrumentation）<a class="headerlink" href="#iosauto-instrumentation" title="Permanent link">&para;</a></h2>
+<p><em>Auto-Instrumentation for iOS</em>允许任何人通过手机App ADK来监控iOS应用。该说明程序是自动添加标准手机App ADK到应用而不用手动修改源代码。标准手机App ADK用于自动化的处理进程。自动化添加的应用和手动添加的应用收集到的基本数据是一样的。该方法提供应用、crash监测、应用启动和web交易相应时间性能监控真实用户体验流。</p>
+<h3 id="_8">自动化功能<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>下列功能是自动感知的：</p>
+<ul>
+<li>
+<p>ADK自动启动-你必须使用instrumentation keys来配置自动启动。</p>
+</li>
+<li>
+<p>生命周期数据</p>
+</li>
+<li>
+<p>crash报告</p>
+</li>
+<li>
+<p>web请求标记（tagging）</p>
+</li>
+<li>
+<p>web请求事件（报告执行时间和认证第三方请求）</p>
+</li>
+<li>
+<p>web视图</p>
+</li>
+<li>
+<p>自动用户行为检测（真实用户行为像点按按钮及其他浏览操作和控制的监测和计时）</p>
+</li>
+<li>
+<p>ADK 日志记录-你必须使用相应的instrumentation key来启动自动日志记录</p>
+</li>
+</ul>
+<p>所有这些功能默认开启。你可以禁用或改进这些自动感知功能通过添加<strong><em>configuration keys</em></strong>到你的应用的<em>info.plist</em>文件。<br>
+你可以把自动感知和手动赶集结合起来。例如，你可能想在开发阶段手动获取确切用户定义的行为（并报告数值和事件），然后使用自动感知添加上列功能到你的应用。</p>
+<h3 id="_9">自动感知概览<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<ol>
+<li>链接iOS 手机ADK静态库到你的应用并且编译进Xcode。参见<strong>iOS ADK安装使用说明</strong>获取更多细节。</li>
+<li>添加keys到你的应用的<em>info.plist</em>文件，配置自动感知。</li>
+<li>在编译期间自动感知发生。之后应用会感知在<em>info.plist</em>文件中的级别配置。</li>
+</ol>
+<h4>感知配置</h4>
+<p>下表的keys（properties）是自动感知的配置选项。根据需要添加keys到你的应用的info.plist文件。其中的很多属性值参考<strong>CompuwareUEM 手机App ADK API</strong></p>
+<table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>关键字类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpwrUEM_logging.level</td>
+<td>字符串</td>
+<td>如果该关键词合法（ALL,FINEST,FINER,FINE,CONFIG,INFO,WARNING,SEVERE,OFF），ADK日志记录就会自动启用对应等级。如果关键字没是哟个或者没有合法值，自动记录日志<strong>关闭</strong>，你必须手动在应用中开启日志记录功能。</td>
+</tr>
+<tr>
+<td>cpwrUEM.setMonitorCookie</td>
+<td>字符串</td>
+<td>如果配置该关键字，该值会自动作为HTTP请求到<em>serverUrl</em>(参见<em>cpwrUEM_startup.agentpath</em>)的一个cookie，这样他们可以通过你的基础架构需求。</td>
+</tr>
+<tr>
+<td>cpwrUEM_startup.agentPath</td>
+<td>字符串</td>
+<td>如果该关键字配置一个合法的值，ADK将自动启动，使用该值作为<em>serverUrl</em>,并将忽略你app中任何手动的<em>startupWithApplicationName</em>调用。<em>serverUrl</em>需要使用http://或https://传输。如果没配置，你必须手动调用<em>startupWithApplicationName</em>来启动ADK</td>
+</tr>
+<tr>
+<td>cpwrUEM_startup.sApplId</td>
+<td>字符串</td>
+<td>如果配置该关键字，它的值会被用作你应用的名称。如果没有配置，ADK将使用在main bundle中的应用名</td>
+</tr>
+<tr>
+<td>cpwrUEM_startup.useAnyCert</td>
+<td>布尔</td>
+<td>默认值是<em>NO</em>。该关键字等价于启动时调用<em>allowAnyCert</em>参数。如果设置为<em>YES</em>，所有证书都会被接受。如果设置为<em>NO</em>，来自已知认证机构的合法证书会被接受；如果提供了一个自签名证书（参见<em>cpwrUEM_startup.certPath</em>）,将检查它的有效性。</td>
+</tr>
+<tr>
+<td>cpwrUEM_startup.certPath</td>
+<td>字符串</td>
+<td>默认值为nil。该关键字定义了一个DER格式的（自签名）证书路径，用作一个额外的anchor来验证HTTPS通讯。如果<em>cpwrUEM_startup.useAnyCert</em>是<em>NO</em>,并且server上用了一个自签名的证书，那么需要使用该关键字。</td>
+</tr>
+<tr>
+<td>cpwrUEM_crash.reporting</td>
+<td>布尔</td>
+<td>默认值是<em>YES</em>。crash报告默认自动启用。如果你不想启动crash报告，你必须使用该关键字，并设置值为<em>NO</em>。如果你想报告crashes到一个不是dynaTrace server的server上，或者启用发送crash email通知，在你的代码里添加合适的<em>enableCrashReportingWithReport</em> API调用来覆盖默认配置。</td>
+</tr>
+<tr>
+<td>cpwrUEM_crash.sendCrashReport</td>
+<td>布尔</td>
+<td>默认值是<em>YES</em>。对于<em>enableCrashReportingWithReport</em>发送crash报告到dynaTrace server，它和<em>sendCrashReport</em>字段是等价的。如果你不想设置发送crash报告，设置该关键字为<em>NO</em></td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.lifecycleMonitoring</td>
+<td>布尔</td>
+<td>默认值是<em>YES</em>。不用使用iOS ADK生命周期类覆盖你的view controller 类，自动生命周期监测是启用的。设置该值为<em>NO</em>来禁用自动生命周期监测。</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.webRequestTagging</td>
+<td>布尔</td>
+<td>默认是<em>YES</em>，打开自动web请求标记。注意，如果<em>webRequestTiming</em>被启用，<em>webRequestTagging</em>也会启用，因为有依赖关系。要关闭自动web请求标记，你需要把<em>webRequestTiming</em>和<em>webRequestTagging</em>都设置为<em>NO</em></td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.webRequestTiming</td>
+<td>布尔</td>
+<td>默认是<em>YES</em>，即开启自动web请求计时。设置为<em>NO</em>禁用。注意该关键字和<em>webRequestTagging</em>相互依赖。</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.wrapWebRequestInAction</td>
+<td>布尔</td>
+<td>默认值是<em>YES</em>。如果一个手动用户行为或自动用户行为不可用，就自动把web请求包进用户行为里。设置该值为<em>NO</em>来禁用自动web请求行为包裹。</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.autoUserAction</td>
+<td>布尔</td>
+<td>默认值是<em>YES</em>。可以自动创建用户和app交互的行为（按按钮，跳转至其他页面，表单浏览选择等）.设置该值为<em>NO</em>来禁用该功能。</td>
+</tr>
+<tr>
+<td>cpwrUEM_action.autoActionTimeoutMs</td>
+<td>数字</td>
+<td>The default value is 500 ms. It sets the value for how long a particular automatic user action is active. The purpose is to catch all web requests that happen when an automatic user action is active. If the automatic user action has completed web requests, the ADK leaves the action at the end of this time. The minimum allowed value is 100 ms, the maximum allowed value is 5000 ms (5 seconds).</td>
+</tr>
+<tr>
+<td>cpwrUEM_action.autoActionMaxDurationMs</td>
+<td>数字</td>
+<td>The default value is 60000 ms (60 seconds). It sets the value for how long a particular automatic user action is retained before being deleted. The purpose is to catch all web requests that happen when an automatic user action is active. If the automatic user action has pending web requests (because they are taking a long time to complete), the ADK waits for this amount of time for the web requests to complete before leaving the user action. The minimum allowed value is 100 ms, the maximum allowed value is 540000 ms (9 minutes).</td>
+</tr>
+<tr>
+<td>cpwrUEM_action.sendEmptyAutoAction</td>
+<td>布尔</td>
+<td>The default value is NO. It determines whether to send automatic user actions if they do not contain any web requests or lifecycle actions.</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.webViewTiming</td>
+<td>布尔</td>
+<td>The default value is YES . It automatically detects and times  web views in your hybrid app. Set the value to   to disable automatic detection and timing of web views.</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.excludeControls</td>
+<td>数组</td>
+<td>This key defines an array of items where each item contains a type of view or control to exclude from automatic creation of user actions. Each item in the array is a case-insensitive string. The possible values are Button， toolBar segmentedControl tableView tabBar alertView and  pageView navigationController collectionView actionSheet</td>
+</tr>
+<tr>
+<td>cpwrUEM_instr.excludeLifecycleClasses</td>
+<td>数组</td>
+<td>This is an array of items where each item contains the name of a class to exclude from automatic lifecycle instrumentation. Each item in the array is a case-sensitive string that must <strong>exactly</strong> match the name of the class to be  excluded.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_10">限制<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<p>~~2698页~~</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>
+      <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-20-reporting.html" title="Dynatrace AppMon 实战手册 - 20.报告功能">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-23-firewall.html" title="Dynatrace AppMon 实战手册 - 23.相关网络权限">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem.html">Dynatrace AppMon 实战手册 - 29.某保险公司核心系统变慢问题分析</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-28-update-migrate-guide.html">Dynatrace AppMon 实战手册 - 28.Dynatrace 6.5升级和迁移向导</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console.html">Dynatrace AppMon 实战手册 - 27.Dynatrace Web 客户端使用说明</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html">Dynatrace AppMon 实战手册 - 26.分析诡异的应用性能问题</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html">Dynatrace AppMon 实战手册 - 25.RESTful API</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

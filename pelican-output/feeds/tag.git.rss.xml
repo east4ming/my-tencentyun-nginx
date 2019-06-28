@@ -1,5 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>东风微鸣 Blog - git</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 08 May 2019 18:41:34 +0800</lastBuildDate><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
+<rss version="2.0"><channel><title>东风微鸣 Blog - git</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Sun, 26 May 2019 21:24:52 +0800</lastBuildDate><item><title>使用 Docker 安装 Gitlab</title><link>https://www.EWhisper.cn/install-gitlab-with-docker.html</link><description>&lt;h2 id="docker"&gt;Docker 安装&lt;a class="headerlink" href="#docker" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"&gt; 说明:&lt;/p&gt;
+&lt;p&gt;官网链接:&lt;a href="https://docs.gitlab.com/omnibus/docker/"&gt;GitLab Docker images&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/docker/Dockerfile"&gt;官网 Dockerfile&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo docker pull gitlab/gitlab-ce  &lt;span class="c1"&gt;# 下载&lt;/span&gt;
+sudo docker run --detach &lt;span class="se"&gt;\&lt;/span&gt;
+  --hostname gitlab.example.com &lt;span class="se"&gt;\&lt;/span&gt;
+  --publish &lt;span class="m"&gt;443&lt;/span&gt;:443 --publish &lt;span class="m"&gt;80&lt;/span&gt;:80 --publish &lt;span class="m"&gt;22&lt;/span&gt;:22 &lt;span class="se"&gt;\&lt;/span&gt;
+  --name gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --restart always &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/config:/etc/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/logs:/var/log/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/data:/var/opt/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  gitlab/gitlab-ce:latest  &lt;span class="c1"&gt;# 运行容器&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_1"&gt;数据存在哪儿:&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align="left"&gt;本地位置&lt;/th&gt;
+&lt;th align="left"&gt;容器位置&lt;/th&gt;
+&lt;th align="left"&gt;用途&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;&lt;code&gt;/srv/gitlab/data&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;&lt;code&gt;/var/opt/gitlab&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;用于存储应用数据&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;&lt;code&gt;/srv/gitlab/logs&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;&lt;code&gt;/var/log/gitlab&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;用于存储日志&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;&lt;code&gt;/srv/gitlab/config&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;&lt;code&gt;/etc/gitlab&lt;/code&gt;&lt;/td&gt;
+&lt;td align="left"&gt;用于存储GitLab配置文件&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="gitlab"&gt;配置Gitlab:&lt;a class="headerlink" href="#gitlab" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;配置文件位于: &lt;code&gt;/etc/gitlab/gitlab.rb&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;几种配置方式:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;sudo docker exec -it gitlab /bin/bash&lt;/code&gt; 进入到容器内, 然后通过&lt;code&gt;vi&lt;/code&gt;编辑保存&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sudo docker exec -it gitlab editor /etc/gitlab/gitlab.rb&lt;/code&gt; &lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;编辑完之后, 重启容器:&lt;code&gt;sudo docker restart gitlab&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="docker_1"&gt;预配置 Docker 容器&lt;a class="headerlink" href="#docker_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;也可以通过将环境变量&lt;code&gt;GITLAB_OMNIBUS_CONFIG&lt;/code&gt;添加到docker run命令来预配置GitLab Docker映像。此变量可以包含任何&lt;code&gt;gitlab.rb&lt;/code&gt;设置，并在加载容器&lt;code&gt;gitlab.rb&lt;/code&gt;文件之前进行加载。&lt;/p&gt;
+&lt;p&gt;示例如下:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo docker run --detach &lt;span class="se"&gt;\&lt;/span&gt;
+  --hostname gitlab.example.com &lt;span class="se"&gt;\&lt;/span&gt;
+  --env &lt;span class="nv"&gt;GITLAB_OMNIBUS_CONFIG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;external_url &amp;#39;http://my.domain.com/&amp;#39;; gitlab_rails[&amp;#39;lfs_enabled&amp;#39;] = true;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  --publish &lt;span class="m"&gt;443&lt;/span&gt;:443 --publish &lt;span class="m"&gt;80&lt;/span&gt;:80 --publish &lt;span class="m"&gt;22&lt;/span&gt;:22 &lt;span class="se"&gt;\&lt;/span&gt;
+  --name gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --restart always &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/config:/etc/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/logs:/var/log/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/data:/var/opt/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  gitlab/gitlab-ce:latest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_2"&gt;启动容器后&lt;a class="headerlink" href="#_2" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;可以通过&lt;a href="http://localhost"&gt;http://localhost&lt;/a&gt; 进行访问.&lt;/p&gt;
+&lt;p&gt;可以通过 &lt;code&gt;sudo docker logs -f gitlab&lt;/code&gt; 查看日志.&lt;/p&gt;
+&lt;h3 id="ip"&gt;发布到公网IP&lt;a class="headerlink" href="#ip" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo docker run --detach &lt;span class="se"&gt;\&lt;/span&gt;
+  --hostname gitlab.example.com &lt;span class="se"&gt;\&lt;/span&gt;
+  --publish &lt;span class="m"&gt;198&lt;/span&gt;.51.100.1:443:443 &lt;span class="se"&gt;\&lt;/span&gt;
+  --publish &lt;span class="m"&gt;198&lt;/span&gt;.51.100.1:80:80 &lt;span class="se"&gt;\&lt;/span&gt;
+  --publish &lt;span class="m"&gt;198&lt;/span&gt;.51.100.1:22:22 &lt;span class="se"&gt;\&lt;/span&gt;
+  --name gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --restart always &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/config:/etc/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/logs:/var/log/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  --volume /srv/gitlab/data:/var/opt/gitlab &lt;span class="se"&gt;\&lt;/span&gt;
+  gitlab/gitlab-ce:latest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="docker-composegitlab"&gt;使用docker-compose安装GitLab&lt;a class="headerlink" href="#docker-composegitlab" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;安装 docker compose&lt;/li&gt;
+&lt;li&gt;创建&lt;code&gt;docker-compose.yml&lt;/code&gt; 文件（或&lt;a href="https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/docker/docker-compose.yml"&gt;下载示例&lt;/a&gt;）: &lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="nt"&gt;web&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+   &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;gitlab/gitlab-ce:latest&amp;#39;&lt;/span&gt;
+   &lt;span class="nt"&gt;restart&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;always&lt;/span&gt;
+   &lt;span class="nt"&gt;hostname&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;gitlab.example.com&amp;#39;&lt;/span&gt;
+   &lt;span class="nt"&gt;environment&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+     &lt;span class="nt"&gt;GITLAB_OMNIBUS_CONFIG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+       &lt;span class="no"&gt;external_url &amp;#39;https://gitlab.example.com&amp;#39;&lt;/span&gt;
+       &lt;span class="no"&gt;# Add any other gitlab.rb configuration here, each on its own line&lt;/span&gt;
+   &lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;80:80&amp;#39;&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;443:443&amp;#39;&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;22:22&amp;#39;&lt;/span&gt;
+   &lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;/srv/gitlab/config:/etc/gitlab&amp;#39;&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;/srv/gitlab/logs:/var/log/gitlab&amp;#39;&lt;/span&gt;
+     &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;/srv/gitlab/data:/var/opt/gitlab&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;确保您&lt;code&gt;docker-compose.yml&lt;/code&gt;与运行&lt;code&gt;docker-compose up -d&lt;/code&gt; 在同一目录中以运行GitLab&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="openshift"&gt;OpenShift 安装&lt;a class="headerlink" href="#openshift" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"&gt; 注意:&lt;/p&gt;
+&lt;p&gt;目前Gitlab通过OpenShift 安装, 有一些已知的问题. 并且只在OpenShift 3.11版本上测试通过.&lt;/p&gt;
+&lt;p&gt;另外, 安装是通过 Helm Chart方式进行安装的. 还是有点复杂的...&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="_3"&gt;已知的问题&lt;a class="headerlink" href="#_3" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;以下问题是已知的，并且预计适用于OpenShift上的GitLab安装：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;anyuid&lt;/code&gt;scc的要求：(OpenShift 的安全加固导致的)&lt;ul&gt;
+&lt;li&gt;GitLab的不同组件，如Sidekiq，unicorn等，使用UID 1000来运行服务。&lt;/li&gt;
+&lt;li&gt;PostgreSQL chart以&lt;code&gt;root&lt;/code&gt;用户身份运行服务。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://gitlab.com/charts/gitlab/issues/752"&gt;问题＃752&lt;/a&gt;是open状态，以调查更多有关解决此问题的信息。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;如果使用&lt;code&gt;hostpath&lt;/code&gt;卷，则需要为主机中的持久性卷目录授予&lt;code&gt;0777&lt;/code&gt;权限，以授予所有用户对卷的访问权限。&lt;/li&gt;
+&lt;li&gt;OpenShift的内置router 不支持通过SSH进行Git操作。 &lt;a href="https://gitlab.com/charts/gitlab/issues/892"&gt;问题＃892&lt;/a&gt; 是oepn状态，以调查更多有关解决此问题的信息。&lt;/li&gt;
+&lt;li&gt;众所周知，GitLab Registry不能与OpenShift的内置router配合使用。 &lt;a href="https://gitlab.com/charts/gitlab/issues/893"&gt;问题＃893&lt;/a&gt;是open状态，以调查更多有关修复此问题的信息。&lt;/li&gt;
+&lt;li&gt;从Let's Encrypt自动发出SSL证书不适用于OpenShift router。我们建议&lt;a href="https://docs.gitlab.com/charts/installation/tls.html#option-2-use-your-own-wildcard-certificate"&gt;您使用自己的证书&lt;/a&gt;。 &lt;a href="https://gitlab.com/charts/gitlab/issues/894"&gt;问题＃894&lt;/a&gt;开放，以调查更多有关解决此问题的信息。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="_4"&gt;先决条件步骤&lt;a class="headerlink" href="#_4" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;请参阅&lt;a href="https://www.okd.io/download.html#oc-platforms"&gt;官方文档&lt;/a&gt; 以安装和配置群集。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;运行&lt;code&gt;oc cluster status&lt;/code&gt;并确认群集正在运行：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc cluster status
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;输出应类似于：
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Web console URL: https://gitlab.example.com:8443/console/
+
+Config is at host directory
+Volumes are at host directory
+Persistent volumes are at host directory /home/okduser/openshift/openshift.local.clusterup/openshift.local.pv
+Data will be discarded when cluster is destroyed
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;请注意主机中Persistent Volumes的位置（在上例中`/home/okduser/openshift/openshift.local.clusterup/openshift.local.pv`）。以下命令需要`PV_HOST_DIRECTORY`环境变量中的路径。
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;修改PV目录的权限（用以上值替换以下命令中的路径）：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo chmod -R a+rwx &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PV_HOST_DIRECTORY&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/*
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;切换到系统管理员用户：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc login -u system:admin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="5"&gt;
+&lt;li&gt;将&lt;code&gt;anyuid&lt;/code&gt;scc 添加到系统用户：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;oc adm policy add-scc-to-group anyuid system:authenticated
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;**警告**：此设置将应用于所有namespace，并将导致Docker镜像未明确指定USER作为`root`用户运行。 [问题＃895](https://gitlab.com/charts/gitlab/issues/895)是开放的，用于记录所需的不同服务帐户，并描述仅将scc添加到这些服务帐户，因此影响可能有限。
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="6"&gt;
+&lt;li&gt;创建服务帐户和&lt;code&gt;rolebinding&lt;/code&gt;RBAC并&lt;a href="https://docs.gitlab.com/charts/installation/tools.html#helm"&gt;安装Tiller&lt;/a&gt;：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;kubectl create -f https://gitlab.com/charts/gitlab/raw/master/doc/installation/examples/rbac-config.yaml
+helm init --service-account tiller
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id="_5"&gt;下一步&lt;a class="headerlink" href="#_5" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;在群集启动并运行后，继续&lt;a href="https://docs.gitlab.com/charts/installation/deployment.html"&gt;安装chart&lt;/a&gt;，并准备好静态IP和DNS条目。&lt;/p&gt;
+&lt;p&gt;在此之前，请注意常规 chart安装过程中的以下更改：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;我们将使用OpenShift的内置router，因此需要禁用chart中包含的nginx-ingress服务。将以下标志传递给&lt;code&gt;helm install&lt;/code&gt;命令：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;--set nginx-ingress.enabled&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="2"&gt;
+&lt;li&gt;由于已知内置注册表不能使用Helm Chart与OpenShift一起使用，因此请禁用注册表服务。将以下标志传递给 &lt;code&gt;helm install&lt;/code&gt;命令：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;--set registry.enabled=false
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;&lt;a href="https://docs.gitlab.com/charts/installation/tls.html#option-2-use-your-own-wildcard-certificate"&gt;使用您自己的SSL证书&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Sun, 26 May 2019 21:24:52 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-05-26:/install-gitlab-with-docker.html</guid><category>docker</category><category>openshift</category><category>k8s</category><category>containers</category><category>git</category></item><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="#_1"&gt;介绍&lt;/a&gt;&lt;ul&gt;
 &lt;li&gt;&lt;a href="#_2"&gt;用例&lt;/a&gt;&lt;/li&gt;

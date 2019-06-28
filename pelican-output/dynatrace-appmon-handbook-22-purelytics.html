@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-136986082-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十二篇, 主要介绍如何通过Dynatrace PureLytics将大数据导出到Hadoop ELK等大数据分析平台." />
+<meta name="keywords" content="Dynatrace, Observability">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Dynatrace AppMon 实战手册 - 22.数据流接口-PureLytics"/>
+<meta property="og:description" content="Dynatrace AppMon 实战手册系列文章. 本文是第二十二篇, 主要介绍如何通过Dynatrace PureLytics将大数据导出到Hadoop ELK等大数据分析平台."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/dynatrace-appmon-handbook-22-purelytics.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-26 10:02:54.689045+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Observability"/>
+<meta property="article:tag" content="Dynatrace"/>
+<meta property="article:tag" content="Observability"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Dynatrace AppMon 实战手册 - 22.数据流接口-PureLytics</title>
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-2290120018010607",
+      enable_page_level_ads: true
+    });
+  </script>
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9334L3');
+</script>
+<!-- End Google Tag Manager --></head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager -->  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="dynatrace-appmon-handbook-22-purelytics">Dynatrace AppMon 实战手册 - 22.数据流接口-PureLytics</h1>
+    <p>
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+        &#8226; 3 min read
+    </p>
+  </header>
+
+
+  <div>
+    <h2 id="_1">概览<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>PureLytics stream从AppMon Server发送实时UEM数据到外部数据源如Elasticsearch，这样你可以利用UEM数据作为大数据分析的一部分。流数据包括用户访问，用户行为和客户端错误。</p>
+<p>使用Elasticsearch，基于大量的访问和用户行为数据来做即席分析，并且结合来自其他源的分析数据。你可以通过使用可视化工具如Kibana做细节图和其他数据可视化来消耗来自外部源的存储组合数据，以此提供详细的用户体验分析。</p>
+<p>当启用时，PureLytics stream自动发送所有访问和用户行为的JSON数据到配置的HTTP端点。导出也可以在特定时间或session按命令触发。</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/FX1LCylT/medium.jpg"></p>
+<blockquote>
+<p>关于Elasticsearch</p>
+<p>Elasticsearch is a highly scalable open-source search engine with a full-text search-engine library. It includes a distributed real-time document store where all fields are indexed and can be searched. Streaming live UEM data to Elasticsearch provides multi-dimensional Ad-hoc analysis on large data sets over long time frames.</p>
+</blockquote>
+<h3 id="json-document">JSON Document 格式<a class="headerlink" href="#json-document" title="Permanent link">&para;</a></h3>
+<p>访问，用户行为，和客户端错误数据作为JSON导出。对于访问、用户行为的Business Transactions也作为JSON的一部分导出。</p>
+<blockquote>
+<p>JSON  Document 示例</p>
+<p>下表展示了导出JSON的示例</p>
+<table>
+<thead>
+<tr>
+<th>Visit</th>
+<th>User Action</th>
+<th>Client Error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/browser_visit.txt?version=3&amp;modificationDate=1453723096180&amp;api=v2">Browser Visit</a></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/browser_useraction.txt?version=6&amp;modificationDate=1474979996337&amp;api=v2">Browser User Action</a></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/javascript_error.txt?version=2&amp;modificationDate=1453723238497&amp;api=v2">Javascript Error</a></td>
+</tr>
+<tr>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_visit.txt?version=2&amp;modificationDate=1453723109770&amp;api=v2">Mobile Visit</a></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_useraction.txt?version=1&amp;modificationDate=1453723162260&amp;api=v2">Mobile User Action</a></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_web_request.txt?version=2&amp;modificationDate=1453723254897&amp;api=v2">Mobile Web Request</a></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_error_code.txt?version=1&amp;modificationDate=1453723269387&amp;api=v2">Mobile Error Code</a></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_exception.txt?version=1&amp;modificationDate=1453723295607&amp;api=v2">Mobile Exception</a></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/mobile_crash.txt?version=1&amp;modificationDate=1453723428797&amp;api=v2">Mobile Crash</a></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td><a href="https://community.dynatrace.com/community/download/attachments/221381017/javascript_warning.txt?version=1&amp;modificationDate=1453973925313&amp;api=v2">Javascript Warning &amp; Info</a></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<h2 id="purelytics-streamelasticsearchkibana">使用PureLytics Stream整合Elasticsearch和Kibana<a class="headerlink" href="#purelytics-streamelasticsearchkibana" title="Permanent link">&para;</a></h2>
+<p>下列视频展示如何使用Kibana可视化来自PureLytics的数据的示例。</p>
+<p><a href="https://s3.amazonaws.com/apmu-test-videos/RBZaCD-eEh41srh-wF0jkI/Whats_New_63_PurelyticsStream.mp4">PureLytics chats with ElasticSearch</a></p>
+<p>以下部分描述了使用Elasticsearch和Kibana来可视化PureLytics Stream的一般步骤。</p>
+<h3 id="_2">需求和先决条件<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>需求和先决条件</p>
+<ul>
+<li>
+<p>Elasticsearch 1.5.2 or later. Elasticsearch 2.0.0 or higher is recommended because of the major stability improvements and improved resource use introduced in the 2.0.0 release.</p>
+</li>
+<li>
+<p>Elasticsearch requires a recent version of Java on the machine where Elasticsearch runs. You can install the latest Java version from <a href="http://www.java.com/">www.java.com.</a></p>
+</li>
+<li>Most later versions of Kibana work seamlessly with Elasticsearch. However, the latest version of Kibana is recommended because of the increased level of integration with Elasticsearch and more robust analytics and charting features.</li>
+<li>If running Elasticsearch on Windows, install cURL so you can quickly and conveniently submit requests to Elasticsearch. Download cURL from <a href="http://curl.haxx.se/download.html"><code>http://curl.haxx.se/download.html</code></a>.</li>
+<li>Familiarity with Elasticsearch is needed for deploying Elasticsearch, creating nodes and clusters, indexing, and executing Elasticsearch queries.</li>
+<li>Familiarity with Kibana is needed for visualizing data.</li>
+</ul>
+</blockquote>
+<h3 id="streaming-target">安装Streaming Target软件和可视化软件<a class="headerlink" href="#streaming-target" title="Permanent link">&para;</a></h3>
+<p>如果尚未安装，<a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/running-elasticsearch.html">install Elasticsearch</a> 和 <a href="https://www.elastic.co/downloads/kibana">install Kibana</a>。</p>
+<h3 id="elasticsearch">启动Elasticsearch和配置集群<a class="headerlink" href="#elasticsearch" title="Permanent link">&para;</a></h3>
+<p>必须启动Elasticsearch并且至少在一个节点启动一个集群来创建JSON documents。最佳选择是使用至少2个节点来运行Elasticsearch 集群。</p>
+<blockquote>
+<p>关于节点和集群的附加信息</p>
+<ul>
+<li>It is recommended to create and use multiple nodes rather than one node with more CPU cores.</li>
+<li>Node memory should be between 8 GB and 64 GB.</li>
+<li>Get the fastest SSD you can get to boost performance.</li>
+<li>Once started, communicate with Elasticsearch using the JSON based REST API residing at localhost port 9200. You can query Elasticsearch using cURL in Windows, or use graphical tools such as <a href="http://www.telerik.com/fiddler">Fiddler</a> or <a href="https://addons.mozilla.org/en-US/firefox/addon/restclient/">RESTClient</a> on other platforms. You can also use Elasticsearch's <a href="https://www.elastic.co/guide/en/sense/current/introduction.html">Sense</a> plug-in, which is a simple user interface specifically for using ElasticSearch's REST API that includes auto-completion.</li>
+<li>See the official Elasticsearch documentation on <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/hardware.html">Hardware</a> and <a href="https://www.elastic.co/blog/found-sizing-elasticsearch">Sizing Elasticsearch</a> for more information.</li>
+</ul>
+</blockquote>
+<p>查看Elasticsearch 官网的<a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/running-elasticsearch.html">guide</a>，来获取关于启动和使用Elasticsearch的更多信息。</p>
+<h3 id="_3">应用一个动态模板<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>应用<a href="https://community.dynatrace.com/community/download/attachments/221381017/dynamic_template.txt?version=2&amp;modificationDate=1455701735027&amp;api=v2">dynamic template</a> 到集群。</p>
+<div class="highlight"><pre><span></span><span class="err">PUT</span> <span class="err">_template/dynatrace</span>
+<span class="p">{</span>
+  <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="nt">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;dt_*&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;settings&quot;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="nt">&quot;number_of_shards&quot;</span><span class="p">:</span> <span class="s2">&quot;6&quot;</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;mappings&quot;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="nt">&quot;useraction&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;dynamic_templates&quot;</span><span class="p">:</span> <span class="p">[</span>
+           <span class="p">{</span>
+              <span class="nt">&quot;allStrings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;mapping&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;index&quot;</span><span class="p">:</span> <span class="s2">&quot;not_analyzed&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;match_mapping_type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                 <span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+           <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;startTime&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;endTime&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;visitId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;tagId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;agentId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;clientDetails&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                      <span class="nt">&quot;gpsCoordinates&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                        <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;geo_point&quot;</span>
+                      <span class="p">}</span>
+                    <span class="p">}</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;resourceReport&quot;</span><span class="p">:</span> <span class="p">{</span>
+                   <span class="nt">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;cdn&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                       <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                         <span class="nt">&quot;domains&quot;</span><span class="p">:</span> <span class="p">{</span>
+                           <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span>
+                         <span class="p">}</span>
+                       <span class="p">}</span>
+                     <span class="p">},</span>
+                     <span class="nt">&quot;thirdParty&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                       <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                         <span class="nt">&quot;domains&quot;</span><span class="p">:</span> <span class="p">{</span>
+                           <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span>
+                         <span class="p">}</span>
+                       <span class="p">}</span>
+                     <span class="p">}</span>
+                   <span class="p">}</span>
+                 <span class="p">}</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;_parent&quot;</span><span class="p">:</span> <span class="p">{</span>
+           <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;visit&quot;</span>
+        <span class="p">}</span>
+     <span class="p">},</span>
+     <span class="nt">&quot;visit&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;dynamic_templates&quot;</span><span class="p">:</span> <span class="p">[</span>
+           <span class="p">{</span>
+              <span class="nt">&quot;allStrings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;mapping&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;index&quot;</span><span class="p">:</span> <span class="s2">&quot;not_analyzed&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;match_mapping_type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                 <span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+           <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;startTime&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;endTime&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;visitId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;clientDetails&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                      <span class="nt">&quot;gpsCoordinates&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                        <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;geo_point&quot;</span>
+                      <span class="p">}</span>
+                    <span class="p">}</span>
+                 <span class="p">}</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">}</span>
+     <span class="p">},</span>
+     <span class="nt">&quot;clienterror&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;dynamic_templates&quot;</span><span class="p">:</span> <span class="p">[</span>
+           <span class="p">{</span>
+              <span class="nt">&quot;allStrings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;mapping&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;index&quot;</span><span class="p">:</span> <span class="s2">&quot;not_analyzed&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;match_mapping_type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                 <span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+           <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                 <span class="nt">&quot;startTime&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;visitId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;tagId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;agentId&quot;</span><span class="p">:</span> <span class="p">{</span>
+                     <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                 <span class="p">},</span>
+                 <span class="nt">&quot;clientDetails&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                      <span class="nt">&quot;gpsCoordinates&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                        <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;geo_point&quot;</span>
+                      <span class="p">}</span>
+                    <span class="p">}</span>
+                 <span class="p">}</span>
+              <span class="p">}</span>
+           <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;_parent&quot;</span><span class="p">:</span> <span class="p">{</span>
+           <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;visit&quot;</span>
+        <span class="p">}</span>
+     <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;aliases&quot;</span><span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="purelytics-stream">配置PureLytics Stream<a class="headerlink" href="#purelytics-stream" title="Permanent link">&para;</a></h3>
+<p>要配置AppMon来实时流传输PureLytics数据，启用PureLytics stream功能，指定Elasticsearch端点和其他AppMon Server关于实时流的设置，然后为你想导出数据的每个系统配置文件启用PureLytics stream。</p>
+<blockquote>
+<p>配置PureLytics Stream</p>
+<ol>
+<li>
+<p>在AppMon客户端设置里打开实时流(<strong>Settings &gt; Dynatrace Server &gt; Realtime Streaming &gt; PureLytics Stream</strong>)</p>
+</li>
+<li>
+<p>检查<strong>Configure PureLytics Stream.</strong></p>
+</li>
+<li>
+<p>选择你想导出JSON数据的目标。 你可以导出它们到一个Elasticsearch 集群或一个通用的HTTP端点 (使用与Elasticsearch相同的块格式).</p>
+</li>
+<li>
+<p>然后数据到Elasticsearch集群的URL或在<strong>URL</strong> field的通用HTTP端点（REST端口）。 <strong>注意:</strong>  PureLytics Stream 会在输入的URL后加上 <strong>"/_bulk" </strong>).</p>
+</li>
+<li>
+<p>如果你想使用HTTPS和使用非官方证书，可选<strong>Allow untrusted SLL</strong>。</p>
+</li>
+<li>
+<p>使用 <strong>Dispatch Interval(s)</strong> and <strong>Queue Size</strong>来设置每个请求块发送的数据量 和请求的间隔时间。</p>
+</li>
+</ol>
+<p>​</p>
+<p>A request is sent when the internal document queue hits the size specified in <strong>Queue Size</strong> <strong>and/or</strong> after the amount of time specified in <strong>Dispatch Interval(s)</strong>  has passed (<em>Dispatch Interval</em>). Request size is approximately the number of documents times 2 kB. This depends heavily on factors such as configured Business Transactions and resource timings.<img alt="img" src="https://community.dynatrace.com/community/download/thumbnails/221381017/config%20dialogue.png?version=2&amp;modificationDate=1474975218090&amp;api=v2"></p>
+<ol start="7">
+<li>
+<p>点击<strong>OK</strong>.</p>
+</li>
+<li>
+<p>在<strong> Cockpits</strong> 标签页,双击指定的系统配置文件来打开 该配置文件的Preferences 会话框。</p>
+</li>
+<li>
+<p>在常用标签页, 勾选<strong>PureLytics Stream</strong> 并点击 <strong>OK</strong>.<br>
+<img alt="Enable the PureLytics Stream for each System Profile you want to export" src="https://community.dynatrace.com/community/download/thumbnails/221381017/system_profile.png?version=3&amp;modificationDate=1474975882020&amp;api=v2"></p>
+</li>
+</ol>
+</blockquote>
+<h3 id="_4">按命令导出<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>你可以在AppMon客户端按命令导出指定的数据，或者使用PureLytics Stream REST API来导出。</p>
+<blockquote>
+<p>使用Dynatrace 客户端</p>
+<ul>
+<li>右存储的或实时的包含要导出数据的会话 并选择 <strong>PureLytics Stream</strong>.</li>
+</ul>
+<p><img alt="img" src="https://community.dynatrace.com/community/download/thumbnails/221381017/on_demand_export.png?version=3&amp;modificationDate=1474976227450&amp;api=v2"></p>
+<ul>
+<li>指定抓取的PureLytics stream的时间范围和哪些内容要导出（用户行为和/或访问）。 按需修改stream配置并点击 <strong>Stream</strong>.<br>
+<img alt="img" src="https://community.dynatrace.com/community/download/thumbnails/221381017/on_demand_export_dialogue.png?version=4&amp;modificationDate=1474979722060&amp;api=v2"></li>
+</ul>
+<p>使用REST接口</p>
+<p>使用REST API来触发和监控一个按命令导出。 更多信息查看 <a href="https://community.dynatrace.com/community/pages/viewpage.action?pageId=221381578">PureLytics Stream (REST)</a>.</p>
+<ul>
+<li>Create a job that exports data with a POST request. For example:</li>
+</ul>
+<p><code>POST https://&lt;server&gt;:8021/rest/management/profiles/&lt;profilename&gt;/analyticsstreamjob</code></p>
+<p>​</p>
+<ul>
+<li>Monitor the job with a GET request. For example:</li>
+</ul>
+<p><code>GET https://&lt;server&gt;:8021/rest/management/profiles/&lt;profilename&gt;/analyticsstreamjob/&lt;jobId&gt;</code></p>
+</blockquote>
+<h3 id="kibana">在Kibana中可视化数据<a class="headerlink" href="#kibana" title="Permanent link">&para;</a></h3>
+<p>必须配置至少一种索引模式来使用Kibana。索引模式识别你想要搜索和可视化PureLytics数据的索引。每个你指定的索引模式必须符合你的Elasticsearch索引的名称。</p>
+<p><img alt="" src="http://pic.yupoo.com/east4ming_v/FX1LBTRo/10UZbY.png"></p>
+<h2 id="_5">技术细节和限制<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Documents在它们被分析后导出。 对于访问数据, 这意味者访问完成后documents才会被导出。一个访问在Elasticsearch中可视需要一定时间, 这个时间取决于访问的长度和配置的访问超时。</li>
+<li>每个配置的系统文件存储在<em>每个时间戳的索引上</em>。每月创建一个索引，并以此命名。 例如, 开始于2016年1月的访问、用户行为和客户端错误 (使用document field <code>data.startTime</code>) 存储于索引，命名为<code>dt_2016-01</code>.</li>
+<li>PureLytics streaming使用Elasticsearch bulk API (<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html">https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html</a>). AppMon UEM 添加 <code>/_bulk</code> 到配置的URL之后  (仅当目标“Elasticsearch”被选中)。单一请求包含多个不同类型的documents。Bulk API也需要额外的元数据，实际数据包含多种信息, 包括使用的索引， document type, 和document ID。</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;index&quot;</span><span class="p">:{</span><span class="nt">&quot;_index&quot;</span><span class="p">:</span><span class="s2">&quot;dt_2016-03&quot;</span><span class="p">,</span><span class="nt">&quot;_type&quot;</span><span class="p">:</span><span class="s2">&quot;visit&quot;</span><span class="p">,</span><span class="nt">&quot;_id&quot;</span><span class="p">:</span><span class="s2">&quot;1860046861_14036&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;serverID&quot;</span><span class="p">:</span><span class="mi">1860046861</span><span class="p">,</span><span class="nt">&quot;serverName&quot;</span><span class="p">:</span><span class="s2">&quot;lnz124742d03&quot;</span><span class="p">,</span><span class="nt">&quot;systemProfile&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel&quot;</span><span class="p">,</span><span class="nt">&quot;data&quot;</span><span class="p">:{</span><span class="nt">&quot;visitId&quot;</span><span class="p">:</span><span class="mi">14036</span><span class="p">,</span><span class="nt">&quot;startTime&quot;</span><span class="p">:</span><span class="mi">1457606705739</span><span class="p">,</span><span class="nt">&quot;endTime&quot;</span><span class="p">:</span><span class="mi">1457606729349</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mi">23610</span><span class="p">,</span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel mobile&quot;</span><span class="p">,</span><span class="nt">&quot;appVersion&quot;</span><span class="p">:</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span><span class="nt">&quot;visitTag&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;additionalTags&quot;</span><span class="p">:{},</span><span class="nt">&quot;userExperienceIndex&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span><span class="nt">&quot;userExperience&quot;</span><span class="p">:</span><span class="s2">&quot;satisfied&quot;</span><span class="p">,</span><span class="nt">&quot;userExperienceReason&quot;</span><span class="p">:</span><span class="s2">&quot;Satisfied&quot;</span><span class="p">,</span><span class="nt">&quot;connectionType&quot;</span><span class="p">:</span><span class="s2">&quot;WIFI&quot;</span><span class="p">,</span><span class="nt">&quot;bandwidth&quot;</span><span class="p">:</span><span class="mi">5496</span><span class="p">,</span><span class="nt">&quot;isConverted&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;isBounced&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;isCrashed&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;pageViews&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nt">&quot;userActions&quot;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="nt">&quot;failedActions&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;landingPage&quot;</span><span class="p">:{</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;SearchJourneyActivity&quot;</span><span class="p">,</span><span class="nt">&quot;responseTime&quot;</span><span class="p">:</span><span class="mi">1909</span><span class="p">,</span><span class="nt">&quot;isFailed&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">},</span><span class="nt">&quot;exitPage&quot;</span><span class="p">:{</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel - Terms of Use&quot;</span><span class="p">,</span><span class="nt">&quot;responseTime&quot;</span><span class="p">:</span><span class="mi">289</span><span class="p">,</span><span class="nt">&quot;isFailed&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">},</span><span class="nt">&quot;clientType&quot;</span><span class="p">:</span><span class="s2">&quot;mobile&quot;</span><span class="p">,</span><span class="nt">&quot;clientDetails&quot;</span><span class="p">:{</span><span class="nt">&quot;osFamily&quot;</span><span class="p">:</span><span class="s2">&quot;Android&quot;</span><span class="p">,</span><span class="nt">&quot;osVersion&quot;</span><span class="p">:</span><span class="s2">&quot;Android 2.3.3&quot;</span><span class="p">,</span><span class="nt">&quot;manufacturer&quot;</span><span class="p">:</span><span class="s2">&quot;Samsung&quot;</span><span class="p">,</span><span class="nt">&quot;deviceName&quot;</span><span class="p">:</span><span class="s2">&quot;Galaxy S&quot;</span><span class="p">,</span><span class="nt">&quot;modelId&quot;</span><span class="p">:</span><span class="s2">&quot;GT-I9000&quot;</span><span class="p">,</span><span class="nt">&quot;resolution&quot;</span><span class="p">:</span><span class="s2">&quot;480x800&quot;</span><span class="p">,</span><span class="nt">&quot;cpuInfo&quot;</span><span class="p">:</span><span class="s2">&quot;armv7&quot;</span><span class="p">,</span><span class="nt">&quot;isRooted&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;adkVersion&quot;</span><span class="p">:</span><span class="s2">&quot;6.1.1234&quot;</span><span class="p">,</span><span class="nt">&quot;gpsCoordinates&quot;</span><span class="p">:{</span><span class="nt">&quot;lat&quot;</span><span class="p">:</span><span class="mf">48.85832</span><span class="p">,</span><span class="nt">&quot;lon&quot;</span><span class="p">:</span><span class="mf">2.29436</span><span class="p">},</span><span class="nt">&quot;applicationBuildVersion&quot;</span><span class="p">:</span><span class="s2">&quot;1234&quot;</span><span class="p">},</span><span class="nt">&quot;ipAddress&quot;</span><span class="p">:</span><span class="s2">&quot;159.108.218.157&quot;</span><span class="p">,</span><span class="nt">&quot;location&quot;</span><span class="p">:{</span><span class="nt">&quot;continent&quot;</span><span class="p">:</span><span class="s2">&quot;Europe&quot;</span><span class="p">,</span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="s2">&quot;France&quot;</span><span class="p">,</span><span class="nt">&quot;region&quot;</span><span class="p">:</span><span class="s2">&quot;Ile-de-France&quot;</span><span class="p">,</span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="s2">&quot;Neuilly&quot;</span><span class="p">},</span><span class="nt">&quot;convertedBy&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;businessTransactions&quot;</span><span class="p">:{</span><span class="nt">&quot;Conversion+visits&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">},</span><span class="nt">&quot;Visits+by+connection+type&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:{</span><span class="nt">&quot;Connection+Type+of+Visits&quot;</span><span class="p">:</span><span class="s2">&quot;WIFI&quot;</span><span class="p">}}},</span><span class="nt">&quot;carrier&quot;</span><span class="p">:</span><span class="s2">&quot;Orange&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;index&quot;</span><span class="p">:{</span><span class="nt">&quot;_index&quot;</span><span class="p">:</span><span class="s2">&quot;dt_2016-03&quot;</span><span class="p">,</span><span class="nt">&quot;_type&quot;</span><span class="p">:</span><span class="s2">&quot;visit&quot;</span><span class="p">,</span><span class="nt">&quot;_id&quot;</span><span class="p">:</span><span class="s2">&quot;1860046861_14037&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;serverID&quot;</span><span class="p">:</span><span class="mi">1860046861</span><span class="p">,</span><span class="nt">&quot;serverName&quot;</span><span class="p">:</span><span class="s2">&quot;lnz124742d03&quot;</span><span class="p">,</span><span class="nt">&quot;systemProfile&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel&quot;</span><span class="p">,</span><span class="nt">&quot;data&quot;</span><span class="p">:{</span><span class="nt">&quot;visitId&quot;</span><span class="p">:</span><span class="mi">14037</span><span class="p">,</span><span class="nt">&quot;startTime&quot;</span><span class="p">:</span><span class="mi">1457606708560</span><span class="p">,</span><span class="nt">&quot;endTime&quot;</span><span class="p">:</span><span class="mi">1457606709023</span><span class="p">,</span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="mi">463</span><span class="p">,</span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel portal&quot;</span><span class="p">,</span><span class="nt">&quot;appVersion&quot;</span><span class="p">:</span><span class="s2">&quot;1.8&quot;</span><span class="p">,</span><span class="nt">&quot;visitTag&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;additionalTags&quot;</span><span class="p">:{</span><span class="nt">&quot;Visits - App Version&quot;</span><span class="p">:</span><span class="s2">&quot;1.8&quot;</span><span class="p">},</span><span class="nt">&quot;userExperienceIndex&quot;</span><span class="p">:</span><span class="mf">0.0</span><span class="p">,</span><span class="nt">&quot;userExperience&quot;</span><span class="p">:</span><span class="s2">&quot;frustrated&quot;</span><span class="p">,</span><span class="nt">&quot;userExperienceReason&quot;</span><span class="p">:</span><span class="s2">&quot;DueToErrorInLastAction&quot;</span><span class="p">,</span><span class="nt">&quot;connectionType&quot;</span><span class="p">:</span><span class="s2">&quot;Broadband&quot;</span><span class="p">,</span><span class="nt">&quot;bandwidth&quot;</span><span class="p">:</span><span class="mi">5496</span><span class="p">,</span><span class="nt">&quot;isConverted&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;isBounced&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;isCrashed&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;pageViews&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;userActions&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;failedActions&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;landingPage&quot;</span><span class="p">:{</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel - Terms of Use&quot;</span><span class="p">,</span><span class="nt">&quot;responseTime&quot;</span><span class="p">:</span><span class="mi">463</span><span class="p">,</span><span class="nt">&quot;isFailed&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span><span class="nt">&quot;exitPage&quot;</span><span class="p">:{</span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel - Terms of Use&quot;</span><span class="p">,</span><span class="nt">&quot;responseTime&quot;</span><span class="p">:</span><span class="mi">463</span><span class="p">,</span><span class="nt">&quot;isFailed&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span><span class="nt">&quot;clientType&quot;</span><span class="p">:</span><span class="s2">&quot;browser&quot;</span><span class="p">,</span><span class="nt">&quot;clientDetails&quot;</span><span class="p">:{</span><span class="nt">&quot;osFamily&quot;</span><span class="p">:</span><span class="s2">&quot;Android&quot;</span><span class="p">,</span><span class="nt">&quot;osVersion&quot;</span><span class="p">:</span><span class="s2">&quot;Android 4.0.x Ice Cream Sandwich&quot;</span><span class="p">,</span><span class="nt">&quot;browserFamily&quot;</span><span class="p">:</span><span class="s2">&quot;Chrome Mobile&quot;</span><span class="p">,</span><span class="nt">&quot;browserVersion&quot;</span><span class="p">:</span><span class="s2">&quot;38.0&quot;</span><span class="p">},</span><span class="nt">&quot;ipAddress&quot;</span><span class="p">:</span><span class="s2">&quot;128.133.96.84&quot;</span><span class="p">,</span><span class="nt">&quot;location&quot;</span><span class="p">:{</span><span class="nt">&quot;continent&quot;</span><span class="p">:</span><span class="s2">&quot;North America&quot;</span><span class="p">,</span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="s2">&quot;United States&quot;</span><span class="p">,</span><span class="nt">&quot;region&quot;</span><span class="p">:</span><span class="s2">&quot;Alabama&quot;</span><span class="p">,</span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="s2">&quot;Montgomery&quot;</span><span class="p">},</span><span class="nt">&quot;convertedBy&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;businessTransactions&quot;</span><span class="p">:{</span><span class="nt">&quot;Conversion+visits&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">},</span><span class="nt">&quot;Visits+by+connection+type&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:{</span><span class="nt">&quot;Connection+Type+of+Visits&quot;</span><span class="p">:</span><span class="s2">&quot;Broadband (&gt;1500 kb/s)&quot;</span><span class="p">}}},</span><span class="nt">&quot;browserErrors&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;videoStreams&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;audioStreams&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;isp&quot;</span><span class="p">:</span><span class="s2">&quot;-&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;index&quot;</span><span class="p">:{</span><span class="nt">&quot;_index&quot;</span><span class="p">:</span><span class="s2">&quot;dt_2016-03&quot;</span><span class="p">,</span><span class="nt">&quot;_type&quot;</span><span class="p">:</span><span class="s2">&quot;useraction&quot;</span><span class="p">,</span><span class="nt">&quot;_id&quot;</span><span class="p">:</span><span class="s2">&quot;1860046861_1385397273_1&quot;</span><span class="p">,</span><span class="nt">&quot;parent&quot;</span><span class="p">:</span><span class="s2">&quot;1860046861_14036&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;serverID&quot;</span><span class="p">:</span><span class="mi">1860046861</span><span class="p">,</span><span class="nt">&quot;serverName&quot;</span><span class="p">:</span><span class="s2">&quot;lnz124742d03&quot;</span><span class="p">,</span><span class="nt">&quot;systemProfile&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel&quot;</span><span class="p">,</span><span class="nt">&quot;data&quot;</span><span class="p">:{</span><span class="nt">&quot;visitId&quot;</span><span class="p">:</span><span class="mi">14036</span><span class="p">,</span><span class="nt">&quot;tagId&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nt">&quot;agentId&quot;</span><span class="p">:</span><span class="mi">1385397273</span><span class="p">,</span><span class="nt">&quot;startTime&quot;</span><span class="p">:</span><span class="mi">1457606705739</span><span class="p">,</span><span class="nt">&quot;endTime&quot;</span><span class="p">:</span><span class="mi">1457606707648</span><span class="p">,</span><span class="nt">&quot;visitTag&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;additionalTags&quot;</span><span class="p">:{},</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;searchJourney&quot;</span><span class="p">,</span><span class="nt">&quot;prettyName&quot;</span><span class="p">:</span><span class="s2">&quot;searchJourney&quot;</span><span class="p">,</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;ActionEvent&quot;</span><span class="p">,</span><span class="nt">&quot;actionGroup&quot;</span><span class="p">:</span><span class="s2">&quot;Mobile ADK Actions&quot;</span><span class="p">,</span><span class="nt">&quot;actionGroupPerformanceBaseline&quot;</span><span class="p">:</span><span class="mi">4000</span><span class="p">,</span><span class="nt">&quot;apdex&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span><span class="nt">&quot;userExperience&quot;</span><span class="p">:</span><span class="s2">&quot;satisfied&quot;</span><span class="p">,</span><span class="nt">&quot;isFailed&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;failingReasons&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;responseTime&quot;</span><span class="p">:</span><span class="mf">1909.0</span><span class="p">,</span><span class="nt">&quot;networkContributionTime&quot;</span><span class="p">:</span><span class="mf">1665.6201</span><span class="p">,</span><span class="nt">&quot;serverContributionTime&quot;</span><span class="p">:</span><span class="mf">26.379906</span><span class="p">,</span><span class="nt">&quot;thirdPartyContribution&quot;</span><span class="p">:</span><span class="mf">-1.0</span><span class="p">,</span><span class="nt">&quot;cdnContribution&quot;</span><span class="p">:</span><span class="mf">-1.0</span><span class="p">,</span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="s2">&quot;easyTravel mobile&quot;</span><span class="p">,</span><span class="nt">&quot;appVersion&quot;</span><span class="p">:</span><span class="s2">&quot;1.9&quot;</span><span class="p">,</span><span class="nt">&quot;location&quot;</span><span class="p">:{</span><span class="nt">&quot;continent&quot;</span><span class="p">:</span><span class="s2">&quot;Europe&quot;</span><span class="p">,</span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="s2">&quot;France&quot;</span><span class="p">,</span><span class="nt">&quot;region&quot;</span><span class="p">:</span><span class="s2">&quot;Ile-de-France&quot;</span><span class="p">,</span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="s2">&quot;Neuilly&quot;</span><span class="p">},</span><span class="nt">&quot;clientDetails&quot;</span><span class="p">:{</span><span class="nt">&quot;osFamily&quot;</span><span class="p">:</span><span class="s2">&quot;Android&quot;</span><span class="p">,</span><span class="nt">&quot;osVersion&quot;</span><span class="p">:</span><span class="s2">&quot;Android 2.3.3&quot;</span><span class="p">,</span><span class="nt">&quot;manufacturer&quot;</span><span class="p">:</span><span class="s2">&quot;Samsung&quot;</span><span class="p">,</span><span class="nt">&quot;deviceName&quot;</span><span class="p">:</span><span class="s2">&quot;Galaxy S&quot;</span><span class="p">,</span><span class="nt">&quot;modelId&quot;</span><span class="p">:</span><span class="s2">&quot;GT-I9000&quot;</span><span class="p">,</span><span class="nt">&quot;resolution&quot;</span><span class="p">:</span><span class="s2">&quot;480x800&quot;</span><span class="p">,</span><span class="nt">&quot;cpuInfo&quot;</span><span class="p">:</span><span class="s2">&quot;armv7&quot;</span><span class="p">,</span><span class="nt">&quot;isRooted&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;adkVersion&quot;</span><span class="p">:</span><span class="s2">&quot;6.1.1234&quot;</span><span class="p">,</span><span class="nt">&quot;gpsCoordinates&quot;</span><span class="p">:{</span><span class="nt">&quot;lat&quot;</span><span class="p">:</span><span class="mf">48.85832</span><span class="p">,</span><span class="nt">&quot;lon&quot;</span><span class="p">:</span><span class="mf">2.29436</span><span class="p">},</span><span class="nt">&quot;applicationBuildVersion&quot;</span><span class="p">:</span><span class="s2">&quot;1234&quot;</span><span class="p">,</span><span class="nt">&quot;isPortrait&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;batteryStatus&quot;</span><span class="p">:</span><span class="mf">0.33563203</span><span class="p">,</span><span class="nt">&quot;totalMemory&quot;</span><span class="p">:</span><span class="mi">790</span><span class="p">,</span><span class="nt">&quot;freeMemory&quot;</span><span class="p">:</span><span class="mf">0.56</span><span class="p">,</span><span class="nt">&quot;runningProcesses&quot;</span><span class="p">:</span><span class="mi">26</span><span class="p">,</span><span class="nt">&quot;networkTechnology&quot;</span><span class="p">:</span><span class="s2">&quot;802.11x&quot;</span><span class="p">,</span><span class="nt">&quot;signalStrength&quot;</span><span class="p">:</span><span class="mi">-115</span><span class="p">},</span><span class="nt">&quot;xhrUrl&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;clientErrors&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;serverErrors&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;perceivedRenderTime&quot;</span><span class="p">:</span><span class="mi">-1</span><span class="p">,</span><span class="nt">&quot;perceivedRenderTimeSlowestImageSrc&quot;</span><span class="p">:</span><span class="s2">&quot;-&quot;</span><span class="p">,</span><span class="nt">&quot;source&quot;</span><span class="p">:{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;SearchJourneyActivity&quot;</span><span class="p">,</span><span class="nt">&quot;viewDuration&quot;</span><span class="p">:</span><span class="mi">3593</span><span class="p">},</span><span class="nt">&quot;target&quot;</span><span class="p">:{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;SearchJourneyActivity&quot;</span><span class="p">},</span><span class="nt">&quot;resourceSummary&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;navTiming&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;onLoad&quot;</span><span class="p">:</span><span class="mi">-1</span><span class="p">,</span><span class="nt">&quot;domready&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nt">&quot;metaData&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nt">&quot;adkStrings&quot;</span><span class="p">:{},</span><span class="nt">&quot;adkValues&quot;</span><span class="p">:{},</span><span class="nt">&quot;businessTransactions&quot;</span><span class="p">:{</span><span class="nt">&quot;Pageview+Apdex+by+Country&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{</span><span class="nt">&quot;Apdex&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:{</span><span class="nt">&quot;Country+of+Visits&quot;</span><span class="p">:</span><span class="s2">&quot;France&quot;</span><span class="p">}},</span><span class="nt">&quot;Pageview+Apdex+by+Application&quot;</span><span class="p">:{</span><span class="nt">&quot;measures&quot;</span><span class="p">:{</span><span class="nt">&quot;Apdex&quot;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">},</span><span class="nt">&quot;splittings&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">}}}}</span>
+<span class="err">(...)</span>
+</pre></div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>
+      <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-23-firewall.html" title="Dynatrace AppMon 实战手册 - 23.相关网络权限">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-21-analysis-events.html" title="Dynatrace AppMon 实战手册 - 21.分析事件简要流程">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem.html">Dynatrace AppMon 实战手册 - 29.某保险公司核心系统变慢问题分析</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-28-update-migrate-guide.html">Dynatrace AppMon 实战手册 - 28.Dynatrace 6.5升级和迁移向导</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console.html">Dynatrace AppMon 实战手册 - 27.Dynatrace Web 客户端使用说明</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html">Dynatrace AppMon 实战手册 - 26.分析诡异的应用性能问题</a></li>
+      <li><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html">Dynatrace AppMon 实战手册 - 25.RESTful API</a></li>
+    </ul>
+  </div>
+
+
+<!-- Disqus -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ewhisperblog';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    请启用浏览器的Javascript功能以查看评论。
+</noscript>
+<!-- End Disqus -->
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+<!-- Gauges -->
+<script type="text/javascript">
+  var _gauges = _gauges || [];
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'gauges-tracker';
+    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
+    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
+    t.src = 'https://track.gaug.es/track.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+</script>
+<!-- End Gauges -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

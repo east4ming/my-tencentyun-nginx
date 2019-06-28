@@ -1,5 +1,420 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>东风微鸣 Blog - devops</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 08 May 2019 18:41:34 +0800</lastBuildDate><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
+<rss version="2.0"><channel><title>东风微鸣 Blog - devops</title><link>https://www.EWhisper.cn/</link><description>Focus on Python/Java/DevOps/Observability</description><lastBuildDate>Wed, 19 Jun 2019 20:39:00 +0800</lastBuildDate><item><title>NGINX 实战手册-运维-实用运维Tips和总结</title><link>https://www.EWhisper.cn/nginx-handbook-3-11-operation-best-practices.html</link><description>&lt;h2 id="311-tips"&gt;3.11 实用运维Tips和总结&lt;a class="headerlink" href="#311-tips" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="3110"&gt;3.11.0 介绍&lt;a class="headerlink" href="#3110" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;最后章节会包括使用运维tips和本书的总结. 通过这三个大部分, 我们讨论了与运维工程师有关的很多想法和概念. 然而, 我认为再多讲一点会有助于理解的更加全面. 在本章, 我会确保你的配置文件干净和简洁, 以及如何调试配置文件.&lt;/p&gt;
+&lt;h3 id="3111-includes"&gt;3.11.1 使用 Includes 来缩减配置&lt;a class="headerlink" href="#3111-includes" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要清理大量的配置文件来保证你的配置文件以模块化的配置集分组.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;include&lt;/code&gt;指令来引用配置文件, 目录或通配符:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;include&lt;/span&gt; &lt;span class="s"&gt;config.d/compression.conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;include&lt;/span&gt; &lt;span class="s"&gt;sites-enabled/*.conf&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="3112"&gt;3.11.2 调试配置&lt;a class="headerlink" href="#3112" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;从NGINX server , 你得到的非预期的结果.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;调试配置, 记住以下建议:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;NGINX进程请求查找最匹配的规则.&lt;/li&gt;
+&lt;li&gt;你可以打开调试日志. 对于调试日志, 你需要确保你的NGINX包配置了&lt;code&gt;--with-debug&lt;/code&gt; flag. 大部分常见包都有; 但是如果你构建你自己的包, 或在运行一个最小化的包, 你可能至少需要再次仔细检查. 一旦你确定了你有debug, 你可以设置&lt;code&gt;error_log&lt;/code&gt;指令的日志级别为&lt;code&gt;debug&lt;/code&gt;: &lt;code&gt;error_log /var/log/nginx/error.log debug;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;你可以为特定的连接启用调试. &lt;code&gt;debug_connection&lt;/code&gt;指令在&lt;code&gt;events&lt;/code&gt;上下文是合法的, 使用IP或CIDR range作为参数. 该指令可以声明多次来添加多个要调试的IP地址或CIDR ranges. 这在生产环境, 但是调试所有连接会导致性能下降的情况下, 调试一个问题会很有用&lt;/li&gt;
+&lt;li&gt;你可以调试特定的virtual servers. 因为&lt;code&gt;error_log&lt;/code&gt;在&lt;code&gt;main&lt;/code&gt; &lt;code&gt;http&lt;/code&gt; &lt;code&gt;mail&lt;/code&gt; &lt;code&gt;stream&lt;/code&gt; &lt;code&gt;server&lt;/code&gt; 和&lt;code&gt;location&lt;/code&gt;上下文都有效. 你可以在你需要调试的上下文设置&lt;code&gt;debug&lt;/code&gt;日志级别.&lt;/li&gt;
+&lt;li&gt;你可以启用core dumps, 来从中获取backtraces. Core dumps可以通过操作系统启用, 或通过NGINX配置文件.&lt;/li&gt;
+&lt;li&gt;你可以使用&lt;code&gt;rewrite_log&lt;/code&gt;记录rewrite 声明的日志: &lt;code&gt;rewrite_log on;&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;NGINX能做很多神奇的配置, 但是也有性能下降的风险. 调试时, 确保你知道如何通过你的配置来追踪你的请求; 如果有问题, 增加调试日志级别来帮助分析. debug日志时相当详细, 找出NGINX对你的请求做了什么以及你的配置在哪儿出错了很有帮助.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2crNKVM"&gt;NGINX如何处理请求&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2iQYNsZ"&gt;管理员调试向导&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2j96jAH"&gt;Rewrite log&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="3113"&gt;3.11.3 总结&lt;a class="headerlink" href="#3113" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;这本书的三个部分集中于高性能负载均衡, 安全, 以及部署和维护NGINX和NGINX Plus servers. 这本书展示了NGINX应用交付平台的一些最强大的功能. NGINX会继续开发神奇的功能, 保持赛道领先.&lt;/p&gt;
+&lt;p&gt;这本书展示了很多"简短食谱", 允许你对指令和模块(这些让NGINX成为当今网络之心)有更好的理解. NGINX server不仅仅是web server, 不仅仅时反向代理, 而是一个完整的应用交付平台, 完全有能力通过认证, 并在未来环境中使用.  请知悉.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:39:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-11-operation-best-practices.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-运维-使用`split_clients`进行A-B测试</title><link>https://www.EWhisper.cn/nginx-handbook-3-7-ab-test.html</link><description>&lt;h2 id="37-split_clientsa-b"&gt;3.7 使用&lt;code&gt;split_clients&lt;/code&gt;进行A-B测试&lt;a class="headerlink" href="#37-split_clientsa-b" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="370"&gt;3.7.0 介绍&lt;a class="headerlink" href="#370" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;NGINX有一个叫做&lt;code&gt;split_clients&lt;/code&gt;的模块, 允许你来系统地给予某一个变量key来拆分用户. NGINX通过使用轻量的哈希算法来哈希一个给定的字符串来拆分用户. 然后数学地通过百分比拆分, 映射预定义的值到一个变量, 这个值可以用来改变服务器的响应。&lt;/p&gt;
+&lt;h3 id="371-ab"&gt;3.7.1 A/B 测试&lt;a class="headerlink" href="#371-ab" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要拆分两个或更多版本的文件或程序的用户来测试接受度.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;split_clients&lt;/code&gt;模块来直接为你的客户端设置不同的upstream pool:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;split_clients&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;${remote_addr}AAA&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;$variant&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;20.0%&lt;/span&gt;    &lt;span class="s"&gt;&amp;quot;backendv2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;*&lt;/span&gt;        &lt;span class="s"&gt;&amp;quot;backendv1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;split_clients&lt;/code&gt;指令哈希由你提供的字符串作为第一个参数, 并且将散列的百分比提供映射一个变量的值作为第二个参数提供。第三个参数是一个包含key-value对的对象, key是百分比权重, 值是要被分配的值. key可以是一个百分比或一个星号. 星号就是剩下的百分比. 变量&lt;code&gt;$variant&lt;/code&gt;的值将是20%的客户端IP是&lt;code&gt;backendv2&lt;/code&gt;, 剩下的80%是&lt;code&gt;backendv1&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;在本例中, &lt;code&gt;backendv1&lt;/code&gt;和&lt;code&gt;backendv2&lt;/code&gt;代表upstream server池, 可以被用于&lt;code&gt;proxy_pass&lt;/code&gt;指令, 如下:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;proxy_pass&lt;/span&gt; &lt;span class="s"&gt;http://&lt;/span&gt;&lt;span class="nv"&gt;$variant&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;使用变量&lt;code&gt;$variant&lt;/code&gt;, 我们的流量会被分为2个不同的应用server池.&lt;/p&gt;
+&lt;p&gt;另一个案例:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+ &lt;span class="kn"&gt;split_clients&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;${remote_addr}AAA&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;$variant&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="kn"&gt;0.5%&lt;/span&gt;               &lt;span class="s"&gt;.one&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="kn"&gt;2.0%&lt;/span&gt;               &lt;span class="s"&gt;.two&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                   &lt;span class="kn"&gt;*&lt;/span&gt;                  &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+ &lt;span class="p"&gt;}&lt;/span&gt;
+ &lt;span class="kn"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+     &lt;span class="kn"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+         &lt;span class="kn"&gt;index&lt;/span&gt; &lt;span class="s"&gt;index&lt;/span&gt;&lt;span class="nv"&gt;${variant}.html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;A/B测试的类型很有用, 如测试不同类型的市场和前端功能的电商网站转化率. 对于应用, 使用金丝雀发布很常见. 这种部署中, 流量被缓慢地切换到新的版本. 拆分不同应用版本的客户端是很有用的, 当回滚新版本的代码, 限制因为一个错误导致的爆炸半径. 不论是因为什么原因要拆分两个不同应用集的客户端, NGINX通过使用&lt;code&gt;split_client&lt;/code&gt;模块都能很容易实现.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jsdkw4"&gt;split_client documentation&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:39:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-7-ab-test.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-运维-使用GeoIP模块通过IP地址定位用户</title><link>https://www.EWhisper.cn/nginx-handbook-3-8-use-geoip-to-get-users-location.html</link><description>&lt;h2 id="38-geoipip"&gt;3.8 使用GeoIP模块通过IP地址定位用户&lt;a class="headerlink" href="#38-geoipip" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="380"&gt;3.8.0 介绍&lt;a class="headerlink" href="#380" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;跟踪, 分析, 和利用你的应用或度量的客户端的位置信息可以帮助你加深对客户的理解. 有很多方法获取你的客户的位置信息, NGINX通过使用GeoIP模块和几个指令很容易地定位他们. 该模块让基于客户位置信息记录位置, 控制访问, 或者基于客户位置做决定变得很容易.  它也允许客户的位置信息被内部查找只要请求被传输到upstream应用, 而不需要再进行查找. 该NGINX模块默认不安装, 可以从源码静态编译, 动态导入, 或通过在Ubuntu安装&lt;code&gt;nginx-full&lt;/code&gt;或&lt;code&gt;nginx-extras&lt;/code&gt;来安装. 在RHEL发行版, 如CentOS, 你可以安装&lt;code&gt;nginx-mod-http-geoip&lt;/code&gt;包并通过&lt;code&gt;load_module&lt;/code&gt;动态导入. 本章会覆盖&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;导入GeoIP动态模块,&lt;/li&gt;
+&lt;li&gt;安装GeoIP数据库,&lt;/li&gt;
+&lt;li&gt;该模块可用的内建变量,&lt;/li&gt;
+&lt;li&gt;控制访问,&lt;/li&gt;
+&lt;li&gt;和代理一起使用.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="381-geoip"&gt;3.8.1 使用GeoIP模块和数据库&lt;a class="headerlink" href="#381-geoip" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要安装GeoIP数据库, 并启用在NGINX的内建命令, 来记录和告诉你的应用你的客户端的地理位置.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;下载GeoIP国家和城市数据库, 并unzip它们:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# mkdir /etc/nginx/geoip&lt;/span&gt;
+&lt;span class="c1"&gt;# cd /etc/nginx/geoip&lt;/span&gt;
+&lt;span class="c1"&gt;# wget &amp;quot;http://geolite.maxmind.com/\&lt;/span&gt;
+download/geoip/database/GeoLiteCountry/GeoIP.dat.gz&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;span class="s2"&gt;# gunzip GeoIP.dat.gz&lt;/span&gt;
+&lt;span class="s2"&gt;# wget &amp;quot;&lt;/span&gt;http://geolite.maxmind.com/&lt;span class="se"&gt;\&lt;/span&gt;
+download/geoip/database/GeoLiteCity.dat.gz&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;span class="s2"&gt;# gunzip GeoLiteCity.dat.gz&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这些命令在&lt;em&gt;/etc/nginx&lt;/em&gt;下创建一个&lt;em&gt;geoip&lt;/em&gt;目录, 跳转到新目录, 并下载和解压包.&lt;/p&gt;
+&lt;p&gt;通过在本地磁盘上的 国家和城市的GeoIP数据库, 我们可以构建NGINX GeoIP模块并使用它们来暴露出给予客户端IP地址的内建指令:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;load_module&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/usr/lib64/nginx/modules/ngx_http_geoip_module.so&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_country&lt;/span&gt; &lt;span class="s"&gt;/etc/nginx/geoip/GeoIP.dat&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_city&lt;/span&gt; &lt;span class="s"&gt;/etc/nginx/geoip/GeoLiteCity.dat&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;geoip_country&lt;/code&gt;指令指定到&lt;em&gt;GeoIP.dat&lt;/em&gt;文件的路径, &lt;em&gt;GeoIP.dat&lt;/em&gt;包含IP地址到国家代码的映射, 只能在HTTP上下文中使用.&lt;/p&gt;
+&lt;h3 id="_1"&gt;讨论&lt;a class="headerlink" href="#_1" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;模块的&lt;code&gt;geoip_country&lt;/code&gt;和&lt;code&gt;geoip_city&lt;/code&gt;暴露一系列可用变量. &lt;code&gt;geoip_country&lt;/code&gt;指令允许你去本你的客户的国家. 这些变量包括&lt;code&gt;$geoip_country_code&lt;/code&gt;, &lt;code&gt;geoip_country_code3&lt;/code&gt;和&lt;code&gt;geoip_country_name&lt;/code&gt;. 国家代码变量返回一个2位国家字母. &lt;code&gt;geoip_country_code3&lt;/code&gt;返回3位国家字母. 国家名变量返回国家的全名.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;geoip_city&lt;/code&gt;指令也会启用几个变量. 和&lt;code&gt;geoip_country&lt;/code&gt;类似. 有&lt;code&gt;$geoip_city_country_code&lt;/code&gt; &lt;code&gt;geoip_city_country_code3&lt;/code&gt; &lt;code&gt;geoip_city_contry_name&lt;/code&gt;. 其他变量有&lt;code&gt;$geoip_city&lt;/code&gt; &lt;code&gt;$geoip_city_continent_code&lt;/code&gt; &lt;code&gt;$geoip_latitude&lt;/code&gt; &lt;code&gt;$geoip_longitude&lt;/code&gt;和&lt;code&gt;$geoip_postal_code&lt;/code&gt;. &lt;code&gt;$geoip_region&lt;/code&gt; &lt;code&gt;$geoip_region_name&lt;/code&gt;描述区域, 领域, 州, 省, 联邦政府地等. 区域是一个两字符代码, 区域名是全名. &lt;code&gt;geoip_area_code&lt;/code&gt;, 只在美国有效, 返回3位数字电话区域码.&lt;/p&gt;
+&lt;p&gt;通过这些变量, 你能够记录你的客户端的信息. 你可以选择传递信息到你的应用作为一个header或变量, 或使用NGINX来以特定方式route流量.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://github.com/maxmind/geoipupdate"&gt;GeoIP 升级&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="382"&gt;3.8.2 基于国家限制访问&lt;a class="headerlink" href="#382" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;根据合约或应用需求, 你需要限制来自特定国家的访问.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;映射你想要屏蔽或允许的国家代码到一个变量&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;load_module&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;/usr/lib64/nginx/modules/ngx_http_geoip_module.so&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;map&lt;/span&gt; &lt;span class="nv"&gt;$geoip_country_code&lt;/span&gt; &lt;span class="nv"&gt;$country_access&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="kn"&gt;&amp;quot;US&amp;quot;&lt;/span&gt;    &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;&amp;quot;RU&amp;quot;&lt;/span&gt;    &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kn"&gt;default&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个映射会设置新的变量&lt;code&gt;$country_access&lt;/code&gt;为1或0. 如果客户端IP地址来自美国或俄罗斯, 变量会被设置为0, 其他国家会设置为1.&lt;/p&gt;
+&lt;p&gt;然后, 在&lt;code&gt;server&lt;/code&gt;快, 使用&lt;code&gt;if&lt;/code&gt;声明来拒绝不是来自美国和俄罗斯的用户访问:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$country_access&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;1&amp;#39;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;当条件判断为True时, 会返回403 未认证. 否则正常访问.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;这是一个简短的例子, 来说明如何允许特定国家访问. 这个例子可以被扩展, 以符合你的需要.&lt;/p&gt;
+&lt;h3 id="383"&gt;3.8.3 找到源客户端&lt;a class="headerlink" href="#383" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要找到客户源IP, 因为在NGINX server前边有代理.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;geoip_proxy&lt;/code&gt;指令来定义你的代理IP地址范围, &lt;code&gt;geoip_proxy_recursive&lt;/code&gt;指令来查找源IP:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;load_module&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/usr/lib64/nginx/modules/ngx_http_geoip_module.so&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_country&lt;/span&gt; &lt;span class="s"&gt;/etc/nginx/geoip/GeoIP.dat&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_city&lt;/span&gt; &lt;span class="s"&gt;/etc/nginx/geoip/GeoLiteCity.dat&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_proxy&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="s"&gt;.0.16.0/26&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kn"&gt;geoip_proxy_recursive&lt;/span&gt; &lt;span class="no"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;geoip_proxy&lt;/code&gt;指令定义我们的代理服务器的CIDR范围, 指示NGINX利用&lt;code&gt;X-Forwarded-For&lt;/code&gt;头来查找客户端IP地址. &lt;code&gt;geoip_proxy_recursive&lt;/code&gt;指令指示NGINX来递归地查找上个知道的客户端IP的&lt;code&gt;X-Forwarded-For&lt;/code&gt; header.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;你可能会发现你在NGINX前边使用了代理, NGINX会选择代理的IP地址而不是客户端的. 对于这种情况你可以使用&lt;code&gt;geoip_proxy&lt;/code&gt;指令来指示在给定的范围内, NGINX使用&lt;code&gt;X-Forwarded-For&lt;/code&gt; header. &lt;code&gt;geoip_proxy&lt;/code&gt;指令配置一个地址或CIDR范围. 当NGINX前边有多个代理, 可以使用&lt;code&gt;geoip_proxy_recursive&lt;/code&gt;指令来递归地查找&lt;code&gt;X-Forwarded-For&lt;/code&gt;指令, 来找到源客户端. 你可能会在如在NGINX前边使用AWS ELB, 谷歌的负载均衡, 或Azure的负载均衡时用到这些.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:39:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-8-use-geoip-to-get-users-location.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-运维-自动化</title><link>https://www.EWhisper.cn/nginx-handbook-3-6-automatation.html</link><description>&lt;h2 id="36"&gt;3.6 自动化&lt;a class="headerlink" href="#36" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="360"&gt;3.6.0 介绍&lt;a class="headerlink" href="#360" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;有很多方式来自动化NGINX和NGINX Plus的配置文件, 如: 使用配置管理工具或定时任务来从模板配置文件配置. 随着动态环境的增加, 自动化配置的需求变得更急需. 在上一章, 我们确信NGINX配置文件被配置后需要reload.在本章, 我们会讨论更进一步的使用NGINX Plus API和&lt;strong&gt;Consul Template&lt;/strong&gt;的实时(on-the-fly)NGINX配置文件重配置.&lt;/p&gt;
+&lt;h3 id="361-nginx-plus"&gt;3.6.1 使用NGINX Plus自动化&lt;a class="headerlink" href="#361-nginx-plus" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要为动态环境重实时配置NGINX Plus的load balance.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用NGINX Plus API来重配置NGINX Plus upstream 池:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl &lt;span class="s1"&gt;&amp;#39;http://nginx.local/upstream_conf?\&lt;/span&gt;
+&lt;span class="s1"&gt;  add=&amp;amp;upstream=backend&amp;amp;server=10.0.0.42:8080&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;curl&lt;/code&gt;调用到NGINX Plus的请求, 请求一个把一个新的server加到&lt;code&gt;backend&lt;/code&gt; upstream配置.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;更多第一次安装的细节见 3.8 章节, NGINX Plus提供一个API来重新实时配置NGINX Plus. NGINX Plus API允许从upstream 池中添加和移除server, 同时draining 连接. 你可以使用该API来自动化NGINX Plus的应用服务器的创建和释放的配置.&lt;/p&gt;
+&lt;h3 id="362-consul-templating"&gt;3.6.2 使用Consul Templating 自动化配置&lt;a class="headerlink" href="#362-consul-templating" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要自动化NGINX配置来通过使用Consul在环境中做出变更.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;consul-template&lt;/code&gt; daemon和一个模板文件来模板化NGINX配置文件:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;upstream backend { &lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt;&lt;span class="nv"&gt;range&lt;/span&gt; &lt;span class="nv"&gt;service&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;app.backend&amp;quot;&lt;/span&gt;&lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    server &lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt;&lt;span class="nv"&gt;.Address&lt;/span&gt;&lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;;&lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt;&lt;span class="nv"&gt;end&lt;/span&gt;&lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个例子是Consul模板文件的一个upstream配置块模板. 这个模板会遍历在Consul上标记为&lt;code&gt;app.backend&lt;/code&gt;的节点. 对于Consul上的每个节点, 这个模板会使用那个节点的IP地址产生一条server指令.&lt;/p&gt;
+&lt;p&gt;这个&lt;code&gt;consul-template&lt;/code&gt; daemon通过命令行运行, 可以被用于在每次配置文件被模板化变更后reload NGINX:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# consul-template -consul consul.example.internal -template \&lt;/span&gt;
+template:/etc/nginx/conf.d/upstream.conf:&lt;span class="s2"&gt;&amp;quot;nginx -s reload&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;该指令指示&lt;code&gt;consul-template&lt;/code&gt; daemon 来连接到一个位于&lt;code&gt;consul.example.internal&lt;/code&gt;的Consul 集群, 并使用在当前工作目录的名为&lt;code&gt;template&lt;/code&gt;的文件来模板化该文件, 并输出生成的内容到&lt;code&gt;/etc/nginx/conf.d/upstream.conf&lt;/code&gt;中, 然后在每次模板化文件变更时reload NGINX. &lt;code&gt;-template&lt;/code&gt; 标志接受一个字符串,包括: 模板文件,输出位置,和运行模板过程后执行的命令; 这3个变量以冒号分隔. 如果运行的命令由空格, 确保使用双引号包裹. &lt;code&gt;-consul&lt;/code&gt;标志指示要连接的Consul集群.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;Consul是一个强大的服务发现工具和配置仓库. Consul以key-value 对以类似目录的结构存储节点信息, 允许restful API交互.Consul也在每个客户端上提供一个DNS界面, 允许进行连接到集群的节点的域名查找. 一个单独的, 利用Consul集群的项目是&lt;code&gt;consul-template&lt;/code&gt; daemon; 这个工具模板化在Consul 节点, 服务或 key-value对的文件变化. 这让Consul成为一个自动化NGINX的非常强大的选择. 使用&lt;code&gt;consul-template&lt;/code&gt;你也可以指示该daemon在模板替换变更后来运行一个命令. 通过这样, 可以reload NGINX配置, 并允许NGINX配置在环境中生效. 通过Consul, 你可以在每个客户端上设置健康检查来检查关注的服务的监控状况. 通过失败检测, 你能够通过模板化你的NGINX配置来只给健康的主机发送流量.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://www.consul.io/"&gt;Consul home page&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2iosmkV"&gt;Introduction to Consul Template&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/hashicorp/consul-template"&gt;Consul template GitHub&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:33:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-6-automatation.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-运维-前言和介绍</title><link>https://www.EWhisper.cn/nginx-handbook-3-0-foreword.html</link><description>&lt;h2 id="30"&gt;3.0 前言和介绍&lt;a class="headerlink" href="#30" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;在NGINX CookBook的第一部分, 主题是负载均衡和缓存. 第二部分是NGINX的安全功能, 如认证和加密. 第三部分集中于NGINX的运维问你, 包括部署, 性能调优和解决问题.&lt;/p&gt;
+&lt;p&gt;在这部分, 你会看到基于三个大型公有云的NGINX部署实践: Amazon Web Services(AWS), Google Cloud Platform(GCP), 和微软Azure, 包括如何自动化在AWS上部署. 如果你计划使用Docker, 也有相关内容.&lt;/p&gt;
+&lt;p&gt;安装也会深入讨论使用Puppet, Chef, Ansible和SaltStack的自动化配置管理. 也介绍了使用NGINX Plus API来实施重配置, 使用Consul进行服务发现和模版配置.&lt;/p&gt;
+&lt;p&gt;默认情况下, 大部分系统配置是基于兼容性而不是性能. 然后你要根据你的特定需求进行性能调优. 在本书中, 你会找到在保持兼容性的前提下, 详细的最大化NGINX性能的方法.&lt;/p&gt;
+&lt;p&gt;当我碰到部署问题, 我首先会看日志文件, 是很多调试信息的来源. NGINX有维护详细的, 高度配置化的日志来帮助你定位问题. 本书中包含NGINX日志的详细内容.&lt;/p&gt;
+&lt;p&gt;它会帮助你安装, 监控, 维护NGINX应用交付平台.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:28:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-0-foreword.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>NGINX 实战手册-运维-在Docker 上部署</title><link>https://www.EWhisper.cn/nginx-handbook-3-4-nginx-docker.html</link><description>&lt;h2 id="34-docker"&gt;3.4 在Docker上部署&lt;a class="headerlink" href="#34-docker" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="340"&gt;3.4.0 介绍&lt;a class="headerlink" href="#340" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Docker是个开源项目, 会自动把Linux应用部署到软件容器中. Docker提供一个额外的抽象层, 在linux上自动化操作系统级别的虚拟化. 容器化环境已经对生产世界造成了巨大的变革. Docker和其他容器平台允许快速, 可靠, 跨平台的应用部署. 本章中, 我们会讨论NGINX官方NGINX Dockerjingxiang,创建你自己的Docker文件来运行NGINX, 在NGINX中使用环境变量, 通用Docker实践.&lt;/p&gt;
+&lt;h3 id="341-nginx"&gt;3.4.1 使用NGINX镜像快速运行&lt;a class="headerlink" href="#341-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要使用Docker Hub中的NGINX镜像快速启动和运行.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker pull nginx:latest
+$ docker run -it -p &lt;span class="m"&gt;80&lt;/span&gt;:80 -v &lt;span class="nv"&gt;$PWD&lt;/span&gt;/nginx-conf:/etc/nginx &lt;span class="se"&gt;\&lt;/span&gt;
+                                   nginx:latest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;NGINX已经在Docker Hub上制作了一个官方Docker镜像. 官方Docker镜像很容易在Docker中启动和快速运行. 在本节中我们通过2个命令就能启动和运行NGINX 容器. 官方镜像是基于Debian Jessie Docker镜像. 但是你也可以选择基于Alpine Linux构建的官方镜像. 这些官方镜像的Dockerfile和源码可以在GitHub中找到.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://hub.docker.com/_/nginx/"&gt;Official NGINX Docker image, NGINX&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/nginxinc/docker-nginx/"&gt;Docker repo on GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="342-nginx-dockerfile"&gt;3.4.2 创建一个NGINX Dockerfile&lt;a class="headerlink" href="#342-nginx-dockerfile" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要创建一个NGINX Dockerfile, 用Dockerfile创建Docker镜像.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;CMD&lt;/code&gt;来在镜像实例化为容器时启动NGINX. 你需要在前台运行NGINX. 要这么做, 需要启动NGINX使用&lt;code&gt;-g "daemon off;"&lt;/code&gt;或增加&lt;code&gt;daemon off;&lt;/code&gt;到配置. 本例中稍后使用&lt;code&gt;daemon off;&lt;/code&gt;加到main context. 你也想调节你的access日志输出到&lt;code&gt;/dev/stdout&lt;/code&gt;, 错误日志输出到&lt;code&gt;/dev/stderr&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; centos:7&lt;/span&gt;
+&lt;span class="c"&gt;# Install epel repo to get nginx and install nginx&lt;/span&gt;
+&lt;span class="k"&gt;RUN&lt;/span&gt; yum -y install epel-release &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    yum -y install nginx
+&lt;span class="c"&gt;# add local configuration files into the image&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt; /nginx-conf /etc/nginx
+&lt;span class="k"&gt;EXPOSE&lt;/span&gt;&lt;span class="s"&gt; 80 443&lt;/span&gt;
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;nginx&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;目录结构如下所示:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;.
+├── Dockerfile
+└── nginx-conf
+    ├── conf.d
+    │   └── default.conf
+    ├── fastcgi.conf
+    ├── fastcgi_params
+    ├── koi-utf
+    ├── koi-win
+    ├── mime.types
+    ├── nginx.conf
+    ├── scgi_params
+    ├── uwsgi_params
+    └── win-utf
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在本例中, 我选择直接吧nginx-conf目录下所有我的NGINX配置都添加到Dockerfile中.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;当你需要完全控制包的安装和升级, 你会发现创建自己的Dockerfile很有用. 常见操作是保存在你自己的镜像仓库中, 这样你会知道你的基础镜像在上生产之前是可靠的, 经过团队测试的.&lt;/p&gt;
+&lt;h3 id="343-nginx-plus"&gt;3.4.3 构建NGINX Plus镜像&lt;a class="headerlink" href="#343-nginx-plus" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="344-nginx"&gt;3.4.4 在NGINX中使用环境变量&lt;a class="headerlink" href="#344-nginx" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;为了在不同的环境中使用相同的容器镜像, 你需要在NGINX配置文件中使用环境变量.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;使用&lt;code&gt;ngx_http_perl_module&lt;/code&gt;来从你的环境的NGINX中设置变量.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;daemon&lt;/span&gt; &lt;span class="no"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;env&lt;/span&gt; &lt;span class="s"&gt;APP_DNS&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;include&lt;/span&gt; &lt;span class="n"&gt;/usr/share/nginx/modules/*.conf&lt;/span&gt;;
+&lt;span class="k"&gt;...&lt;/span&gt;
+&lt;span class="s"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;perl_set&lt;/span&gt; &lt;span class="nv"&gt;$upstream_app&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;sub&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$ENV{&amp;quot;APP_DNS&amp;quot;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="kn"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kn"&gt;...&lt;/span&gt;
+    &lt;span class="s"&gt;location&lt;/span&gt; &lt;span class="s"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="kn"&gt;proxy_pass&lt;/span&gt; &lt;span class="s"&gt;https://&lt;/span&gt;&lt;span class="nv"&gt;$upstream_app&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;要使用&lt;code&gt;perl_set&lt;/code&gt;, 你必须安装&lt;code&gt;ngx_http_perl_module&lt;/code&gt;; 你可以通过动态模块加载或从源码静态构建. NGINX默认从环境中擦除环境变量; 你需要在&lt;code&gt;env&lt;/code&gt;指令中声明任何你不想移除的变量. &lt;code&gt;perl_set&lt;/code&gt;指令有2个参数: 你想要设置的变量名和渲染结果的perl字符串.&lt;/p&gt;
+&lt;p&gt;下面是一个Dockerfile, 会动态加载&lt;code&gt;ngx_http_perl_module&lt;/code&gt;, 从包管理工具安装该模块. 当从CentOS的包管理中安装模块, 他们被放在&lt;code&gt;/usr/lib64/nginx/modules/&lt;/code&gt;目录, 配置文件会动态加载在&lt;code&gt;/usr/share/nginx/modules/&lt;/code&gt;目录的模块. 这就是为什么上面的配置块中, 要包含完整的路径.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; centos:7&lt;/span&gt;
+&lt;span class="c"&gt;# Install epel repo to get nginx and install nginx&lt;/span&gt;
+&lt;span class="k"&gt;RUN&lt;/span&gt; yum -y install epel-release &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    yum -y install nginx nginx-mod-http-perl
+&lt;span class="c"&gt;# add local configuration files into the image&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt; /nginx-conf /etc/nginx
+&lt;span class="k"&gt;EXPOSE&lt;/span&gt;&lt;span class="s"&gt; 80 443&lt;/span&gt;
+&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;nginx&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;当使用Docker, 典型实践就是利用环境变量来修改容器操作的方式. 你可以在NGINX配置文件中使用环境变量, 这样NGINX可以用于多个, 不同的环境.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:28:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-4-nginx-docker.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category><category>docker</category></item><item><title>NGINX 实战手册-运维-使用Puppet/Chef/Ansible/SaltStack部署</title><link>https://www.EWhisper.cn/nginx-handbook-3-5-nginx-autoconf-tools.html</link><description>&lt;h2 id="35-puppetchefansiblesaltstack"&gt;3.5 使用Puppet/Chef/Ansible/SaltStack&lt;a class="headerlink" href="#35-puppetchefansiblesaltstack" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id="350"&gt;3.5.0 介绍&lt;a class="headerlink" href="#350" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;在云的时代, 配置管理工具是无价之宝. 大规模web应用的工程师无法通过代码手把手配置servers, 但是使用其中任何一个配置管理工具都可以做到. 配置管理工具允许工程师一次写入配置和代码到很多有相同配置的server, 通过使用一种可重复, 可测试, 模块化的方式. 本章讨论几个流行的配置管理工具, 以及如何使用他们安装NIGINX和从模版创建一个基本配置. 这些例子非常基础, 但是展示了如何通过每个平台来启动NGINX.&lt;/p&gt;
+&lt;h3 id="351-puppet"&gt;3.5.1 使用Puppet安装&lt;a class="headerlink" href="#351-puppet" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要通过Puppet安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他Puppet配置.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;创建一个模块, 用于安装NGINX, 管理你需要的文件, 确保NGINX在运行:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;package&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;nginx&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;ensure&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;installed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,}&lt;/span&gt;
+    &lt;span class="n"&gt;service&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;nginx&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;ensure&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;true&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;hasrestart&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;true&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;restart&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;/etc/init.d/nginx reload&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;nginx.conf&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;path&lt;/span&gt;    &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;/etc/nginx/nginx.conf&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nb"&gt;require&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="no"&gt;Package&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nginx&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;notify&lt;/span&gt;  &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="no"&gt;Service&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nginx&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;content&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nginx/templates/nginx.conf.erb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;root&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;group&lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;root&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="n"&gt;mode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;0644&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;该模块使用包管理工具来确保NGINX被安装. 也会确保NGINX在启动时在运行和可用. 该配置通知Puppet, 该服务有重启命令, 通过&lt;code&gt;hasrestart&lt;/code&gt;指令, 并且我们用NGINX reload命令覆盖&lt;code&gt;restart&lt;/code&gt;命令. 它通过内置Ruby(ERB)模版语言来管理和模板化&lt;code&gt;nginx.conf&lt;/code&gt;文件. 文件的模板化会发生在NGINX包被安装之后(通过&lt;code&gt;require&lt;/code&gt;指令). 但是, 它会通过&lt;code&gt;notify&lt;/code&gt;指令通知NGINX服务来reload. 该模版化配置文件没有包括. 另外, 它可以简单安装一个默认的NGINX配置文件, 或是使用内置Ruby(ERB)或内置Puppet(EPP)模版语言的循环和变量替换.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;Puppet是基于Ruby语言的配置管理工具. 模块被构建进一个特定域的语言, 并通过定义给定server配置的manifest文件调用. Puppet可以用主从或masterless模式运行. 使用Puppet, manifest运行在master上, 然后发到slave上. 这很重要, 因为它确保slave只是被交付对它有用的配置, 对其他server的其他配置是不会给这个slave的. Puppet有很多非常高级的公用模块. 通过这些模块, 会在配置上帮助你飞起. 在GitHub上来自voxpupuli的公共NGINX模块会为你模板化NGINX配置.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="https://docs.puppet.com/"&gt;Puppet documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jfgpm4"&gt;Puppet package documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jMq2cx"&gt;Puppet service documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jMz4q3"&gt;Puppet file documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2isqAlP"&gt;Puppet templating documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jMspMn"&gt;Voxpupuli NGINX module&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="352-chef"&gt;3.5.2 使用Chef安装&lt;a class="headerlink" href="#352-chef" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="353-ansible"&gt;3.5.3 使用Ansible安装&lt;a class="headerlink" href="#353-ansible" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要使用Ansible来安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他Ansible配置.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;p&gt;创建一个安装NGINX和管理&lt;em&gt;nginx.conf&lt;/em&gt;文件playbook. 下列是一个示例的任务文件.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;NGINX | Installing NGINX&lt;/span&gt;
+  &lt;span class="nt"&gt;package&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;name=nginx state=present&lt;/span&gt;
+
+&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;NGINX | Starting NGINX&lt;/span&gt;
+  &lt;span class="nt"&gt;service&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;nginx&lt;/span&gt;
+    &lt;span class="nt"&gt;state&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;started&lt;/span&gt;
+    &lt;span class="nt"&gt;enabled&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;yes&lt;/span&gt;
+&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;Copy nginx configuration in place.&lt;/span&gt;
+  &lt;span class="nt"&gt;template&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;src&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;nginx.conf.j2&lt;/span&gt;
+    &lt;span class="nt"&gt;dest&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/etc/nginx/nginx.conf&amp;quot;&lt;/span&gt;
+    &lt;span class="nt"&gt;owner&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;root&lt;/span&gt;
+    &lt;span class="nt"&gt;group&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;root&lt;/span&gt;
+    &lt;span class="nt"&gt;mode&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;0644&lt;/span&gt;
+  &lt;span class="nt"&gt;notify&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;reload nginx&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;package&lt;/code&gt;块安装NGINX. &lt;code&gt;service&lt;/code&gt;块确保NGINX在启动时被启动和可用. &lt;code&gt;template&lt;/code&gt;块模板化一个&lt;em&gt;Jinja2&lt;/em&gt;文件, 并把结果以root用户和组放到&lt;code&gt;/etc/nginx.conf&lt;/code&gt;中. 该模版块也设置&lt;em&gt;mode&lt;/em&gt;为644, 并通知nginx服务reload. 模板化配置文件没有包含在内. 但是, 可以通过默认的NGINX配置文件来简单, 或者通过Jinja2模版语言的循环和变量替换生成很复杂的模版.&lt;/p&gt;
+&lt;h4&gt;讨论&lt;/h4&gt;
+&lt;p&gt;Ansible是用Python编写的广泛使用的强大配置管理工具. 任务配置使用YAML, 使用Jinja2模版语言生成文件模版. Ansible提供一个有master的叫做Ansible Tower的订阅版. 但是, 它经常用于本地机器或构建服务器直接到客户端或者使用masterless模式. Ansible打包SSH到它的server并运行配置. 和其他配置工具类似, 有很多社区提供的公共roles, Ansible把它叫做Ansible Galaxy. 你可以找到可以用于你的playbook的非常复杂的roles.&lt;/p&gt;
+&lt;h4&gt;参见&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://docs.ansible.com/"&gt;Ansible documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jfiwGv"&gt;Ansible packages&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2jMGF7E"&gt;Ansible service&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://bit.ly/2j8j526"&gt;Ansible template&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://galaxy.ansible.com/"&gt;Ansible Galaxy&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="354-saltstack"&gt;3.5.4 使用SaltStack安装&lt;a class="headerlink" href="#354-saltstack" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4&gt;问题&lt;/h4&gt;
+&lt;p&gt;你需要使用SaltStack来安装和配置NGINX, 以代码形式管理NGINX配置, 并确认你的其他SaltStack配置.&lt;/p&gt;
+&lt;h4&gt;解决方案&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;pkg&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;installed&lt;/span&gt;
+  &lt;span class="nt"&gt;service&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;nginx&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;running&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;enable&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;True&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;reload&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;True&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;watch&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;file&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;/etc/nginx/nginx.conf&lt;/span&gt;
+
+&lt;span class="nt"&gt;/etc/nginx/nginx.conf&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;file&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;managed&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;source&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;salt://path/to/nginx.conf&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;user&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;root&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;group&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;root&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;template&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;jinja&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;mode&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;644&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;require&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;pkg&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;nginx&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">东风微鸣</dc:creator><pubDate>Wed, 19 Jun 2019 20:28:00 +0800</pubDate><guid isPermaLink="false">tag:www.ewhisper.cn,2019-06-19:/nginx-handbook-3-5-nginx-autoconf-tools.html</guid><category>nginx</category><category>devops</category><category>译文</category><category>最佳实践</category></item><item><title>使用OpenShift进行二进制构建</title><link>https://www.EWhisper.cn/binary-builds-with-openshift.html</link><description>&lt;div class="toc"&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="#_1"&gt;介绍&lt;/a&gt;&lt;ul&gt;
 &lt;li&gt;&lt;a href="#_2"&gt;用例&lt;/a&gt;&lt;/li&gt;
