@@ -1,0 +1,404 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="首次通过单点登录系统访问需求系统, 会等10s才能进入到页面. 这10s期间发生了什么" />
+<meta name="keywords" content="openshift, k8s, 问题分析, 性能调优">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Kubernetes 疑难问题排查 - 10s 延迟"/>
+<meta property="og:description" content="首次通过单点登录系统访问需求系统, 会等10s才能进入到页面. 这10s期间发生了什么"/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/analyze-k8s-difficult-problems-10s-delay.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-10-01 18:30:00+08:00"/>
+<meta property="article:modified_time" content="2019-10-01 22:00:00+08:00"/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="问题分析"/>
+<meta property="article:tag" content="性能调优"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Kubernetes 疑难问题排查 - 10s 延迟</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="analyze-k8s-difficult-problems-10s-delay">Kubernetes 疑难问题排查 - 10s 延迟</h1>
+    <p>
+      在 2019-10-01 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">现象</a><ul>
+<li><a href="#_2">背景概述</a></li>
+</ul>
+</li>
+<li><a href="#_3">分析过程</a><ul>
+<li><a href="#_4">第一阶段  抓包并分析</a></li>
+<li><a href="#_5">第二阶段  细化分析和排除阶段</a></li>
+<li><a href="#_6">第三阶段  业务流程梳理</a></li>
+<li><a href="#_7">第四阶段  定位</a></li>
+</ul>
+</li>
+<li><a href="#_8">原因总结</a></li>
+<li><a href="#_9">解决方案</a></li>
+<li><a href="#_10">总结</a></li>
+</ul>
+</div>
+<p><img alt="题图" src="./images/navigating-the-container-management-storm.jpg"></p>
+<h2 id="_1">现象<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>首次通过<strong>单点登录系统(下称CAS)</strong>访问<strong>需求系统</strong>, 会等<strong>10s</strong>才能进入到<strong>需求系统</strong>的页面.</p>
+<h3 id="_2">背景概述<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>单点登录系统</strong>位于公司传统环境;</li>
+<li><strong>需求系统</strong>位于公司K8S容器平台(openshift)上;</li>
+<li>公司K8S容器平台位于公司私有云环境(网络为SDN);</li>
+<li>...</li>
+</ol>
+<h2 id="_3">分析过程<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>该问题比较复杂, 主要是在于网络架构的复杂. 正如<a href="#背景概述">上文</a>所述, 这两个系统的交互, 涉及到:</p>
+<ol>
+<li>传统网络架构</li>
+<li>私有云的SDN网络架构</li>
+<li>以及架构在私有云之上的OpenShift OVS(OpenVSwitch) SDN网络</li>
+</ol>
+<p>举个简单的例子, 如果容器A要访问外部系统, 网络流应该是这样的:</p>
+<p><strong>eth0</strong>(容器A的网卡) → <strong>vethA</strong> → <strong>br0</strong>→ <strong>tun0</strong> → (NAT) <sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup>→ (私有云网络) → (传统网络F5 -&gt; 传统网络相关虚机)</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p><strong>br0</strong>:</p>
+<p>连接到pod容器的OVS桥设备。OpenShift SDN还在这个桥上配置一组非子网特定的流规则。</p>
+<p><strong>tun0</strong>:</p>
+<p>OVS内部端口(br0上的端口2)。它被分配给集群子网网关地址，用于外部网络访问。OpenShift SDN配置netfilter和路由规则，允许从集群子网通过NAT访问外部网络。</p>
+<p><strong>NAT:</strong></p>
+<p>网络地址转换</p>
+<p>后边的私有云网络和传统环境网络不太熟, 所以就没有详细描述, 实际上网络节点也不少.</p>
+</blockquote>
+<p>目前首先第一步要做的就是<strong>缩小范围</strong> -- 尽可能的缩小怀疑点的范围. 方便进一步定位.</p>
+<p>具体操作步骤如下:</p>
+<h3 id="_4">第一阶段  抓包并分析<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>经过初步分析，得到如下结论：</p>
+<ol>
+<li>
+<p>用户通过<strong>CAS</strong>的页面点击<strong>需求系统</strong>, 这时会带着Ticket跳转到<strong>需求系统</strong>: <code>"GET http://itweb.cloud.example.com.cn/login.jsp?ticket=XX-1144737-F6gZZyxhe0IfKxBJS4zjuf9Csz4-cas2 HTTP/1.1"</code></p>
+</li>
+<li>
+<p>我们首先通过Chrome的F12开发工具来进行查看，发现正是上边的这个请求耗时10s，且10s都是在<code>Waitting(TTFR)</code> 如下图: (<em>TODO: 图太糊, 需要重新截一个</em>)</p>
+</li>
+</ol>
+<p><img alt="请求耗时10s" src="./images/chrome_f12_10s.jpg"></p>
+<ol start="3">
+<li>
+<p>以上请求是在<strong>需求系统</strong>内进行处理, 且我们之前已经了解到未上容器之前不存在这个问题, 所以基本排除<strong>需求系统</strong>应用问题的可能性. 那么就需要抓取<strong>需求系统</strong>的APP所在容器(以下简称pod a)的网络包, 确定是不是网络问题.</p>
+</li>
+<li>
+<p>通过<code>tcpdump</code>命令抓取pod a网卡的所有流量. 并且在这期间复现该问题.</p>
+</li>
+<li>
+<p>通过<a href="https://www.wireshark.org/"><strong>WireShark</strong></a>打开进行分析, 由于知道是上边的请求有问题, 所以专门看这个请求的TCP流. 结果如下:</p>
+</li>
+</ol>
+<p><img alt="wireshark分析请求" src="./images/10s_delay_cap_1.png"></p>
+<ol start="6">
+<li>
+<p>如上图标红处的时间, 可以明显的看到, pod a(IP为: 10.131.0.244)收到上述的请求后, 返回了http code 302, 然后进行TCP的3次握手. 然后就出问题了, <code>PSH+ACK</code>的动作是在<strong>10s</strong>后才发出的!!!</p>
+</li>
+<li>
+<p>这一次, 根据源IP(pod A)和目的IP(可以理解为K8S Ingress 的tun0的IP), 初步判定是: <strong>容器 -&gt; Ingress之间出现了10s的延迟.</strong></p>
+</li>
+</ol>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px">备注:</p>
+<p>关于K8S上网络抓包，后续会再写一篇文章: 《K8S上网络抓包的3种方式》. 敬请期待~</p>
+</blockquote>
+<h3 id="_5">第二阶段  细化分析和排除阶段<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>上一阶段, 初步确定了是:  <strong>容器 -&gt; Ingress之间出现了10s的延迟.</strong></p>
+<p>那么后续就计划对者之间的网络进一步的进行分析. 为此准备了2套方案:</p>
+<ol>
+<li>排除法, 由于pod A和Ingress不在同一台虚机上, 而这两台虚机之间的交互就会牵扯到: OpenShift的OVS网络以及私有云的SDN网络. 所以希望通过将pod A调度到Ingress所在的主机上, 观察结果来进行排除.<ol>
+<li>如果调度到同一台主机后, 仍然存在该问题, 则排除<strong>私有云SDN</strong>出问题的可能性;</li>
+<li>如果调度后问题解决, 那么就可能是: OpenShift的OVS网络或私有云的SDN网络的问题.</li>
+</ol>
+</li>
+<li>细化分析. 之前只是简单抓了pod A的包. 后续计划将涉及到的所有网络节点进行抓包, 包括:<ol>
+<li>pod A</li>
+<li>pod A所在主机</li>
+<li>私有云SDN相关网络设备</li>
+<li>Ingress所在主机</li>
+<li>Ingress pod</li>
+</ol>
+</li>
+</ol>
+<p>但是在这一阶段碰到了各种困难, 使得这2个方案都没有最终被执行.</p>
+<p>所以我们继续希望通过之前的那个网络包, 分析到更多细节, 我们从2个方面进行:</p>
+<ol>
+<li>请网络组老师看一下这个网络包, 网络组老师的反馈是: <strong>基本断定是pod A的问题</strong>, 不需要再抓其他包</li>
+<li>联系<strong>需求系统</strong>和<strong>CAS</strong>项目组老师, 进一步了解业务流程细节. 期望获取更多细节.</li>
+</ol>
+<p>而这2个方面也取得了比较大的收获!</p>
+<h3 id="_6">第三阶段  业务流程梳理<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>重点关注<strong>首次登录需求系统</strong>这个业务流程.</p>
+<p>有的用户是先访问CAS, 登录CAS, 再通过CAS跳转进入需求系统;</p>
+<p>有的用户是先访问CAS, 不登陆, 通过CAS跳转到需求系统, 再反过来登录验证并进入需求系统;</p>
+<p>有的用户是直接访问需求系统, 跳转到单点登录, 登录认证后进入需求系统.</p>
+<p>有以上三种情况, 本质上都是一样的. 就是需求系统需要和CAS交互.</p>
+<p>下边选择一个最常用的流程做说明.</p>
+</blockquote>
+<ol>
+<li>用户访问并登录<strong>单点登录系统</strong>;<ol>
+<li>此时用户会获取到一个Ticket, 格式实例如下: <code>XX-1144737-F6gZZyxhe0IfKxBJS4zjuf9Csz4-&lt;instancename&gt;</code></li>
+<li>这期间用户并不会访问<strong>需求系统</strong></li>
+</ol>
+</li>
+<li>用户通过<strong>CAS</strong>的页面点击<strong>需求系统</strong>, 这时会带着Ticket跳转到<strong>需求系统</strong>: <code>"GET http://itweb.cloud.example.com.cn/login.jsp?ticket=XX-1144737-F6gZZyxhe0IfKxBJS4zjuf9Csz4-cas2 HTTP/1.1"</code></li>
+<li><strong>需求系统</strong>收到该请求, 会回访<strong>CAS</strong>验证: <code>“GET http://10.1.XX.XX:XXXX/casserver/serviceValidate?hostnameVerifier=org.jasig.cas.client.ssl.AnyHostnameVerifier&amp;ticket= XX-1144737-F6gZZyxhe0IfKxBJS4zjuf9Csz4-cas2&amp;encoding=UTF-8&amp;service=http%3A%2F%2Fitweb.cloud.example.com.cn%2F”</code> .</li>
+<li><strong>CAS</strong>验证后返回结果给<strong>需求系统</strong>:<ol>
+<li>验证<strong>通过</strong>, 正常登录, 进入<strong>需求系统</strong>主页面;</li>
+<li>验证<strong>不通过</strong>, 提示<strong>你无权访问该系统</strong>.</li>
+</ol>
+</li>
+</ol>
+<p>项目组老师重点提到, 根据他们的日志来看, <strong>是第3步慢了10s.</strong></p>
+<h3 id="_7">第四阶段  定位<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>和网络组老师和项目组老师沟通受益颇多:</p>
+<ul>
+<li>网络组老师: <strong>基本断定是pod A的问题</strong></li>
+<li>项目组老师: <strong>是第3步(需求系统回访CAS验证)慢了10s.</strong></li>
+</ul>
+<p>我们决定再次查看之前抓取的网络包, 仔细看一下CAS访问单点登录系统后, 网络上都发生了什么. 而这一次, 我们终于抓到了蛛丝马迹!</p>
+<p>这次不再关注某一个<strong>TCP流</strong>, 而是关注接收到请求后, 都发生了什么.</p>
+<ol>
+<li>收到请求后, pod A要访问<strong>CAS</strong> 10.1.XX.XX, 注意这一次: <strong>不是直接访问CAS的IP, 而是先做反向DNS解析!!!</strong>如下图:</li>
+</ol>
+<p><img alt="要访问CAS" src="./images/10s_delay_cap_2.png"></p>
+<ol start="2">
+<li>第一次反向DNS解析<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>, DNS server没返回任何信息, <strong>5s超时</strong>. (网络流比较长, 就不附图了, 反正接下来5s都没有看到DNS server有返回信息). 开始进行第二次反向DNS解析, 如下图:</li>
+</ol>
+<p><img alt="两次方向DNS解析" src="./images/10s_delay_cap_3.png"></p>
+<ol start="3">
+<li>2次DNS反解析失败后, <strong>第三次就不做反向DNS解析了, 而是直接访问</strong>, 并快速得到结果. 所以每次都是等待<strong>10s</strong>才进入系统. 如下图:</li>
+</ol>
+<p><img alt="第三次直接访问" src="./images/10s_delay_cap_4.png"></p>
+<h2 id="_8">原因总结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p><strong>需求系统</strong>访问<strong>单点登录</strong>10.1.XX.XX:XXXX花了10s, 是因为那次请求会进行反向dns解析。结果解析2次不成功。dns一次解析超时是5s<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">3</a></sup>… 第三次就不解析了直接访问. 所以就是每次等10s. <img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"><img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"><img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f602.png" title=":joy:" width="20px"></p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>其实应该不是<strong>需求系统</strong>会做反向DNS解析, 而是它部署在WebLogic中间件上, WebLogic中间件会进行反向DNS解析.</p>
+<p>我之所以知道这个事情, 是因为有次某寿险公司有一次生产DNS出故障了, 排查的时候发现<strong>海量的反向DNS解析</strong>来自weblogic.</p>
+<p>有时间可以再来一篇相关的内容.</p>
+</blockquote>
+<h2 id="_9">解决方案<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<ol>
+<li>尝试在需求系统启动项种加入禁止反向解析的参数, 测试不生效.</li>
+<li>Openshift每台节点都会启动一个dnsmasq进程用作集群内部dns处理, 将worker节点的dnsmasq加入如下配置并重启. 使得反向DNS解析成功. 则问题解决.</li>
+</ol>
+<div class="highlight"><pre><span></span>ptr-record=XX.XX.1.10.in-addr.arpa, 10.1.XX.XX
+</pre></div>
+
+
+<h2 id="_10">总结<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<p>至此, 我们完整的梳理了<strong>需求系统首次登录要等10s</strong>的问题, 分析过程信息量比较大, 牵涉的环节也比较多. 其实最后定位的原因, 也和K8S的网络, 私有云的网络灯新技术没啥关系. 问题还是老问题.</p>
+<ol>
+<li>强烈不建议将传统软件硬塞入容器内, 坑不止这一个; <img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"><img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"><img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"></li>
+<li>K8S采用后, 网络复杂性会大幅上升, 分析K8S上网络问题, 网络分析手段必不可少;</li>
+<li>分析问题过程中, <em>三人行, 必有我师焉</em>, 多与其他老师交流沟通, 发散思维, 避免走入死胡同.</li>
+</ol>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://docs.openshift.com/container-platform/3.9/architecture/networking/sdn.html#sdn-packet-flow">OpenShift docs: SDN Package Flow</a>&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://en.wikipedia.org/wiki/Reverse_DNS_lookup">wiki: Reverse DNS lookup</a>&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://www.linuxquestions.org/questions/linux-server-73/how-to-set-dns-timeout-on-dnsmasq-747341/">How to set dns timeout on dnsmasq</a>&#160;<a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/wen-ti-fen-xi.html">问题分析</a>
+      <a href="https://www.EWhisper.cn/tag/xing-neng-diao-you.html">性能调优</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/update-zentao-where-deployed-on-openshift.html" title="OpenShift上禅道升级方案">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/think-from-broken-to-k8s.html" title="思考 - 从传统雪崩到K8S">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/how-to-tcpdump-in-k8s.html">Kubernetes 中分析调试网络流量的4种方式</a></li>
+      <li><a href="https://www.EWhisper.cn/how-to-run-container-with-su-in-openshift.html">如何在 OpenShift 中运行 Collabora Office</a></li>
+      <li><a href="https://www.EWhisper.cn/container-best-practices.html">容器最佳实践</a></li>
+      <li><a href="https://www.EWhisper.cn/install-gitlab-with-docker.html">使用 Docker 安装 Gitlab</a></li>
+      <li><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html">容器自动伸缩</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

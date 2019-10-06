@@ -1,0 +1,879 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="这篇文章主要是翻译自OpenShift关于镜像的最佳实践, 同时结合我看到的其他关于镜像最佳实践的文章, 以及我日常工作中的体会总结出来的. 包括通用的容器最佳实践, java, nginx, python容器最佳实践以及OpenShift上容器最佳实践. 最佳实践的目的一方面是为了提升DevOps效率, 另一方面是为了提高安全性. 希望对各位有所帮助." />
+<meta name="keywords" content="python, java, openshift, docker, 最佳实践, k8s, containers">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="容器最佳实践"/>
+<meta property="og:description" content="这篇文章主要是翻译自OpenShift关于镜像的最佳实践, 同时结合我看到的其他关于镜像最佳实践的文章, 以及我日常工作中的体会总结出来的. 包括通用的容器最佳实践, java, nginx, python容器最佳实践以及OpenShift上容器最佳实践. 最佳实践的目的一方面是为了提升DevOps效率, 另一方面是为了提高安全性. 希望对各位有所帮助."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/container-best-practices.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-07-25 17:00:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="python"/>
+<meta property="article:tag" content="java"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="docker"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="containers"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 容器最佳实践</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="container-best-practices">容器最佳实践</h1>
+    <p>
+      在 2019-07-25 Thursday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 5 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">概述</a><ul>
+<li><a href="#_2">翻译对照表</a></li>
+</ul>
+</li>
+<li><a href="#_3">通用容器镜像指南</a><ul>
+<li><a href="#label-maintainer">使用 LABEL maintainer</a></li>
+<li><a href="#_4">复用镜像</a></li>
+<li><a href="#tags">保持标签 TAGS 的兼容性</a></li>
+<li><a href="#_5">避免多个进程</a></li>
+<li><a href="#exec">在封装脚本中使用 EXEC 指令</a></li>
+<li><a href="#_6">清除临时文件</a></li>
+<li><a href="#_7">按正确的顺序放置指令</a></li>
+<li><a href="#_8">标记重要端口</a></li>
+<li><a href="#_9">设置环境变量</a></li>
+<li><a href="#_10">避免默认密码</a></li>
+<li><a href="#sshd">禁用SSHD</a></li>
+<li><a href="#volumes">将 VOLUMES 用于持久数据</a></li>
+<li><a href="#root">使用非root用户运行容器进程</a></li>
+<li><a href="#_11">使用多阶段构建创建精益且生产就绪的镜像</a></li>
+<li><a href="#_12">禁止在容器中存储机密信息</a></li>
+<li><a href="#tmp">避免将文件放入/tmp中</a></li>
+<li><a href="#alpine-linux">~~使用 Alpine Linux基础镜像(不建议采纳)~~</a></li>
+<li><a href="#red-hat">使用Red Hat 官方基础镜像</a></li>
+<li><a href="#dockerignore">使用.dockerignore排除无关文件</a></li>
+<li><a href="#_13">不要安装不必要的包</a></li>
+<li><a href="#_14">解耦应用程序</a></li>
+<li><a href="#_15">对多行参数进行排序</a></li>
+</ul>
+</li>
+<li><a href="#java">JAVA 容器镜像指南</a><ul>
+<li><a href="#ide">IDE插件推荐</a></li>
+<li><a href="#_16">设置内存限制相关参数</a></li>
+<li><a href="#gc">设置GC策略</a></li>
+<li><a href="#java_1">JAVA启动阶段调优</a></li>
+<li><a href="#java_2">JAVA容器全局建议资源请求和资源限制</a></li>
+</ul>
+</li>
+<li><a href="#nginx">NGINX 容器镜像指南</a></li>
+<li><a href="#python">Python 容器镜像指南</a><ul>
+<li><a href="#ide_1">IDE插件推荐</a></li>
+<li><a href="#_17">建议配置的环境变量</a></li>
+<li><a href="#_18">安装数据库驱动包的方法</a></li>
+</ul>
+</li>
+<li><a href="#openshift">Openshift 容器平台特定指南</a><ul>
+<li><a href="#s2i">启用源到映像（S2I）功能</a></li>
+<li><a href="#id">支持任意用户ID</a></li>
+<li><a href="#service">使用服务 SERVICE 进行镜像间通信</a></li>
+<li><a href="#_19">提供公共库</a></li>
+<li><a href="#_20">使用环境变量进行配置</a></li>
+<li><a href="#_21">考虑集群方案</a></li>
+<li><a href="#_22">记录日志</a></li>
+<li><a href="#livenessreadiness">LIVENESS活性探针和READINESS 就绪探针</a></li>
+<li><a href="#-template">模板 - TEMPLATE</a></li>
+<li><a href="#_23">在镜像中包括元数据</a></li>
+</ul>
+</li>
+<li><a href="#_24">参考链接</a></li>
+</ul>
+</div>
+<h2 id="_1">概述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>学习制作镜像的最佳实践。</p>
+<p>这篇文章主要是翻译自OpenShift关于镜像的最佳实践, 同时结合我看到的其他关于镜像最佳实践的文章, 以及我日常工作中的体会总结出来的. 包括通用的容器最佳实践, java, nginx, python容器最佳实践以及OpenShift上容器最佳实践. 最佳实践的目的一方面是为了提升DevOps效率, 另一方面是为了提高安全性. 希望对各位有所帮助.</p>
+<p>在创建要在Docker, Kubernetes, 或者Openshift容器平台上运行的容器镜像时，作为一名镜像作者和维护者，需要考虑许多最佳实践，以确保为这些镜像的使用者提供良好的体验。因为镜像是不可变的并按原样使用，下面的指导原则有助于确保您的镜像是高度可复用的，并且易于在Docker, Kubernetes 或 Openshift容器平台上使用。</p>
+<h3 id="_2">翻译对照表<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>英文</th>
+<th>中文</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tag</td>
+<td>标签</td>
+<td>docker镜像版本标签</td>
+</tr>
+<tr>
+<td>image</td>
+<td>镜像</td>
+<td></td>
+</tr>
+<tr>
+<td>container</td>
+<td>容器</td>
+<td></td>
+</tr>
+<tr>
+<td>pod</td>
+<td></td>
+<td>Kubernetes的最小托管单位, 一般为一个容器, 也可以为多个容器.</td>
+</tr>
+<tr>
+<td>namespace</td>
+<td>命名空间</td>
+<td></td>
+</tr>
+<tr>
+<td>image layer</td>
+<td>镜像层</td>
+<td></td>
+</tr>
+<tr>
+<td>metadata</td>
+<td>元数据</td>
+<td></td>
+</tr>
+<tr>
+<td>node</td>
+<td>节点</td>
+<td>Kubernetes 概念, 指主机.</td>
+</tr>
+<tr>
+<td>OpenShift Container Platform</td>
+<td>OpenShift容器平台</td>
+<td></td>
+</tr>
+<tr>
+<td>SOURCE-TO-IMAGE</td>
+<td>源到镜像</td>
+<td>OpenShift容器平台的专有CI/CD方式</td>
+</tr>
+<tr>
+<td>root group</td>
+<td>根组</td>
+<td>*NIX的概念</td>
+</tr>
+<tr>
+<td>service account</td>
+<td>服务帐户</td>
+<td>Kubernetes或 OpenShift的概念</td>
+</tr>
+<tr>
+<td>security context constraint</td>
+<td>安全上下文约束</td>
+<td>OpenShift容器平台的概念</td>
+</tr>
+<tr>
+<td>service</td>
+<td>服务</td>
+<td>Kubernetes 概念</td>
+</tr>
+<tr>
+<td>image registry</td>
+<td>镜像注册表</td>
+<td></td>
+</tr>
+<tr>
+<td>heap</td>
+<td>堆</td>
+<td>一种JVM内存类型</td>
+</tr>
+<tr>
+<td>out-of-memory</td>
+<td>内存不足</td>
+<td>JVM报错</td>
+</tr>
+<tr>
+<td>liveness probe</td>
+<td>活性探针</td>
+<td>Kubernetes 概念 - 用于检查容器状态</td>
+</tr>
+<tr>
+<td>readiness probe</td>
+<td>就绪探针</td>
+<td>Kubernetes 概念 - 用于检查容器状态</td>
+</tr>
+<tr>
+<td>template</td>
+<td>模板</td>
+<td></td>
+</tr>
+<tr>
+<td>label</td>
+<td>标签</td>
+<td>dockerfile概念</td>
+</tr>
+<tr>
+<td>quota</td>
+<td>配额</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">通用容器镜像指南<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>通常，在创建容器镜像时，以下准则普遍适用，并且与是否在OpenShift Container Platform上使用镜像无关。</p>
+<h3 id="label-maintainer">使用 <code>LABEL maintainer</code><a class="headerlink" href="#label-maintainer" title="Permanent link">&para;</a></h3>
+<p><code>LABEL maintainer</code>指令设置镜像的author字段。如果您的用户有问题，这对于向他们提供电子邮件联系非常有用。</p>
+<h3 id="_4">复用镜像<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>只要有可能，我们建议您使用<code>FROM</code>语句将镜像基于适当的上游镜像。这可确保您的镜像在更新时可以轻松从上游映像中获取安全修复程序，而不必直接更新依赖项。</p>
+<p>此外，在<code>FROM</code>指令中使用标签 tag（例如 <code>rhel:rhel7</code>），使用户能够清楚地了解镜像所基于的上游镜像版本。</p>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> <strong>禁止</strong>使用<code>latest</code> tag以确保您的镜像不会受到<code>latest</code>上游镜像版本的重大更改的影响。</p>
+<h3 id="tags">保持标签 TAGS 的兼容性<a class="headerlink" href="#tags" title="Permanent link">&para;</a></h3>
+<p>给自己的镜像打标签时，我们建议您尝试在标签内保持向后兼容性。例如，如果您提供一个名为<code>foo</code>的镜像，并且它当前为1.0版，那么您可以提供一个<code>foo:v1</code>标签。当您更新镜像时，只要它继续与原始镜像兼容，就可以继续标记新图像为<code>foo:v1</code>，并且该标记的下游消费者将能够在不中断的情况下获得更新。</p>
+<p>如果您稍后发布了不兼容的更新，那么您应该切换到一个新标签，例如<code>foo:v2</code>。这允许下游消费者可以按照自身意愿升级到新版本，但不会被新的不兼容镜像无意中破坏。但是任何使用<code>foo:latest</code>的下游消费者都会承担引入不兼容更改的风险。</p>
+<h3 id="_5">避免多个进程<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>我们建议您<strong>不要</strong>在一个容器内启动多个服务，例如数据库和sshd。这是不必要的，因为容器是轻量级的，可以很容易地链接在一起以协调多个进程。Kubernetes和Openshift容器平台允许您通过将相关镜像分组到单个pod中，轻松地对它们进行集中和共同管理。</p>
+<p>这个托管单位(指pod)确保单位内的容器间共享网络名称空间和通信存储。更新的干扰也较小。单进程的信号处理流程也更清晰，因为您不必管理路由信号到生成的进程。</p>
+<h3 id="exec">在封装脚本中使用 <code>EXEC</code> 指令<a class="headerlink" href="#exec" title="Permanent link">&para;</a></h3>
+<p>许多镜像在为正在运行的软件启动进程之前使用封装脚本进行一些设置。如果您的镜像使用这样的脚本，那么该脚本应该使用<code>exec</code>，以便用软件替换该脚本的进程。如果不使用<code>exec</code>，那么容器运行时发送的信号将转到封装脚本，而不是软件的进程。这不是你想要的，如图所示：</p>
+<p><img alt="发送信号问题" src="./images/bash_signal.png"></p>
+<p>假设您有一个封装脚本来启动某个服务器的进程。启动容器（例如，使用<code>docker run -i</code>），它运行封装脚本，然后启动进程。现在假设您希望使用<code>ctrl+c</code>终止容器。如果封装脚本使用<code>exec</code>启动服务器进程，docker将向服务器进程发送<em>sigint</em>，并且一切都将按预期工作。如果您没有在封装脚本中使用<code>exec</code>，docker会将<em>sigint</em>发送到封装脚本的进程，并且您的服务器进程将像什么都没有发生一样继续运行。</p>
+<p>还要注意，当在容器中运行时，您的进程作为<strong>pid 1</strong>运行。这意味着，如果主进程终止，整个容器将停止，从而杀死您可能从<strong>PID 1</strong>进程启动的任何子进程。</p>
+<p>有关其他含义，请参阅 <a href="http://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/">“Docker和PID 1 zombie收获问题”</a>博客文章。另请参阅<a href="https://felipec.wordpress.com/2013/11/04/init/">“揭开init系统（PID 1）的神秘面纱”</a>博客文章，深入了解PID 1和<strong>init</strong> 系统。</p>
+<h3 id="_6">清除临时文件<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>应删除在生成过程中创建的<strong>所有临时文件</strong>。这还包括使用<code>ADD</code>指令添加的任何文件。例如，👍 我们强烈建议您在执行<code>yum install</code>操作之后运行<code>yum clean</code>命令。</p>
+<p>通过如下创建<code>RUN</code>语句，可以防止<code>yum</code>缓存存储在镜像层中：</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> yum -y install mypackage <span class="o">&amp;&amp;</span> yum -y install myotherpackage <span class="o">&amp;&amp;</span> yum clean all -y
+</pre></div>
+
+
+<p>请注意，如果您改为：</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> yum -y install mypackage
+<span class="k">RUN</span> yum -y install myotherpackage <span class="o">&amp;&amp;</span> yum clean all -y
+</pre></div>
+
+
+<p>那么，第一个<code>yum</code>调用会在该层中留下额外的文件，并且在稍后运行<code>yum clean</code>操作时，无法删除这些文件。额外的文件在最终镜像中不可见，但它们存在于底层中。</p>
+<p>当前容器生成过程不允许在较新的层中运行命令，以缩小在较早的层中删除某些内容时图像所使用的空间。这意味着，如果在后面的层中执行rm命令，尽管文件是隐藏的，但它不会减少要下载的镜像的总体大小。因此，与<code>yum clean</code>示例一样，最好在可能的情况下，使用创建文件的相同命令删除文件，这样它们就不会被写入某个层。</p>
+<p>此外，在一条<code>RUN</code>语句中执行多个命令可以减少镜像中的层数，从而缩短下载和提取时间。</p>
+<p>apt-get例子如下: (最后通过<code>rm -rf /var/lib/apt/lists/*</code>删除)</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> apt-get update <span class="o">&amp;&amp;</span> apt-get install -y <span class="se">\</span>
+    aufs-tools <span class="se">\</span>
+    automake <span class="se">\</span>
+    build-essential <span class="se">\</span>
+    curl <span class="se">\</span>
+    dpkg-sig <span class="se">\</span>
+    libcap-dev <span class="se">\</span>
+    libsqlite3-dev <span class="se">\</span>
+    mercurial <span class="se">\</span>
+    reprepro <span class="se">\</span>
+    ruby1.9.1 <span class="se">\</span>
+    ruby1.9.1-dev <span class="se">\</span>
+    <span class="nv">s3cmd</span><span class="o">=</span><span class="m">1</span>.1.* <span class="se">\</span>
+ <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<ol>
+<li><code>RUN</code>、<code>COPY</code>和<code>ADD</code>步骤将创建层。</li>
+<li>每个层包含与前一层的差异项。</li>
+<li>图层会增加最终镜像的大小。</li>
+</ol>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 提示:</p>
+<ol>
+<li>将相关命令（<code>yum install</code>）放入同一<code>RUN</code>步骤。</li>
+<li>在同一<code>RUN</code>步骤中删除创建的文件。</li>
+<li>避免使用<code>apt-get upgrade</code>或<code>yum upgrade all</code>，因为它将所有包升级到最新版本.</li>
+</ol>
+</blockquote>
+<h3 id="_7">按正确的顺序放置指令<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>容器构建器读取<code>dockerfile</code>并从上到下运行指令。成功执行的每一条指令都会创建一个层，在下次构建此镜像或另一个镜像时可以重用该层。在Dockerfile的顶部放置很少更改的指令非常重要。这样做可以确保同一图像的下一个构建速度非常快，因为上层更改不会使缓存失效。</p>
+<p>例如，如果您正在处理一个<code>dockerfile</code>，其中包含一个用于安装正在迭代的文件的<code>ADD</code>指令，以及一个用于<code>yum install</code>包的<code>RUN</code>指令，那么最好将<code>ADD</code>命令放在最后：</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> foo</span>
+<span class="k">RUN</span> yum -y install mypackage <span class="o">&amp;&amp;</span> yum clean all -y
+<span class="k">ADD</span> myfile /test/myfile
+</pre></div>
+
+
+<p>这样，每次编辑<em>myfile</em>并重新运行<code>`docker build</code>时，系统都会为<code>yum</code>命令重用缓存层，并且只为<code>ADD</code>操作生成新层。</p>
+<p>如果相反，您将dockerfile编写为：</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> foo</span>
+<span class="k">ADD</span> myfile /test/myfile
+<span class="k">RUN</span> yum -y install mypackage <span class="o">&amp;&amp;</span> yum clean all -y
+</pre></div>
+
+
+<p>然后，每次更改<em>myfile</em>和再次运行<code>docker build</code>时，<code>ADD</code>操作都会使运行层缓存失效，因此必须重新运行<code>yum</code>操作。</p>
+<h3 id="_8">标记重要端口<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p><code>EXPOSE</code>指令使容器中的端口对主机系统和其他容器可用。虽然可以指定使用<code>docker run -p</code>调用公开端口，但在<code>dockerfile</code>中使用<code>EXPOSE</code>指令可以通过显式声明软件需要运行的端口，使人和软件更容易使用您的镜像：</p>
+<ul>
+<li>暴露的端口将显示在与从您的镜像创建的容器相关联的<code>docker ps</code>下。</li>
+<li><code>docker inspect</code>返回的镜像的元数据中也将存在暴露的端口。</li>
+<li>当您将一个容器链接到另一个容器时，暴露的端口将被链接。</li>
+</ul>
+<h3 id="_9">设置环境变量<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<p><img align="absmiddle" alt="👍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f44d.png" title=":+1:" width="20px"> 使用<code>ENV</code>指令设置环境变量是很好的实践。一个例子是设置项目的版本。这使得人们在不查看<code>dockerfile</code>的情况下很容易找到版本。另一个例子是在系统上公布一条可以被另一个进程使用的路径，比如<code>JAVA_HOME</code>.</p>
+<h3 id="_10">避免默认密码<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 最好<strong>避免设置默认密码</strong>。许多人会扩展镜像，忘记删除或更改默认密码。如果为生产中的用户分配了一个众所周知的密码，这可能会导致安全问题。<img align="absmiddle" alt="👍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f44d.png" title=":+1:" width="20px"> <strong>应该使用环境变量来配置密码</strong>。</p>
+<p>如果确实选择设置默认密码，请确保在容器启动时显示适当的警告消息。消息应该通知用户默认密码的值，并解释如何更改它，例如设置什么环境变量。</p>
+<h3 id="sshd">禁用SSHD<a class="headerlink" href="#sshd" title="Permanent link">&para;</a></h3>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 禁止在镜像中运行sshd。可以使用<code>docker exec</code>命令访问本地主机上运行的容器。或者，可以使用<code>oc exec</code>命令或<code>oc rsh</code>命令来访问在Openshift容器平台集群上运行的容器。在您的镜像中安装和运行sshd会遭受潜在攻击, 需要额外的安全补丁修复。</p>
+<h3 id="volumes">将 VOLUMES 用于持久数据<a class="headerlink" href="#volumes" title="Permanent link">&para;</a></h3>
+<p>镜像应使用<a href="https://docs.docker.com/reference/builder/#volume">卷</a>来存储持久数据。这样，Kubernetes或OpenShift Container Platform将网络存储挂载到运行容器的节点，如果容器移动到新节点，则存储将重新连接到该节点。通过将卷用于所有持久存储需求，即使重新启动或移动容器，也会保留内容。如果您的镜像将数据写入容器内的任意位置，则可能不会保留该内容。</p>
+<p>所有需要保存的数据，即使在容器被销毁后，也必须写入卷。容器引擎支持容器的<code>readonly</code>标志，可用于严格执行有关不将数据写入容器中的临时存储的良好实践。现在围绕这个功能设计您的镜像将使以后更容易利用它。</p>
+<p>此外，在<em>Dockerfile</em>中显式定义卷使镜像的消费者很容易理解在运行镜像时必须定义哪些卷。</p>
+<p>有关如何在Openshift容器平台中使用卷的更多信息，请参阅 <a href="https://kubernetes.io/docs/concepts/storage/volumes/">Kubernetes documentation</a>.</p>
+<blockquote>
+<p><img align="absmiddle" alt="❕" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2755.png" title=":grey_exclamation:" width="20px"> 注意:</p>
+<p>即使使用持久卷，镜像的每个实例都有自己的卷，并且文件系统在实例之间不共享。这意味着卷不能用于共享集群中的状态。</p>
+</blockquote>
+<h3 id="root">使用非root用户运行容器进程<a class="headerlink" href="#root" title="Permanent link">&para;</a></h3>
+<p>默认情况下，Docker用容器内部的root运行容器进程。这是一个糟糕的做法，因为如果攻击者设法突破容器，他们可以获得对Docker主机的root权限。</p>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>如果您是容器中的root，那么您将是主机上的root。</p>
+</blockquote>
+<h3 id="_11">使用多阶段构建创建精益且生产就绪的镜像<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<p>利用<a href="https://docs.docker.com/develop/develop-images/multistage-build/">多阶段构建</a>来创建一个用于构建工件的临时镜像，该工件将被复制到生产镜像上。临时构建镜像将与与该映像关联的原始文件、文件夹和依赖项一起丢弃。</p>
+<p>这会产生了一个精益，生产就绪的镜像。</p>
+<p>一个用例是使用非Alpine基础镜像来安装需要编译的依赖项。然后可以将wheel文件复制到最终镜像。</p>
+<p>Python 示例如下:</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> python:3.6 as base</span>
+<span class="k">COPY</span> requirements.txt /
+<span class="k">RUN</span> pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
+
+<span class="k">FROM</span><span class="s"> python:3.6-alpine</span>
+<span class="k">COPY</span> --from<span class="o">=</span>base /wheels /wheels
+<span class="k">COPY</span> --from<span class="o">=</span>base requirements.txt .
+<span class="k">RUN</span> pip install --no-cache /wheels/* # flask, gunicorn, pycrypto
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+<span class="k">COPY</span> . /app
+</pre></div>
+
+
+<p>使用前大小: 705MB, 使用后大小: 103MB</p>
+<h3 id="_12"><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 禁止在容器中存储机密信息<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<p>禁止在容器中存储机密信息, 包括:</p>
+<ul>
+<li>敏感信息。</li>
+<li>数据库凭据、</li>
+<li>ssh密钥、</li>
+<li>用户名和密码、</li>
+<li>api令牌等。</li>
+</ul>
+<p>以上信息可以通过: </p>
+<ul>
+<li>环境变量 ENV  传递</li>
+<li>卷VOLUME 挂载</li>
+</ul>
+<h3 id="tmp">避免将文件放入<code>/tmp</code>中<a class="headerlink" href="#tmp" title="Permanent link">&para;</a></h3>
+<p>对于一些软件(如: python的gunicorn), 会将某些缓存信息或心跳检测信息写入<code>/tmp</code>中, 这对<code>/tmp</code>的读写性能有较高要求, 如果<code>/tmp</code>挂载的是普通磁盘, 可能导致严重的性能问题.</p>
+<p>在某些Linux发行版中，<code>/tmp</code>通过<code>tmpfs</code>文件系统存储在内存中。但是，Docker容器默认情况下没有<code>/tmp</code>打开<code>tmpfs</code>：</p>
+<div class="highlight"><pre><span></span>$ docker run --rm -it ubuntu:18.04 df
+Filesystem       1K-blocks     Used Available Use% Mounted on
+overlay           <span class="m">31263648</span> <span class="m">25656756</span>   <span class="m">3995732</span>  <span class="m">87</span>% /
+tmpfs                <span class="m">65536</span>        <span class="m">0</span>     <span class="m">65536</span>   <span class="m">0</span>% /dev
+tmpfs              <span class="m">4026608</span>        <span class="m">0</span>   <span class="m">4026608</span>   <span class="m">0</span>% /sys/fs/cgroup
+/dev/mapper/root  <span class="m">31263648</span> <span class="m">25656756</span>   <span class="m">3995732</span>  <span class="m">87</span>% /etc/hosts
+shm                  <span class="m">65536</span>        <span class="m">0</span>     <span class="m">65536</span>   <span class="m">0</span>% /dev/shm
+</pre></div>
+
+
+<p>如您所见，<code>/tmp</code>正在使用标准的Docker overlay文件系统：它由普通的块设备或计算机正在使用的硬盘驱动器支持。这可能导致性能问题 .</p>
+<p>针对这类软件, 通用的解决方案是将其临时文件存储在其他地方。特别是，如果你看上面你会看到<code>/dev/shm</code>使用<code>shm</code>文件系统共享内存和内存文件系统。<strong>所以你需要做的就是使用/dev/shm而不是/tmp</strong></p>
+<h3 id="alpine-linux">~~使用 Alpine Linux基础镜像(不建议采纳)~~<a class="headerlink" href="#alpine-linux" title="Permanent link">&para;</a></h3>
+<p>使用基于<a href="https://hub.docker.com/_/alpine/">Alpine Linux</a>的镜像，因为它们只提供您需要的包。生成的图像将更小。</p>
+<p>收益有:</p>
+<ol>
+<li>减少了主机成本，因为使用的磁盘空间更少</li>
+<li>更快的构建、下载和运行时间</li>
+<li>更安全（因为包和库更少）</li>
+<li>更快的部署</li>
+</ol>
+<p>示例如下:</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> python:3.6-alpine</span>
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+<span class="k">COPY</span> requirements.txt /
+<span class="k">RUN</span> pip install -r /requirements.txt  # flask and gunicorn
+<span class="k">COPY</span> . /app
+</pre></div>
+
+
+<p>使用前大小: 702MB, 使用后大小: 102MB</p>
+<h3 id="red-hat">使用Red Hat 官方基础镜像<a class="headerlink" href="#red-hat" title="Permanent link">&para;</a></h3>
+<p>上边一条其实我觉得这是不好的建议。我已经看到了使用Alpine Linux的人们报告的一大堆问题，因为它建立在musl libc之上，而不是大多数Linux发行版使用的GNU libc（glibc）。问题范围从日期时间格式的错误到由于较小的堆栈导致的崩溃。</p>
+<p>公平地说，许多或大部分问题已得到解决，但是在生产中调试自己的错误已经足够糟糕了，为什么要增加更多的潜力以获得更小的图像呢？</p>
+<p>因此，我建议使用基于RedHat官方的镜像。</p>
+<p><a href="https://access.redhat.com/containers/#/explore"><strong>Red Hat Container Catalog</strong></a></p>
+<h3 id="dockerignore">使用<code>.dockerignore</code>排除无关文件<a class="headerlink" href="#dockerignore" title="Permanent link">&para;</a></h3>
+<p>要排除与构建无关的文件（不重构源存储库），请使用<code>.dockerignore</code>文件。此文件支持与<code>.gitignore</code>文件类似的排除模式。具体请参阅 <a href="https://docs.docker.com/engine/reference/builder/#dockerignore-file">.dockerignore文件</a>。</p>
+<h3 id="_13">不要安装不必要的包<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<p>为了降低复杂性，依赖性，文件大小和构建时间，请避免安装额外的或不必要的软件包，因为它们可能“很好”。例如，您不需要在数据库映像中包含文本编辑器。</p>
+<h3 id="_14">解耦应用程序<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
+<p>每个容器应该只有一个进程。将应用程序分离到多个容器中可以更容易地水平扩展和重用容器。例如，Web应用程序堆栈可能包含三个独立的容器，每个容器都有自己独特的映像，以分离的方式管理Web应用程序，数据库和内存缓存。</p>
+<p>将每个容器限制为一个进程是一个很好的经验法则，但它不是一个硬性规则。例如，不仅可以<a href="https://docs.docker.com/engine/reference/run/#specify-an-init-process">使用init进程生成</a>容器 ，而且某些程序可能会自行生成其他进程。例如，<a href="http://www.celeryproject.org/">Celery</a>可以生成多个工作进程，<a href="https://httpd.apache.org/">Apache</a>可以为每个请求创建一个进程。</p>
+<p>使用您的最佳判断，尽可能保持容器清洁和模块化。如果容器彼此依赖，则可以使用<a href="https://docs.docker.com/engine/userguide/networking/">Docker容器网络</a> 来确保这些容器可以进行通信。</p>
+<h3 id="_15">对多行参数进行排序<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
+<p>只要有可能，通过按字母顺序排序多行参数来缓解以后的更改。这有助于避免重复包并使列表更容易更新。这也使PR更容易阅读和审查。在反斜杠（<code>\</code>）之前添加空格也有帮助。</p>
+<p>下面是来自一个示例<a href="https://github.com/docker-library/buildpack-deps"><code>buildpack-deps</code>图像</a>：</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> apt-get update <span class="o">&amp;&amp;</span> apt-get install -y <span class="se">\</span>
+  bzr <span class="se">\</span>
+  cvs <span class="se">\</span>
+  git <span class="se">\</span>
+  mercurial <span class="se">\</span>
+  subversion
+</pre></div>
+
+
+<h2 id="java">JAVA 容器镜像指南<a class="headerlink" href="#java" title="Permanent link">&para;</a></h2>
+<h3 id="ide">IDE插件推荐<a class="headerlink" href="#ide" title="Permanent link">&para;</a></h3>
+<ul>
+<li>idea - 转到“首选项”、“插件”、“安装JetBrains插件…”，搜索“Docker”并单击“安装”</li>
+<li>Eclipse - </li>
+</ul>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p><a href="https://github.com/docker/labs/blob/master/developer-tools/java/chapters/ch07-intellij.adoc">Docker and IntelliJ IDEA</a></p>
+<p><a href="https://github.com/docker/labs/blob/master/developer-tools/java/chapters/ch07-eclipse.adoc#Docker_Eclipse">Docker and Eclipse</a></p>
+</blockquote>
+<h3 id="_16">设置内存限制相关参数<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>指定<code>-Xmx=1g</code>将告诉JVM分配一个1GB堆。它并没有告诉JVM将其整个内存使用量限制为1GB。还会有卡card tables、代码缓存code cache和各种其他堆外数据结构。用于指定总内存使用量的参数是<code>-XX:MaxRAM</code>。请注意，使用<code>-XX:MaxRam=500m</code>时，堆将大约为250MB。</p>
+</blockquote>
+<p>Jvm在历史上查找<code>/proc</code>以确定有多少可用内存，然后根据该值设置其堆大小。不幸的是，像docker这样的容器在<code>/proc</code>中不提供特定于容器的信息。红帽2017年已经提出了一个补丁，它已经被上游接受，提供了一个<code>-XX:+UseCGroupMemoryLimitForHeap</code>命令行参数，它告诉jvm查找<code>/sys/fs/cgroup/memory/memory.limit_in_bytes</code>，以确定有多少可用内存。如果这个补丁在运行的OpenJDK版本中不可用，可以通过显式设置<code>-XX:MaxRAM=n</code>来模拟它。</p>
+<p>总结, 设置内存限制相关参数:</p>
+<ol>
+<li>openjdk 8 新版本, 添加: <code>-XX:+UseCGroupMemoryLimitForHeap</code></li>
+<li>如果没有上边的参数, 设置:<code>-XX:MaxRAM=n</code></li>
+<li>建议设置JVM Heap约为 memory limit的80%</li>
+<li>建议设置JVM MaxRAM接近memory limit</li>
+</ol>
+<h3 id="gc">设置GC策略<a class="headerlink" href="#gc" title="Permanent link">&para;</a></h3>
+<p>OpenJDK8中有一个补丁，它将使用cgroup可用的信息来计算适当数量的并行GC线程。但是，如果这个补丁在您的OpenJDK版本中不可用，那么您最终可能会得到8个并行GC线程，并且容器中只有2个CPU。解决方法是显式指定并行GC线程的数量。<code>-XX:ParallelGCThreads=2</code> 。~~如果您的容器中限定只有一个CPU，我强烈建议您使用<code>-XX:+UseSerialGC</code>运行，并完全避免并行GC。~~</p>
+<h3 id="java_1">JAVA启动阶段调优<a class="headerlink" href="#java_1" title="Permanent link">&para;</a></h3>
+<p>JAVA程序都有一个启动阶段，它需要大量的堆，但会进入一个安静的循环阶段，在这个阶段它不需要太多。</p>
+<p>对于串行GC策略, 你可以要求它更具侵略性. <code>-XX:MinHeapFreeRatio=20</code>(当堆占用率大于80%时，此值默认增大。)</p>
+<p><code>XX:MaxHeapFreeRatio=40</code>(堆占用率小于60%时收缩)</p>
+<p>对于并行 - parallel GC策略, 推荐如下配置:</p>
+<p><code>-XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90</code></p>
+<h3 id="java_2">JAVA容器全局建议资源请求和资源限制<a class="headerlink" href="#java_2" title="Permanent link">&para;</a></h3>
+<p>JAVA程序都有一个启动阶段，启动阶段也会大量消耗CPU, CPU使用越多, 启动阶段越短.<br>
+下面是一个表，总结了不同CPU限制下的spring boot 示例应用启动时间(在millicore中):</p>
+<ul>
+<li>500m — 80 seconds</li>
+<li>1000m — 35 seconds</li>
+<li>1500m — 22 seconds</li>
+<li>2500m — 17 seconds</li>
+<li>3000m — 12 seconds</li>
+</ul>
+<p>根据以上情况, 容器平台管理员考虑对JAVA容器做如下限制:</p>
+<ul>
+<li>使用CPU requests, 不设置cpu limit (Kubernetes功能)</li>
+<li>使用memory limit等于memory request</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="nt">resources</span><span class="p">:</span>
+  <span class="nt">requests</span><span class="p">:</span>
+    <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;1024Mi&quot;</span>
+    <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;500m&quot;</span>
+  <span class="nt">limits</span><span class="p">:</span>
+    <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;1024Mi&quot;</span>
+</pre></div>
+
+
+<h2 id="nginx">NGINX 容器镜像指南<a class="headerlink" href="#nginx" title="Permanent link">&para;</a></h2>
+<p>如果您直接在基础硬件或虚拟机上运行NGINX，通常需要一个NGINX实例来使用所有可用的CPU。由于NGINX是多进程模式，通常你会启动多个worker processes，每个工作进程都是不同的进程，以便利用所有CPU。</p>
+<p>但是，在容器中运行时，通常会在通过运行更多容器来扩展的环境中。Kubernetes：所有这些都隐藏了硬件，并期望通过缩放多个容器来利用多个CPU。</p>
+<p>因此，<img align="absmiddle" alt="👍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f44d.png" title=":+1:" width="20px">建议只需一个或两个工作进程即可开始使用NGINX。</p>
+<div class="highlight"><pre><span></span><span class="k">worker_processes</span>  <span class="mi">1</span><span class="p">;</span>  <span class="c1"># 或auto或2</span>
+</pre></div>
+
+
+<h2 id="python">Python 容器镜像指南<a class="headerlink" href="#python" title="Permanent link">&para;</a></h2>
+<p>示例如下:</p>
+<div class="highlight"><pre><span></span><span class="c"># pull official base image</span>
+<span class="k">FROM</span><span class="s"> python:3.7-alpine</span>
+
+<span class="c"># set work directory</span>
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="c"># set environment variables</span>
+<span class="k">ENV</span> PYTHONDONTWRITEBYTECODE <span class="m">1</span>
+<span class="k">ENV</span> PYTHONUNBUFFERED <span class="m">1</span>
+<span class="k">ENV</span> DEBUG <span class="m">0</span>
+
+<span class="c"># install psycopg2</span>
+<span class="k">RUN</span> apk update <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk add --virtual build-deps gcc python3-dev musl-dev <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk add postgresql-dev <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> pip install psycopg2 <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk del build-deps
+
+<span class="c"># install dependencies</span>
+<span class="k">COPY</span> ./requirements.txt .
+<span class="k">RUN</span> pip install -r requirements.txt
+
+<span class="c"># copy project</span>
+<span class="k">COPY</span> . .
+
+<span class="c"># add and run as non-root user</span>
+<span class="k">RUN</span> adduser -D myuser
+<span class="k">USER</span><span class="s"> myuser</span>
+
+<span class="c"># run gunicorn</span>
+<span class="k">CMD</span> gunicorn hello_django.wsgi:application --bind <span class="m">0</span>.0.0.0:<span class="nv">$PORT</span>
+</pre></div>
+
+
+<p>△ 示例Dockerfile</p>
+<h3 id="ide_1">IDE插件推荐<a class="headerlink" href="#ide_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>PyCharm - 同Idea</li>
+<li>VSCode - <strong>Visual Studio Code Remote - Containers</strong> 插件 <ul>
+<li><a href="https://code.visualstudio.com/docs/remote/containers">Developing inside a Container</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="_17">建议配置的环境变量<a class="headerlink" href="#_17" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><span class="c"># set environment variables</span>
+<span class="k">ENV</span> PYTHONDONTWRITEBYTECODE <span class="m">1</span>
+<span class="k">ENV</span> PYTHONUNBUFFERED <span class="m">1</span>
+<span class="k">ENV</span> DEBUG <span class="m">0</span>
+</pre></div>
+
+
+<ol>
+<li><code>PYTHONDONTWRITEBYTECODE</code>: 防止python将pyc文件写入硬盘</li>
+<li><code>PYTHONUNBUFFERED</code>: 防止python缓冲stdout和stderr</li>
+<li><code>DEBUG</code>: 方便根据环境类型的不同(测试/生产)调整是否开启debug</li>
+</ol>
+<h3 id="_18">安装数据库驱动包的方法<a class="headerlink" href="#_18" title="Permanent link">&para;</a></h3>
+<p>以postgredb的驱动psycopg2为例:</p>
+<div class="highlight"><pre><span></span><span class="c"># install psycopg2</span>
+<span class="k">RUN</span> apk update <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk add --virtual build-deps gcc python3-dev musl-dev <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk add postgresql-dev <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> pip install psycopg2 <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> apk del build-deps
+</pre></div>
+
+
+<h2 id="openshift">Openshift 容器平台特定指南<a class="headerlink" href="#openshift" title="Permanent link">&para;</a></h2>
+<p>以下是创建专门用于Openshift容器平台的容器镜像时适用的准则。</p>
+<h3 id="s2i">启用源到映像（S2I）功能<a class="headerlink" href="#s2i" title="Permanent link">&para;</a></h3>
+<p>对于打算运行由第三方提供的应用程序代码的镜像，例如为运行开发人员提供的java代码而设计的java镜像，您可以使您的镜像与<a href="https://github.com/openshift/source-to-image">源到映像（S2I）</a>构建工具一起工作。</p>
+<p><img align="absmiddle" alt="👍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f44d.png" title=":+1:" width="20px"> S2I 是一个框架，它使得编写<strong>以应用程序源代码为输入</strong>的镜像和生成<strong>以运行组合应用程序为输出的新镜像</strong>变得容易。</p>
+<p>例如，这个<a href="https://github.com/sclorg/s2i-python-container">python镜像</a>定义了用于构建各种版本的python应用程序的s2i脚本。</p>
+<h3 id>支持任意用户ID<a class="headerlink" href="#id" title="Permanent link">&para;</a></h3>
+<p>默认情况下，openshift容器平台使用任意分配的用户ID运行容器。这提供了额外的安全性，防止因容器引擎漏洞而逃逸容器的进程，从而在主机节点上获取更高级的权限。</p>
+<p>对于支持以任意用户身份运行的镜像，可以由镜像中的进程写入的目录和文件应归根组所有，并由该组读/写。要执行的文件还应具有组执行权限。</p>
+<p>将以下内容添加到Dockerfile将设置目录和文件权限，以允许根组中的用户在生成的镜像中访问它们：</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> chgrp -R <span class="m">0</span> /some/directory <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    chmod -R <span class="nv">g</span><span class="o">=</span>u /some/directory
+</pre></div>
+
+
+<p>因为容器用户始终是根组的成员，所以容器用户可以读写这些文件。根组没有任何特殊权限（与根用户不同），因此这种安排不存在安全问题。此外，<strong>在容器中运行的进程不能监听特权端口（低于1024的端口）</strong>，因为它们不是作为特权用户运行的。</p>
+<p>因为容器的用户ID是动态生成的，所以在<code>/etc/passwd</code>中不会有关联的条目。这可能会给希望能够查找其用户ID的应用程序带来问题。解决此问题的一种方法是使用容器的用户ID动态创建一个<code>passwd</code>文件条目，作为镜像的启动脚本的一部分。这就是Dockerfile可能包含的内容：</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> chmod <span class="nv">g</span><span class="o">=</span>u /etc/passwd
+<span class="k">ENTRYPOINT</span> <span class="p">[</span> <span class="s2">&quot;uid_entrypoint&quot;</span> <span class="p">]</span>
+<span class="k">USER</span><span class="s"> 1001</span>
+</pre></div>
+
+
+<p>其中<code>uid_entrypoint</code>包含：</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> ! whoami <span class="p">&amp;</span>&gt; /dev/null<span class="p">;</span> <span class="k">then</span>
+  <span class="k">if</span> <span class="o">[</span> -w /etc/passwd <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    <span class="nb">echo</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">USER_NAME</span><span class="k">:-</span><span class="nv">default</span><span class="si">}</span><span class="s2">:x:</span><span class="k">$(</span>id -u<span class="k">)</span><span class="s2">:0:</span><span class="si">${</span><span class="nv">USER_NAME</span><span class="k">:-</span><span class="nv">default</span><span class="si">}</span><span class="s2"> user:</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">:/sbin/nologin&quot;</span> &gt;&gt; /etc/passwd
+  <span class="k">fi</span>
+<span class="k">fi</span>
+</pre></div>
+
+
+<p>有关此的完整示例，请参见<a href="https://github.com/RHsyseng/container-rhel-examples/blob/master/starter-arbitrary-uid/Dockerfile">此dockerfile</a>。</p>
+<p>最后，<strong>dockerfile中的最终<code>USER</code>声明应该指定用户ID（数值），而不是用户名</strong>。这允许openshift容器平台验证镜像试图使用的权限，并阻止运行试图作为root运行的镜像，因为作为特权用户运行容器会暴露潜在的安全漏洞。如果镜像未指定用户，则它从父映像继承<code>USER</code>。</p>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>如果您的S2I镜像不包含带有数字用户的<code>USER</code>声明，则默认情况下，构建将失败。为了允许使用命名用户或root（0）用户在Openshift容器平台中构建映像，可以添加项目的builder服务帐户（<code>system:serviceaccount:&lt;your-project&gt;:builder</code>）添加到特权安全上下文约束（scc）。或者，您可以允许所有镜像作为任何用户运行。</p>
+</blockquote>
+<h3 id="service">使用服务 SERVICE 进行镜像间通信<a class="headerlink" href="#service" title="Permanent link">&para;</a></h3>
+<p>对于您的镜像需要与另一个镜像提供的服务通信的情况，例如需要访问数据库镜像以存储和检索数据的Web前端镜像，您的镜像应该使用Openshift容器平台的服务 - service。服务 - service为访问提供一个静态端点，该端点不会随着容器的停止、启动或移动而更改。此外，服务还为请求提供负载平衡。</p>
+<h3 id="_19">提供公共库<a class="headerlink" href="#_19" title="Permanent link">&para;</a></h3>
+<p>对于打算运行由第三方提供的应用程序代码的镜像，请确保您的镜像包含平台的常用库。特别是，为与平台一起使用的公共数据库提供数据库驱动程序。例如，如果您正在创建Java框架镜像，则为MySQL和PostgreSQL提供JDBC驱动程序。这样做可以防止在应用程序装配期间下载公共依赖项，从而加快应用程序镜像的构建。它还简化了应用程序开发人员所需的工作，以确保满足其所有依赖项。</p>
+<h3 id="_20">使用环境变量进行配置<a class="headerlink" href="#_20" title="Permanent link">&para;</a></h3>
+<p>您的镜像的用户应该能够配置它，而不必根据您的镜像创建下游镜像。这意味着运行时配置应该使用环境变量来处理。对于一个简单的配置，正在运行的进程可以直接使用环境变量。对于更复杂的配置或不支持此配置的运行时，通过定义在启动期间处理的模板配置文件来配置运行时。在此处理过程中，可以将使用环境变量提供的值替换到配置文件中，或者用于决定在配置文件中设置哪些选项。</p>
+<p>另外<strong>建议使用环境变量将证书和密钥等机密信息传递到容器中</strong>。这样可以确保机密值不会最终提交到镜像中并泄漏到容器镜像注册表中。</p>
+<p>提供环境变量允许镜像的使用者自定义行为，如数据库设置、密码和性能调整，而不必在镜像上引入新的层。相反，它们可以在定义POD时简单地定义环境变量值，并在不重建镜像的情况下更改这些设置。</p>
+<p>对于非常复杂的场景，也可以使用运行时挂载到容器中的卷来提供配置。但是，如果您选择这样做，则必须确保当不存在所需的卷或配置时，镜像在启动时提供清晰的错误消息。</p>
+<p>此主题与在<a href="#使用服务 SERVICE 进行镜像间通信">使用服务 SERVICE 进行镜像间通信</a>相关，例如，应根据提供服务 - service 端点信息的环境变量定义数据源。这允许应用程序在不修改应用程序镜像的情况下动态使用Openshift容器平台环境中定义的数据源服务 - service。</p>
+<p>此外，应该通过检查容器的<strong>cgroups</strong>设置来进行相应调整。这允许镜像将自己调到可用内存、CPU和其他资源。例如，基于Java的镜像应该根据<strong>cgroup</strong>最大内存参数来调整它们的堆 - heap，以确保它们不超过限制并获得内存不足out-of-memory的错误。</p>
+<p>有关如何管理容器中的cgroup配额的详细信息，请参阅以下参考：</p>
+<ul>
+<li>Blog article - <a href="https://goldmann.pl/blog/2014/09/11/resource-management-in-docker">Resource management in Docker</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/engine/admin/runmetrics/">Runtime Metrics</a></li>
+<li>Blog article - <a href="http://fabiokung.com/2014/03/13/memory-inside-linux-containers">Memory inside Linux containers</a></li>
+</ul>
+<h3 id="_21">考虑集群方案<a class="headerlink" href="#_21" title="Permanent link">&para;</a></h3>
+<p>您必须完全理解运行镜像的多个实例意味着什么。在最简单的情况下，服务的负载平衡功能处理将流量路由到镜像的所有实例。但是，许多框架必须共享信息才能执行领导人选举或故障转移状态；例如，在会话复制中。</p>
+<p>考虑在Openshift容器平台中运行时，您的实例如何完成此通信。虽然pod可以直接相互通信，但只要pod启动、停止或移动，它们的IP地址就会发生变化。因此，集群方案必须是动态的。</p>
+<h3 id="_22">记录日志<a class="headerlink" href="#_22" title="Permanent link">&para;</a></h3>
+<p><img align="absmiddle" alt="👍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f44d.png" title=":+1:" width="20px"> 最好将<strong>所有日志发送到标准输出</strong>。Openshift容器平台从容器中收集标准输出，并将其发送到集中日志记录服务(ELK技术栈)，在那里可以查看。如果必须分隔日志内容，请在输出前面加上适当的关键字，这样可以筛选消息。</p>
+<p>如果您的镜像记录日志到一个文件中，那么用户必须使用手动操作来输入正在运行的容器并检索或查看日志文件。</p>
+<h3 id="livenessreadiness">LIVENESS活性探针和READINESS 就绪探针<a class="headerlink" href="#livenessreadiness" title="Permanent link">&para;</a></h3>
+<p>记录可用于镜像的活性和就绪探针示例。这些探针将允许用户部署您的镜像，并确保在未就绪之前不会将流量路由到容器，并且如果进程进入不健康状态，将重新启动容器。</p>
+<h3 id="-template">模板 - TEMPLATE<a class="headerlink" href="#-template" title="Permanent link">&para;</a></h3>
+<p>考虑为镜像提供一个示例模板。模板将为用户提供一种简单的方法，使您可以使用有用的配置快速部署图像。为了完整性，您的模板应该包括您用镜像记录的活性和就绪探针。</p>
+<p><strong><em>额外资源</em></strong>:</p>
+<ul>
+<li><a href="https://docs.docker.com/engine/docker-overview/">Docker basics</a></li>
+<li><a href="https://docs.docker.com/engine/reference/builder/">Dockerfile reference</a></li>
+<li><a href="http://www.projectatomic.io/docs/docker-image-author-guidance">Project Atomic Guidance for Container Image Authors</a></li>
+</ul>
+<h3 id="_23">在镜像中包括元数据<a class="headerlink" href="#_23" title="Permanent link">&para;</a></h3>
+<p>定义镜像元数据有助于Openshift容器平台更好地使用容器镜像，允许Openshift容器平台为使用您的镜像的开发人员创建更好的体验。例如，您可以添加元数据来提供镜像的有用描述，或者对其他可能需要的镜像提供建议。</p>
+<p>您可以使用<code>dockerfile</code>中的<code>label</code>指令来定义镜像元数据。标签 - label类似于环境变量，因为它们是附加到镜像或容器的键值对。标签不同于环境变量，因为它们对正在运行的应用程序不可见，但是可以用于快速查找镜像和容器。</p>
+<p>标签名称通常应具有名称空间。应相应地设置名称空间，以反映将要拾取标签并使用它们的项目。对于openshift容器平台，命名空间应设置为<code>io.openshift</code>，对于kubernetes，命名空间为<code>io.k8s</code>。</p>
+<p>有关格式的详细信息，请参阅<a href="https://docs.docker.com/engine/userguide/labels-custom-metadata">Docker自定义元数据文档</a>。</p>
+<table>
+<thead>
+<tr>
+<th align="left">Variable</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>io.openshift.tags</code></td>
+<td align="left">此标签 - label包含以逗号分隔字符串值列表表示的标签 - tag列表。标签 - tag是将容器镜像分类为广泛功能区域的方法。标签帮助用户界面和生成工具在应用程序创建过程中建议相关的容器图像。<code>LABEL io.openshift.tags   mongodb,mongodb24,nosql</code></td>
+</tr>
+<tr>
+<td align="left"><code>io.openshift.wants</code></td>
+<td align="left">指定生成工具和用户界面可能用于提供相关建议的标签列表，需要具有给定标记的容器镜像。例如，如果容器镜像需要mysql和redis，而您没有带有redis标签的容器镜像，那么UI可能建议您将此镜像添加到部署中。<code>LABEL io.openshift.wants   mongodb,redis</code></td>
+</tr>
+<tr>
+<td align="left"><code>io.k8s.description</code></td>
+<td align="left">此标签可用于向容器镜像使用者提供有关此镜像提供的服务或功能的更详细信息。然后，UI可以将此描述与容器镜像名称一起使用，以向最终用户提供更人性化的信息。<code>LABEL io.k8s.description The MySQL 5.5 Server with master-slave replication support</code></td>
+</tr>
+<tr>
+<td align="left"><code>io.openshift.non-scalable</code></td>
+<td align="left">镜像可能使用此变量来表示它不支持缩放。然后，用户界面将此信息传达给该图像的消费者。不可伸缩基本上意味着副本的值最初不应设置为大于1。<code>LABEL io.openshift.non-scalable     true</code></td>
+</tr>
+<tr>
+<td align="left"><code>io.openshift.min-memory</code> 和<code>io.openshift.min-cpu</code></td>
+<td align="left">此标签建议容器镜像可能需要多少资源才能正常工作。用户界面可能会警告用户部署此容器映像可能会超出其用户配额。这些值必须与kubernetes数量兼容。<code>LABEL io.openshift.min-memory 8Gi</code>      <code>LABEL io.openshift.min-cpu 4</code></td>
+</tr>
+</tbody>
+</table>
+<p>△ OpenShift 容器平台支持的元数据</p>
+<h2 id="_24">参考链接<a class="headerlink" href="#_24" title="Permanent link">&para;</a></h2>
+<ul>
+<li>OpenShift Container Platform Docs - <a href="https://docs.openshift.com/container-platform/latest/openshift_images/create-images.html">Creating images</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/articles/dockerfile_best-practices/">Best practices for writing Dockerfiles</a></li>
+<li>Project Atomic documentation - <a href="http://www.projectatomic.io/docs/docker-image-author-guidance/">Guidance for Container Image Authors</a></li>
+<li><a href="http://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/">“Docker和PID 1 zombie reaping问题”</a></li>
+<li><a href="https://felipec.wordpress.com/2013/11/04/init/">“揭开init系统（PID 1）的神秘面纱”</a></li>
+<li>GITHUB - <a href="https://github.com/sclorg/s2i-python-container">sclorg/s2i-python-container</a></li>
+<li>Blog article - <a href="https://goldmann.pl/blog/2014/09/11/resource-management-in-docker">Resource management in Docker</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/engine/admin/runmetrics/">Runtime Metrics</a></li>
+<li>Blog article - <a href="http://fabiokung.com/2014/03/13/memory-inside-linux-containers">Memory inside Linux containers</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/engine/docker-overview/">Docker basics</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/engine/reference/builder/">Dockerfile reference</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/engine/userguide/labels-custom-metadata">自定义元数据</a>。</li>
+<li>testdriven.io - <a href="https://testdriven.io/blog/deploying-django-to-heroku-with-docker/?utm_source=realpython">Deploying Django to Heroku With Docker</a></li>
+<li>testdriven.io - <a href="https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/">Dockerizing Django with Postgres, Gunicorn, and Nginx</a></li>
+<li>dockercon-2018 - <a href="https://mherman.org/presentations/dockercon-2018/">Docker for Python Developers</a></li>
+<li>Docker documentation - <a href="https://docs.docker.com/develop/develop-images/multistage-build/">多阶段构建</a></li>
+<li>Red Hat Developer - <a href="https://developers.redhat.com/blog/2017/04/04/openjdk-and-containers/">OpenJDK and Containers</a></li>
+<li><a href="https://medium.com/faun/java-application-optimization-on-kubernetes-on-the-example-of-a-spring-boot-microservice-cf3737a2219c">Java Application Optimization on Kubernetes on the Example of a Spring Boot Microservice</a></li>
+<li>Python Speed - <a href="https://pythonspeed.com/articles/pipenv-docker/">Faster Docker builds with pipenv, poetry, or pip-tools</a></li>
+<li>Python Speed - <a href="https://pythonspeed.com/articles/gunicorn-in-docker/">Configuring Gunicorn for Docker</a></li>
+<li>Docker documentation - <a href="https://github.com/docker/labs/blob/master/developer-tools/java/chapters/ch07-eclipse.adoc#Docker_Eclipse">Docker and Eclipse</a></li>
+<li>Docker documentation - <a href="https://github.com/docker/labs/blob/master/developer-tools/java/chapters/ch07-intellij.adoc#Docker_IntelliJ">Docker and IntelliJ IDEA</a></li>
+<li><a href="https://code.visualstudio.com/docs/remote/containers">Developing inside a Container</a></li>
+</ul>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/python.html">python</a>
+      <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/capture-any-method-param-value.html" title="抓取系统中的任何方法的参数值">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/update-zentao-where-deployed-on-openshift.html" title="OpenShift上禅道升级方案">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/install-gitlab-with-docker.html">使用 Docker 安装 Gitlab</a></li>
+      <li><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html">容器自动伸缩</a></li>
+      <li><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html">OpenShift 和 Kubernetes 有什么区别?</a></li>
+      <li><a href="https://www.EWhisper.cn/how-to-tcpdump-in-k8s.html">Kubernetes 中分析调试网络流量的4种方式</a></li>
+      <li><a href="https://www.EWhisper.cn/how-to-run-container-with-su-in-openshift.html">如何在 OpenShift 中运行 Collabora Office</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

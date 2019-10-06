@@ -23,17 +23,7 @@
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
-<!-- Google Analytics -->
-<script type="text/javascript">
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-136986082-1', 'auto');
-  ga('send', 'pageview');
-</script>
-<!-- End Google Analytics -->
     <!-- Chrome, Firefox OS and Opera -->
     <meta name="theme-color" content="#333333">
     <!-- Windows Phone -->
@@ -56,31 +46,9 @@
 
   <title>东风微鸣 Blog &ndash; Observability 标签</title>
 
-  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({
-      google_ad_client: "ca-pub-2290120018010607",
-      enable_page_level_ads: true
-    });
-  </script>
-<!-- Google Tag Manager -->
-<script>
-  (function(w,d,s,l,i){
-    w[l]=w[l]||[];
-    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-    j.async=true;
-    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-    f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-T9334L3');
-</script>
-<!-- End Google Tag Manager --></head>
+</head>
 <body>
-<!-- Google Tag Manager -->
-<noscript>
-  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9334L3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
-</noscript>
-<!-- End Google Tag Manager -->  <aside>
+  <aside>
     <div>
       <a href="https://www.EWhisper.cn">
         <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
@@ -126,6 +94,82 @@
 
 <article>
   <header>
+    <h2><a href="https://www.EWhisper.cn/think-from-broken-to-k8s.html#think-from-broken-to-k8s">思考 - 从传统雪崩到K8S</a></h2>
+    <p>
+      在 2019-10-02 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/wen-ti-fen-xi.html">问题分析</a>,              <a href="https://www.EWhisper.cn/tag/ke-guan-cha-xing.html">可观察性</a>,              <a href="https://www.EWhisper.cn/tag/ke-yong-xing.html">可用性</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>,              <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+        &#8226; 2 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/gamersky_01origin_01_201932317112C6.jpg">
+      <p>传统环境发生底层故障, 往往会产生雪崩般的效应, 需要人为干预涉及到各个环节, 而且MTTR长. 我一直在思考, 如何才能做的更好, 有哪些可以借鉴的先进经验.<img align="absmiddle" alt="🤔" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f914.png" title=":thinking:" width="20px"></p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/think-from-broken-to-k8s.html#think-from-broken-to-k8s">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/capture-any-method-param-value.html#capture-any-method-param-value">抓取系统中的任何方法的参数值</a></h2>
+    <p>
+      在 2019-07-03 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>,              <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+        &#8226; 1 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/421814-dynatrace-logo.jpg">
+      <p>Dynatrace 也可以抓取运行的系统中的任何方法的参数值. 抓取这个, 一方面是该参数值可能会表明一些关键信息(如: 机构代码, 保单号, 入参传参...), 便于针对性分析问题; 另一方面也可以对业务相关的参数抓取后进行整合分析, 如实时保单金额总数...</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/capture-any-method-param-value.html#capture-any-method-param-value">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/howto-monitor-nonHTTP-or-batchjob-application.html#howto-monitor-nonHTTP-or-batchjob-application">非HTTP应用或批处理应用如何进行全链路监控</a></h2>
+    <p>
+      在 2019-07-03 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>,              <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+        &#8226; 1 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/421814-dynatrace-logo.jpg">
+      <p>在近期的应用性能问题分析中, 有时候会发现业务异常, 但是却无法在APM监控中找到相关的请求, 这可能是由于请求并非HTTP请求, 而可能是批处理或其他非HTTP请求导致的. 因此无法监控分析. 本文介绍如何对非HTTP应用或批处理应用如何进行全链路监控, 以更全面地监控应用性能, 分析应用问题.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/howto-monitor-nonHTTP-or-batchjob-application.html#howto-monitor-nonHTTP-or-batchjob-application">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/mule-cannot-receive-TCP-messages-problem-analysis.html#mule-cannot-receive-TCP-messages-problem-analysis">MULE 无法接收TCP报文问题分析</a></h2>
+    <p>
+      在 2019-07-02 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/java.html">java</a>,              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/wen-ti-fen-xi.html">问题分析</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+        &#8226; 1 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/mulesoft-logo-open-graph.png">
+      <p>近期某使用mule的项目在与N公司联调时发现对方的请求存在严重延迟. 本文详细介绍了问题的背景, 分析过程以及定位解决过程.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/mule-cannot-receive-TCP-messages-problem-analysis.html#mule-cannot-receive-TCP-messages-problem-analysis">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
     <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem.html#dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem">Dynatrace AppMon 实战手册 - 29.某保险公司核心系统变慢问题分析</a></h2>
     <p>
       在 2019-06-19 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
@@ -140,81 +184,6 @@
       <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十九篇, 主要介绍使用Dynatrace分析某保险公司核心系统突然变慢的问题.</p>
       <br>
       <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem.html#dynatrace-appmon-handbook-29-analysis-a-app-slowdown-problem">阅读全文</a>
-  </div>
-  <hr />
-</article>
-<article>
-  <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-28-update-migrate-guide.html#dynatrace-appmon-handbook-28-update-migrate-guide">Dynatrace AppMon 实战手册 - 28.Dynatrace 6.5升级和迁移向导</a></h2>
-    <p>
-      在 2019-06-19 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
-
-          &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
-        &#8226; 4 min read
-    </p>
-  </header>
-  <div>
-        <img src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/26a0.png">
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十八篇, 主要介绍Dynatrace AppMon 6.5的升级和迁移方法.</p>
-      <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-28-update-migrate-guide.html#dynatrace-appmon-handbook-28-update-migrate-guide">阅读全文</a>
-  </div>
-  <hr />
-</article>
-<article>
-  <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console.html#dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console">Dynatrace AppMon 实战手册 - 27.Dynatrace Web 客户端使用说明</a></h2>
-    <p>
-      在 2019-06-19 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
-
-          &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
-        &#8226; 2 min read
-    </p>
-  </header>
-  <div>
-        <img src="./images/Snipaste_2019-06-19_19-38-08.png">
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十七篇, 主要介绍Dynatrace Web端的使用.</p>
-      <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console.html#dynatrace-appmon-handbook-27-use-dynatrace-appmon-web-console">阅读全文</a>
-  </div>
-  <hr />
-</article>
-<article>
-  <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html#dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem">Dynatrace AppMon 实战手册 - 26.分析诡异的应用性能问题</a></h2>
-    <p>
-      在 2019-06-19 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
-
-          &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
-        &#8226; 1 min read
-    </p>
-  </header>
-  <div>
-        <img src="http://pic.yupoo.com/east4ming_v/GmHC5HKe/6IqvB.jpg">
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十六篇, 主要介绍Dynatrace分析一次某保险客户诡异的应用性能问题.</p>
-      <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem.html#dynatrace-appmon-handbook-26-analysis-a-difficult-app-performance-problem">阅读全文</a>
-  </div>
-  <hr />
-</article>
-<article>
-  <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html#dynatrace-appmon-handbook-25-restful-api">Dynatrace AppMon 实战手册 - 25.RESTful API</a></h2>
-    <p>
-      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
-
-          &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
-        &#8226; 6 min read
-    </p>
-  </header>
-  <div>
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十五篇, 主要介绍Dynatrace监控的RESTful API.</p>
-      <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-25-restful-api.html#dynatrace-appmon-handbook-25-restful-api">阅读全文</a>
   </div>
 </article>
 
@@ -250,22 +219,7 @@
 <!-- End StatusCake --></p>    </footer>
   </main>
 
-<!-- Gauges -->
-<script type="text/javascript">
-  var _gauges = _gauges || [];
-  (function() {
-    var t   = document.createElement('script');
-    t.type  = 'text/javascript';
-    t.async = true;
-    t.id    = 'gauges-tracker';
-    t.setAttribute('data-site-id', '5c9a5706a2f54b13557a67d0');
-    t.setAttribute('data-track-path', 'https://track.gaug.es/track.gif');
-    t.src = 'https://track.gaug.es/track.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(t, s);
-  })();
-</script>
-<!-- End Gauges -->
+
     <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
 
 

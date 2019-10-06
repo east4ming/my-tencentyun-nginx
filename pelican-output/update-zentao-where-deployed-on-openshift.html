@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="OpenShift上禅道的升级方案. 主要包括以下几大步骤: 备份; 镜像重制和升级." />
+<meta name="keywords" content="项目管理, openshift, docker">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="OpenShift上禅道升级方案"/>
+<meta property="og:description" content="OpenShift上禅道的升级方案. 主要包括以下几大步骤: 备份; 镜像重制和升级."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/update-zentao-where-deployed-on-openshift.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-07-29 18:00:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="项目管理"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="docker"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; OpenShift上禅道升级方案</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="update-zentao-where-deployed-on-openshift">OpenShift上禅道升级方案</h1>
+    <p>
+      在 2019-07-29 Monday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 2 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">备份</a><ul>
+<li><a href="#_3">配置文件、代码和附件的备份</a></li>
+<li><a href="#_4">数据库的备份</a></li>
+</ul>
+</li>
+<li><a href="#_5">升级</a><ul>
+<li><a href="#dockerfile">更新Dockerfile和镜像</a></li>
+<li><a href="#docker">上传并导入新的docker镜像</a></li>
+<li><a href="#_6">新部署</a></li>
+<li><a href="#_7">执行升级程序</a></li>
+</ul>
+</li>
+<li><a href="#_8">回顾和总结</a></li>
+</ul>
+</div>
+<h2 id="_1">概述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>在<a href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html">之前的文章</a>中, 介绍了把禅道部署到企业测试环境的过程. 而这次是要对禅道进行一下升级, 其实严格说来不仅仅升级, 而是把: 开源版禅道11.5 升级为 企业版禅道3.3.  本文记录了升级的全过程.</p>
+<p>其实所有的升级中包含的最重要的是以下几步:</p>
+<ol>
+<li>备份</li>
+<li>升级</li>
+<li>验证</li>
+</ol>
+<h2 id="_2">备份<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>其实可以一键自动化备份的. 位于禅道网页的: 后台 -&gt; 数据 -&gt; 开始备份</p>
+</blockquote>
+<h3 id="_3">配置文件、代码和附件的备份<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>配置文件存放在zentao/config/my.php</li>
+<li>附件存放在zentao/www/data/目录下面。</li>
+<li>修改的代码也都放在zentao目录下面。</li>
+</ul>
+<p>因此备份配置文件、代码和附件的方法就是将整个zentao目录备份即可。</p>
+<p>对于本次OpenShift, 操作如下:</p>
+<div class="highlight"><pre><span></span><span class="c1"># 查看禅道pod运行的节点</span>
+oc project zentao  <span class="c1"># 切换到zentao项目</span>
+oc get pod  <span class="c1"># 查看zentao pod的name</span>
+oc describe pod &lt;pod_name&gt;  <span class="c1"># 查看zentao 对应pod的详细信息</span>
+<span class="c1"># 输出如下:</span>
+<span class="c1"># Node:  xxxxx-node02.xxxxx.com.cn/10.X.X.X</span>
+<span class="c1"># Mounts:</span>
+<span class="c1">#  /app/zentaopms from zentao-volume-1 (rw)</span>
+<span class="c1">#  /var/lib/mysql from zentao-volume-2 (rw)</span>
+<span class="c1"># Volumes:</span>
+<span class="c1">#  zentao-volume-1:</span>
+<span class="c1">#    ClaimName: zentao-pms</span>
+<span class="c1">#  zentao-volume-2:</span>
+<span class="c1">#    ClaimName: zentao-mysql-pvc</span>
+oc get pvc
+<span class="c1"># 可以看到绑定的PV是: zentao-pms-volume 和zentao-mysql-volume</span>
+oc describe pv zentao-pms-volume zentao-mysql-volume
+<span class="c1"># 可以看到对应的共享存储:</span>
+<span class="c1"># Server: 10.X.X.X</span>
+<span class="c1"># Path: /vol/Thxxxxxx/zentao-pms</span>
+<span class="c1"># Path: /vol/Thxxxxxx/zentao-mysql</span>
+
+<span class="c1"># 在node2上执行:</span>
+df -h <span class="p">|</span> grep zentao
+<span class="c1"># 输出如下:</span>
+<span class="c1"># 10.X.X.X://vol/Thxxxxxx/zentao-pms  50G  3.0G  48G  6%  /var/lib/origin/openshift.local.volumes/pods/6340...-...-97cd/volumes/kubernetes.io~nfs/zentao-pms-volume</span>
+<span class="c1"># 10.X.X.X://vol/Thxxxxxx/zentao-mysql  50G  3.0G  48G  6%  /var/lib/origin/openshift.local.volumes/pods/6340...-...-97cd/volumes/kubernetes.io~nfs/zentao-mysql-volume</span>
+<span class="c1"># 备份</span>
+<span class="nb">cd</span> /var/lib/origin/openshift.local.volumes/pods/6340...-...-97cd/volumes/kubernetes.io~nfs/zentao-pms-volume
+tar -cvzf /root/zentao-pms-volume.tgz ./zentao-pms-volume/
+</pre></div>
+
+
+<h3 id="_4">数据库的备份<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>可以使用mysql提供的管理工具，将数据库导出： <code>mysqldump -u xxx -p zentao &gt; zentao.sql</code>，其中的user换成实际的用户。</p>
+<h2 id="_5">升级<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h3 id="dockerfile">更新Dockerfile和镜像<a class="headerlink" href="#dockerfile" title="Permanent link">&para;</a></h3>
+<p>Dockerfile更新如下:</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> ubuntu:16.04</span>
+<span class="k">MAINTAINER</span><span class="s"> yidong &lt;yidong@cnezsoft.com&gt;</span>
+
+<span class="k">RUN</span> apt-get update <span class="o">&amp;&amp;</span> apt-get install -y apache2 mariadb-server php php-curl php-gd php-ldap php-mbstring php-mcrypt php-mysql php-xml php-zip php-cli php-json curl unzip libapache2-mod-php locales
+
+<span class="k">ENV</span> <span class="nv">LANG</span><span class="o">=</span><span class="s2">&quot;en_US.UTF8&quot;</span>
+<span class="k">ENV</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span><span class="s2">&quot;123456&quot;</span>
+<span class="k">RUN</span> <span class="nb">echo</span> -e <span class="s2">&quot;LANG=\&quot;en_US.UTF-8\&quot;\nLANGUAGE=\&quot;en_US:en\&quot;&quot;</span> &gt; /etc/default/locale <span class="o">&amp;&amp;</span> locale-gen en_US.UTF-8
+
+<span class="k">RUN</span> mkdir -p /app/zentaopms
+<span class="k">COPY</span> docker-entrypoint.sh /app
+<span class="c">#RUN random=`date +%s`; curl http://cdn.zentaopm.com/latest/zentao.zip?rand=$random -o /var/www/zentao.zip</span>
+<span class="c">#RUN cd /var/www/ &amp;&amp; unzip -q zentao.zip &amp;&amp; rm zentao.zip</span>
+<span class="k">COPY</span> ./zentaopms/ /var/www/zentaopms/
+<span class="k">RUN</span> a2enmod rewrite
+
+<span class="k">RUN</span> rm -rf /etc/apache2/sites-enabled/000-default.conf /var/lib/mysql/*
+<span class="k">RUN</span> sed -i <span class="s1">&#39;1i ServerName 127.0.0.1&#39;</span> /etc/apache2/apache2.conf
+<span class="k">COPY</span> config/apache.conf /etc/apache2/sites-enabled/000-default.conf
+<span class="k">COPY</span> config/ioncube_loader_lin_7.0.so /usr/lib/php/20151012/ioncube_loader_lin_7.0.so
+<span class="k">COPY</span> config/00-ioncube.ini /etc/php/7.0/apache2/conf.d/
+<span class="k">COPY</span> config/00-ioncube.ini /etc/php/7.0/cli/conf.d/
+
+<span class="k">VOLUME</span><span class="s"> /app/zentaopms /var/lib/mysql</span>
+<span class="k">ENTRYPOINT</span> <span class="p">[</span><span class="s2">&quot;/app/docker-entrypoint.sh&quot;</span><span class="p">]</span>
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>企业版3.3的包和对应的试用license, 禅道的技术支持已经提供给我了.</p>
+<p>我解压后统一放到了<code>./zentaopms/</code> 下</p>
+</blockquote>
+<p>使用<code>Dockerfile</code> 构建docker镜像并测试:</p>
+<div class="highlight"><pre><span></span><span class="nb">cd</span> docker_zentao
+docker build -t zentao:3.3-ent .
+
+<span class="c1"># 测试</span>
+docker run --name zentao-ent-test -p <span class="m">8000</span>:80 -e <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span><span class="m">123456</span> -d zentao:3.3-ent  <span class="c1"># 后台运行该docker容器</span>
+docker ps  <span class="c1"># 查看容器是否正常运行, 有无crash</span>
+docker stop zentao-ent-test  <span class="c1"># 测试完毕, 停止该容器</span>
+</pre></div>
+
+
+<p>将镜像导出为tar包:</p>
+<div class="highlight"><pre><span></span>docker save -o docker_zentao.tar zentao
+</pre></div>
+
+
+<h3 id="docker">上传并导入新的docker镜像<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
+<p>先ftp传上去. 然后执行如下命令:</p>
+<div class="highlight"><pre><span></span>docker load -i docker_ent_zentao.tar
+docker push txocp-registry.example.com/ewhisper/zentao:3.3-ent
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>无法连接外网, 且内网没有足够多的常用基础镜像好难受啊! <img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"><img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"><img align="absmiddle" alt="😭" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f62d.png" title=":sob:" width="20px"></p>
+</blockquote>
+<h3 id="_6">新部署<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>因为该禅道docker镜像包括数据库组件: mysql. 为有状态. 无法平滑升级或启动多个.</p>
+<p>所以升级前一定要注意升级策略要是: <code>Recreate</code>而不能是其他.  </p>
+<p><code>Strategy:  Recreate</code></p>
+</blockquote>
+<p>本次升级使用到了OpenShift的ImageStream功能. 该功能是多个镜像的链式组合. ImageStream只是个元数据, 不包含镜像.</p>
+<p>升级前, 我们已经确认, 禅道该APP的触发自动部署的策略为: ImageStream为<code>zentao</code>的最新版本, 镜像发生了变化就自动触发部署. 如下:</p>
+<p><code>Triggers:  Image(zentao@latest, auto=true), Config</code></p>
+<p>我们通过如下设置更新ImageStream:</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>其实最简单就是将上边的镜像直接push为最新, 即: <code>docker push txocp-registry.example.com/ewhisper/zentao:latest</code>, 一检测到镜像发生变化就会自动部署. 但是考虑到禅道的2个镜像: 开源版11.5和 企业版3.3 不是这么简单的关系. 所以为了考虑回滚方便, 并没有用这种方式.</p>
+</blockquote>
+<div class="highlight"><pre><span></span>oc tag zentao:latest zentao:11.5  <span class="c1"># 将之前的开源11.5镜像标记为: 11.5(之前由于只有这一个镜像, 就直接用了latest标签)</span>
+oc tag txocp-registry.example.com/ewhisper/zentao:3.3-ent zentao:3.3-ent --insecure<span class="o">=</span><span class="nb">true</span>  <span class="c1"># 将商业版3.3镜像标记为ImageStream中的一个新标签: zentao:3.3-ent. `--insecure=true` 是因为测试镜像库没有用https</span>
+oc tag zentao:3.3-ent zentao:latest  <span class="c1"># 将商业版3.3镜像标记为最新</span>
+</pre></div>
+
+
+<p>这时ImageStream的信息如下:</p>
+<p><img alt="ImageStream" src="./images/zentao_openshift_update_4.png"></p>
+<p>此时, 由于latest镜像发生变化, 会自动触发新一次的部署, 相关的Events如下:</p>
+<p><img alt="Deployment Events" src="./images/zentao_openshift_update_5.png"></p>
+<h3 id="_7">执行升级程序<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>接下来就是<strong>禅道</strong> 升级企业版的步骤了, 具体参见禅道官方文档 - <a href="https://www.zentao.net/book/zentaobizhelp/282.html">开源版升级到企业版</a></p>
+<ol>
+<li>访问升级URL: 我本地访问禅道的地址是 <a href="http://127.0.0.1:81/zentao">http://127.0.0.1:81/zentao</a>，那么浏览器输入  <a href="http://127.0.0.1:81/zentao/upgrade.php">http://127.0.0.1:81/zentao/upgrade.php</a>，即可进入升级步骤。</li>
+<li>请根据提示创建ok.txt 文件。创建完成后，请点击 继续更新。</li>
+</ol>
+<p><img alt="ok" src="./images/zentao_openshift_update_2.png"></p>
+<ol start="3">
+<li>一步一步按照提升进行, 最后会提示要<strong>创建索引</strong>, 如下图:</li>
+</ol>
+<p><img alt="创建索引" src="./images/zentao_openshift_update_3.png"></p>
+<ol start="4">
+<li>至此升级完成, 登录进行功能和数据完整性验证. (这一步很重要, 但是我就不详细说明了. ) <img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f389.png" title=":tada:" width="20px"></li>
+</ol>
+<p><img alt="企业版信息" src="./images/zentao_openshift_update_6.png"></p>
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>升级成功后<strong>千万不要</strong>直接进入首页并按照首页提示操作, 本人血的教训!!! 谨记!!! 如下:</p>
+<p><img alt="升级后首页提示" src="./images/zentao_openshift_update_1.png"></p>
+</blockquote>
+<h2 id="_8">回顾和总结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p>其实回顾一下过程, 虽然很复杂, 但这种复杂是企业环境的网络复杂导致的, 是可以后续进一步优化的. 包括:</p>
+<ol>
+<li>备份: 创建并使用一键自动化备份脚本. (其实禅道本身有的, 位于: 后台 -&gt; 数据 -&gt; 开始备份)</li>
+<li>代码升级并编译为镜像: 其实<strong>升级</strong>那一章节可以大幅度缩减的, 理想情况是:<ol>
+<li>代码放在git上, git上代码更新到需要部署的版本; (开发的精力完全专注于创造性工作)</li>
+<li>配置OpenShift的webhook, 触发自动构建新镜像并push到镜像库;</li>
+<li>镜像库检测到镜像发生变化, 触发自动部署</li>
+<li>升级完成.</li>
+</ol>
+</li>
+<li>要做到上边说的这么美好, 还有以下地方要改进:<ol>
+<li>测试环境连接外网, 或测试环境有一个可以定期同步常用镜像的镜像库.</li>
+<li>开发的电脑要安装docker和OpenShift CLI 工具<code>oc</code> , 并且可以直接访问 测试镜像库和测试OpenShift.</li>
+</ol>
+</li>
+</ol>
+<p>如果可以做到, 那么理想中的情况就是:</p>
+<ul>
+<li>开发只管创造性的工作(写代码), 其他全部通过预置条件自动触发, 完全不需要人工干预.</li>
+<li>运维只负责第一次上线的相关脚本编写, 资源分配, 以及容器平台, 监控告警平台等的开发.</li>
+</ul>
+<p><img align="absmiddle" alt="😍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f60d.png" title=":heart_eyes:" width="20px"><img align="absmiddle" alt="😍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f60d.png" title=":heart_eyes:" width="20px"><img align="absmiddle" alt="😍" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f60d.png" title=":heart_eyes:" width="20px">想想都醉了</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/xiang-mu-guan-li.html">项目管理</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/container-best-practices.html" title="容器最佳实践">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/analyze-k8s-difficult-problems-10s-delay.html" title="Kubernetes 疑难问题排查 - 10s 延迟">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/container-best-practices.html">容器最佳实践</a></li>
+      <li><a href="https://www.EWhisper.cn/install-gitlab-with-docker.html">使用 Docker 安装 Gitlab</a></li>
+      <li><a href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html">OpenShift企业测试环境应用部署实战</a></li>
+      <li><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html">容器自动伸缩</a></li>
+      <li><a href="https://www.EWhisper.cn/binary-builds-with-openshift.html">使用OpenShift进行二进制构建</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>
