@@ -1,0 +1,511 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="手把手教你在容器云平台(OpenShift)上部署Java 应用. 包括: 配置数据库, 写java代码, 在容器平台上配置应用, 代码上git, 容器平台上部署数据库/java应用和配置路由及域名!" />
+<meta name="keywords" content="java, openshift, 最佳实践, devops">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="手把手教你在容器云平台上部署Java 应用"/>
+<meta property="og:description" content="手把手教你在容器云平台(OpenShift)上部署Java 应用. 包括: 配置数据库, 写java代码, 在容器平台上配置应用, 代码上git, 容器平台上部署数据库/java应用和配置路由及域名!"/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/deploy-java-app-on-openshift.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-11-07 18:30:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="java"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="devops"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; 手把手教你在容器云平台上部署Java 应用</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="deploy-java-app-on-openshift">手把手教你在容器云平台上部署Java 应用</h1>
+    <p>
+      在 2019-11-07 Thursday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 3 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="" src="./images/tomcat-docker.png"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>这篇教程会使用 Tomcat + PostgreSQL 创建一个 <strong>待办清单</strong> (todolist) 应用. 并部署到OpenShift上.以此来演示完整的java 应用上容器平台(OpenShift)的流程.</p>
+<h3 id="_2">先决条件<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>基本的Java 8和Tomcat知识</li>
+<li>OpenJDK 8, Tomcat 8, Maven的本地安装版本</li>
+<li>基本的Git知识</li>
+<li>OpenShift 4的运行实例</li>
+<li>确保OpenShift容器平台的实例正在运行并且可用。另外，请确保已安装CLI客户端<code>oc</code>，并且可以从命令shell该命令，以便可以使用它通过账号和密码登录。</li>
+</ul>
+<h2 id="_3">设置数据库<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>Java 应用程序几乎总是与数据库一起使用。对于本地开发，请使用PostgreSQL数据库。(使用MySQL的过程是完全一样的, 只是安装的为MySQL或MariaDB).</p>
+<p><strong>步骤</strong>:</p>
+<ol>
+<li>安装数据库: <code>$ sudo yum install -y postgresql postgresql-server postgresql-devel</code></li>
+<li>初始化数据库: <code>$ sudo postgresql-setup initdb</code>. 此命令会创建<code>/var/lib/pgsql/data</code>目录, 数据存在这个目录.</li>
+<li>启动数据库: <code>$ sudo systemctl start postgresql.service</code></li>
+<li>数据库启动后, 创建普通账户: <code>$ sudo -u postgres createuser -s jws</code>. 请注意，创建的用户没有密码。</li>
+</ol>
+<h2 id="java">写 Java 应用<a class="headerlink" href="#java" title="Permanent link">&para;</a></h2>
+<p>如果要从头开始安装java和tomcat，则必须先安装OpenJDK 8 。然后，您可以继续编写应用程序。</p>
+<p><strong>步骤</strong>:</p>
+<ol>
+<li>安装 OpenJDK8: <code>$ sudo yum install java-1.8.0-openjdk-devel.x86_64</code></li>
+<li>验证java版本:<code>$ java -version</code> 输出示例: <code>openjdk version "1.8.0_171</code></li>
+<li>下载JAVA IDE并安装配置, 如IDEA或Eclipse.<a href="https://www.eclipse.org/downloads/">https://www.eclipse.org/downloads/</a></li>
+<li>从这个链接下载Tomcat 8 应用: <a href="https://tomcat.apache.org/download-80.cgi">https://tomcat.apache.org/download-80.cgi</a>. 然后解压即可: <code>tar -xvzf apache-tomcat-8.5.47.tar.gz -C /opt/</code>. 那么Tomcat的Home目录就是: <code>/opt/apache-tomcat-8.5.47</code></li>
+<li>下载Maven并安装. <a href="https://maven.apache.org/download.cgi">https://maven.apache.org/download.cgi</a></li>
+<li>下载JDBC驱动.</li>
+<li>打开IDE新建一个JAVA工程 - <code>todolist-jdbc</code>, 然后进行编码. 工程的结构如下: (源码链接: <a href="https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/tree/1.2/tomcat-jdbc">https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/tree/1.2/tomcat-jdbc</a>)</li>
+</ol>
+<div class="highlight"><pre><span></span>$ tree .
+.
+├── pom.xml
+└── src
+    └── main
+        ├── java
+        │   └── org
+        │       └── openshift
+        │           └── quickstarts
+        │               └── tomcat
+        │                   ├── dao
+        │                   │   ├── JdbcTomcatDAO.java
+        │                   │   └── TomcatDAO.java
+        │                   ├── model
+        │                   │   └── TomcatEntry.java
+        │                   ├── service
+        │                   │   └── TomcatService.java
+        │                   └── servlet
+        │                       └── MainServlet.java
+        └── webapp
+            ├── WEB-INF
+            │   ├── index.html
+            │   └── web.xml
+            └── resources
+                └── css
+                    ├── bootstrap-theme.min.css
+                    └── bootstrap.min.css
+</pre></div>
+
+
+<ol start="7">
+<li>生成相关依赖项<code>pom.xml</code>: 如JDBC和框架. 构建使用<code>maven</code>.</li>
+<li>将数据库配置为JNDI资源, 简单示例如下: <code>/opt/apache-tomcat-8.5.47/conf/context.xml</code></li>
+</ol>
+<div class="highlight"><pre><span></span><span class="nt">&lt;Resource</span> <span class="na">name=</span><span class="s">&quot;jboss/datasources/defaultDS&quot;</span> <span class="na">auth=</span><span class="s">&quot;Container&quot;</span> <span class="na">type=</span><span class="s">&quot;javax.sql.DataSource&quot;</span>
+               <span class="na">maxTotal=</span><span class="s">&quot;25&quot;</span> <span class="na">maxIdle=</span><span class="s">&quot;5&quot;</span> <span class="na">maxWaitMillis=</span><span class="s">&quot;5000&quot;</span>
+               <span class="na">username=</span><span class="s">&quot;root&quot;</span> <span class="na">password=</span><span class="s">&quot;mypassword&quot;</span> <span class="na">driverClassName=</span><span class="s">&quot;org.postgresql.Driver&quot;</span>
+               <span class="na">url=</span><span class="s">&quot;jdbc:postgresql://localhost/test&quot;</span><span class="nt">/&gt;</span>  
+</pre></div>
+
+
+<ol start="9">
+<li>启动tomcat查看日志确定数据库是否已可以正常连接.</li>
+</ol>
+<h3 id="index">创建 index 页面<a class="headerlink" href="#index" title="Permanent link">&para;</a></h3>
+<p>概述如下, MVC模式:</p>
+<ul>
+<li>Model: <code>TomcatEntry</code>类, <code>getSummary()</code>  <code>setSummary()</code>等方法. 见<a href="https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/blob/1.2/tomcat-jdbc/src/main/java/org/openshift/quickstarts/tomcat/model/TomcatEntry.java">https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/blob/1.2/tomcat-jdbc/src/main/java/org/openshift/quickstarts/tomcat/model/TomcatEntry.java</a></li>
+<li>View: <code>index.html</code>. 包含对<code>Summary</code> 的POST和GET http method. 见<a href="https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/blob/1.2/tomcat-jdbc/src/main/webapp/WEB-INF/index.html">https://dev.tencent.com/u/east4ming/p/openshift-quickstarts/git/blob/1.2/tomcat-jdbc/src/main/webapp/WEB-INF/index.html</a></li>
+<li>Controller: <code>MainServlet.java</code>. 包含<code>MainServlet</code>类, 包含<code>doPost()``doGet()</code>等方法</li>
+</ul>
+<p>用IDE, 配置tomcat运行验证页面是否可用.</p>
+<p>通过访问<a href="http://localhost:8080">http://localhost:8080</a> 来查看页面. 如果没有看到该页面，可以查看tomcat的输出日志。</p>
+<h3 id="openshift">在 OpenShift 上配置应用<a class="headerlink" href="#openshift" title="Permanent link">&para;</a></h3>
+<p>为了使您的应用程序与在OpenShift Container Platform中运行的PostgreSQL数据库服务通信，您必须编辑其中的写死的部分以使用环境变量。</p>
+<p>最终运行在OpenShift之上的代码和本地代码差别其实很小. 如果最初运行在本地或开发环境. 那么类似以下的代码就会写死, 作为对比, 如果是OpenShift, 则建议使用环境变量ENV:</p>
+<p><code>pom.xml</code>原始版本:</p>
+<div class="highlight"><pre><span></span><span class="nt">&lt;build&gt;</span>
+    <span class="nt">&lt;plugins&gt;</span>
+        <span class="nt">&lt;plugin&gt;</span>
+            <span class="nt">&lt;artifactId&gt;</span>maven-surefire-plugin<span class="nt">&lt;/artifactId&gt;</span>
+            <span class="nt">&lt;version&gt;</span>3.1.0<span class="nt">&lt;/version&gt;</span>
+            <span class="nt">&lt;configuration&gt;</span>
+                <span class="nt">&lt;skip&gt;</span>true<span class="nt">&lt;/skip&gt;</span>
+            <span class="nt">&lt;/configuration&gt;</span>
+        <span class="nt">&lt;/plugin&gt;</span>
+    <span class="nt">&lt;/plugins&gt;</span>
+<span class="nt">&lt;/build&gt;</span>
+</pre></div>
+
+
+<p><code>pom.xml</code> OpenShift版本: 善用变量 (详见<code>${}</code>内的内容)</p>
+<div class="highlight"><pre><span></span><span class="nt">&lt;build&gt;</span>
+    <span class="nt">&lt;plugins&gt;</span>
+        <span class="nt">&lt;plugin&gt;</span>
+            <span class="nt">&lt;artifactId&gt;</span>maven-surefire-plugin<span class="nt">&lt;/artifactId&gt;</span>
+            <span class="nt">&lt;version&gt;</span>${version.surefire.plugin}<span class="nt">&lt;/version&gt;</span>
+            <span class="nt">&lt;configuration&gt;</span>
+                <span class="nt">&lt;skip&gt;</span>true<span class="nt">&lt;/skip&gt;</span>
+            <span class="nt">&lt;/configuration&gt;</span>
+        <span class="nt">&lt;/plugin&gt;</span>
+    <span class="nt">&lt;/plugins&gt;</span>
+<span class="nt">&lt;/build&gt;</span>
+</pre></div>
+
+
+<p><code>JdbcTomcatDAO.java</code>原始版本:</p>
+<div class="highlight"><pre><span></span><span class="kd">private</span> <span class="n">DataSource</span> <span class="nf">lookupDataSource</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Context</span> <span class="n">initialContext</span> <span class="o">=</span> <span class="k">new</span> <span class="n">InitialContext</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">DataSource</span><span class="o">)</span> <span class="n">initialContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="s">&quot;jboss/datasources/defaultDS&quot;</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">NameNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Context</span> <span class="n">envContext</span> <span class="o">=</span> <span class="o">(</span><span class="n">Context</span><span class="o">)</span> <span class="n">initialContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="s">&quot;java:comp/env&quot;</span><span class="o">);</span>  <span class="c1">// Tomcat places datasources inside java:comp/env</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">DataSource</span><span class="o">)</span> <span class="n">envContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">&quot;DB_JNDI&quot;</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">NamingException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;Could not look up datasource&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<p><code>JdbcTomcatDAO.java</code> OpenShift版本: 善用环境变量 ENV (详见: <code>System.getenv</code>)</p>
+<div class="highlight"><pre><span></span><span class="kd">private</span> <span class="n">DataSource</span> <span class="nf">lookupDataSource</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Context</span> <span class="n">initialContext</span> <span class="o">=</span> <span class="k">new</span> <span class="n">InitialContext</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">DataSource</span><span class="o">)</span> <span class="n">initialContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">&quot;DB_JNDI&quot;</span><span class="o">));</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">NameNotFoundException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Context</span> <span class="n">envContext</span> <span class="o">=</span> <span class="o">(</span><span class="n">Context</span><span class="o">)</span> <span class="n">initialContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="s">&quot;java:comp/env&quot;</span><span class="o">);</span>  <span class="c1">// Tomcat places datasources inside java:comp/env</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">DataSource</span><span class="o">)</span> <span class="n">envContext</span><span class="o">.</span><span class="na">lookup</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">&quot;DB_JNDI&quot;</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">NamingException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;Could not look up datasource&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<h3 id="git">使用 Git<a class="headerlink" href="#git" title="Permanent link">&para;</a></h3>
+<p>在OpenShift Container Platform中构建应用程序通常需要将源代码存储在git存储库中(建议)，因此如果尚未安装<code>git</code>，则必须进行安装。</p>
+<p><strong>前提</strong>:</p>
+<ul>
+<li>安装git</li>
+</ul>
+<p><strong>步骤</strong>:</p>
+<ol>
+<li>确保位于工程目录中;</li>
+<li>初始化代码并提交到git:</li>
+</ol>
+<div class="highlight"><pre><span></span>$ git init
+$ git add .
+$ git commit -m <span class="s2">&quot;initial commit&quot;</span>
+</pre></div>
+
+
+<ol start="3">
+<li>提交应用程序后，必须将其推送到远程存储库。如GitHub帐户，您可以在其中创建新的存储库。</li>
+<li>设置指向您的<code>git</code>存储库的远程服务器：<code>$ git remote add origin git@github.com:&lt;namespace/repository-name&gt;.git</code></li>
+<li>将您的应用程序推送到远程git存储库。<code>$ git push</code></li>
+</ol>
+<h2 id="openshift_1">部署应用到 OpenShift<a class="headerlink" href="#openshift_1" title="Permanent link">&para;</a></h2>
+<p>您可以将应用程序部署到OpenShift容器平台。</p>
+<p>在OpenShift上创建<code>java-app</code>项目后，您将自动切换到新的项目namespace。</p>
+<p>在OpenShift Container Platform中部署应用程序涉及三个步骤：</p>
+<ul>
+<li>从OpenShift容器平台的PostgreSQL 镜像创建数据库服务。</li>
+<li>从与数据库服务连接的OpenShift Container Platform的 <code>JBoss Web Server 3.1 Apache Tomcat 8 builder</code> (REDHAT基于开源版tomcat做了部分定制, 可以和使用开源版tomcat一样使用它) 镜像(docker image)和java源代码创建java服务。</li>
+<li>为您的应用程序创建路由和域名。</li>
+</ul>
+<p><strong>步骤</strong>:</p>
+<ul>
+<li>要部署 JAVA 应用程序，请为该应用程序创建一个新项目: </li>
+</ul>
+<div class="highlight"><pre><span></span>$ oc new-project java-app --description<span class="o">=</span><span class="s2">&quot;Todolist Java application&quot;</span> --display-name<span class="o">=</span><span class="s2">&quot;Todolist + JDBC JAVA Application&quot;</span>
+</pre></div>
+
+
+<h3 id="_4">创建数据库服务<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>您的Java 应用程序需要正在运行的数据库服务。对于此服务，使用PostgeSQL数据库镜像来创建。</p>
+<p>要创建数据库服务，您将使用<code>oc new-app</code>命令。对于此命令，您必须传递一些必要的环境变量，这些变量将在数据库容器内部使用。这些环境变量是设置数据库的用户名，密码和名称所必需的。您可以将这些环境变量的值更改为所需的任何值。变量如下：</p>
+<ul>
+<li><code>POSTGRESQL_DATABASE</code></li>
+<li><code>POSTGRESQL_USER</code></li>
+<li><code>POSTGRESQL_PASSWORD</code></li>
+</ul>
+<p>设置这些变量可确保：</p>
+<ul>
+<li>存在具有指定名称的数据库。</li>
+<li>存在具有指定名称的用户。</li>
+<li>用户可以用指定的JDBC配置访问指定的数据库。</li>
+</ul>
+<p><strong>步骤:</strong></p>
+<ol>
+<li>创建数据库服务：<code>$ oc new-app postgresql -e POSTGRESQL_DATABASE=db_name -e POSTGRESQL_USER=username -e POSTGRESQL_PASSWORD=password</code></li>
+<li>观察进度: <code>$ oc get pods --watch</code></li>
+</ol>
+<h3 id="java_1">创建 Java 服务<a class="headerlink" href="#java_1" title="Permanent link">&para;</a></h3>
+<p>要将应用程序带入OpenShift容器平台，必须指定一个应用程序所在的存储库。</p>
+<p><strong>步骤:</strong></p>
+<ol>
+<li>创建JAVA服务，并指定在创建数据库服务时设置的与数据库相关的环境变量：</li>
+</ol>
+<div class="highlight"><pre><span></span>$ oc new-app path/to/source/code --name<span class="o">=</span>todolist-jdbc <span class="se">\</span>
+-e <span class="nv">POSTGRESQL_USER</span><span class="o">=</span>username -e <span class="nv">POSTGRESQL_PASSWORD</span><span class="o">=</span>password -e <span class="nv">POSTGRESQL_DATABASE</span><span class="o">=</span>db_name -e <span class="nv">DATABASE_SERVICE_NAME</span><span class="o">=</span>postgresql <span class="se">\</span>
+-e <span class="nv">DB_JNDI</span><span class="o">=</span><span class="s2">&quot;jboss/datasources/defaultDS&quot;</span>
+</pre></div>
+
+
+<ol start="2">
+<li>使用此命令，OpenShift Container Platform可以获取源代码，设置builder 以构建您的应用程序docker 镜像，并将新创建的镜像与指定的环境变量一起部署。该应用程序名为<code>todolist-jdbc</code>。</li>
+<li>通过查看<code>todolist-jdbc</code>的<code>DeploymentConfig</code> 的JSON配置来验证是否已添加环境变量：<code>$ oc get dc todolist-jdbc -o json</code></li>
+<li>应该会看到下列内容:</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="err">env</span><span class="s2">&quot;: [</span>
+<span class="s2">    {</span>
+<span class="s2">        &quot;</span><span class="err">name</span><span class="s2">&quot;: &quot;</span><span class="err">POSTGRESQL_USER</span><span class="s2">&quot;,</span>
+<span class="s2">        &quot;</span><span class="err">value</span><span class="s2">&quot;: &quot;</span><span class="err">username</span><span class="s2">&quot;</span>
+<span class="s2">    },</span>
+<span class="s2">    {</span>
+<span class="s2">        &quot;</span><span class="err">name</span><span class="s2">&quot;: &quot;</span><span class="err">POSTGRESQL_PASSWORD</span><span class="s2">&quot;,</span>
+<span class="s2">        &quot;</span><span class="err">value</span><span class="s2">&quot;: &quot;</span><span class="err">password</span><span class="s2">&quot;</span>
+<span class="s2">    },</span>
+<span class="s2">    {</span>
+<span class="s2">        &quot;</span><span class="err">name</span><span class="s2">&quot;: &quot;</span><span class="err">POSTGRESQL_DATABASE</span><span class="s2">&quot;,</span>
+<span class="s2">        &quot;</span><span class="err">value</span><span class="s2">&quot;: &quot;</span><span class="err">db_name</span><span class="s2">&quot;</span>
+<span class="s2">    },</span>
+<span class="s2">    {</span>
+<span class="s2">        &quot;</span><span class="err">name</span><span class="s2">&quot;: &quot;</span><span class="err">DATABASE_SERVICE_NAME</span><span class="s2">&quot;,</span>
+<span class="s2">        &quot;</span><span class="err">value</span><span class="s2">&quot;: &quot;</span><span class="err">postgresql</span><span class="s2">&quot;</span>
+<span class="s2">    }</span>
+<span class="s2">    {</span>
+<span class="s2">        &quot;</span><span class="err">name</span><span class="s2">&quot;: &quot;</span><span class="err">DB_JNDI</span><span class="s2">&quot;,</span>
+<span class="s2">        &quot;</span><span class="err">value</span><span class="s2">&quot;: &quot;</span><span class="err">jboss/datasources/defaultDS&quot;</span>
+    <span class="err">}</span>
+<span class="err">],</span>
+</pre></div>
+
+
+<ol start="5">
+<li>检查构建过程：<code>$ oc logs -f build/todolist-jdbc-app-1</code> </li>
+<li>构建完成后，请查看OpenShift Container Platform中正在运行的Pod：<code>$ oc get pods</code> . 您应该看到以<code>todolist-jdbc-&lt;number&gt;-&lt;hash&gt;</code>开头的pod，这是您的应用程序在OpenShift Container Platform中运行。</li>
+<li>如果要在程序正常运行之前, 先运行数据库迁移脚本来初始化数据库. 有3方法:<ol>
+<li>从pgsql中手动进行:<ol>
+<li>使用<code>rsh</code>命令进入到容器中: <code>$ oc rsh &lt;PGSQL_POD_ID&gt;</code></li>
+<li>使用pgsql客户端运行sql初始化脚本</li>
+</ol>
+</li>
+<li>可以创建个模板 - <code>template</code>对象, 在其中添加部署前要执行的hook, 来自动触发. </li>
+</ol>
+</li>
+</ol>
+<h3 id="_5">创建应用的访问域名<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>这样您可以公开服务以为您的应用程序创建路由。</p>
+<p><strong>步骤:</strong></p>
+<p>要给服务提供外部可访问的域名（例如，使用OpenShift容器平台的router提供<code>todolist.apps.example.com</code>）来公开该服务 。您需要输入以下内容来发布前端服务：</p>
+<div class="highlight"><pre><span></span>$ oc expose service todolist-jdbc --hostname<span class="o">=</span>todolist.apps.example.com
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="❗" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/2757.png" title=":exclamation:" width="20px"> 注意:</p>
+<p>前提是<code>todolist.apps.example.com</code>已经被解析到OpenShift集群的router上了. </p>
+<p>一般OpenShift管理员会配置泛域名<code>*.apps.example.com</code> 都解析到OpenShift的router上.</p>
+</blockquote>
+<h2 id="_6">总结<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>以上介绍了java 应用<strong>源代码部署</strong>的方式. JAVA应用要部署在OpenShift上. </p>
+<ol>
+<li>建议把JAVA应用放到Git上.  这样方便追踪.</li>
+<li>建议代码里不确定的内容使用环境变量ENV来进行获取和配置.</li>
+<li>数据库可以使用OpenShift自带的pgsql, MongoDB, Mysql容器镜像;</li>
+<li>与纯docker或纯k8s相比, 应用可以直接源代码+ openshift的tomcat8 builder镜像自动生成可用的镜像并部署. 因为:<ol>
+<li>builder镜像内包含maven等builder工具. 它会将源码pull下来, maven编译为WAR包, 同时会根据传入的环境变量生成相关配置的xml文件. 再把war包放到指定目录下. </li>
+<li>然后生成新的镜像并部署.</li>
+</ol>
+</li>
+<li><code>oc new-app</code>这个命令其实除了创建<code>deployment</code>  <code>pod</code>外, 一般还会根据基础镜像的<code>EXPOSE</code> 自动创建相关<code>SERVICE</code>.</li>
+<li>最后要使外部可以访问该应用. 使用<code>oc expose service &lt;service_name&gt;</code> 将应用发布到某个域名.</li>
+</ol>
+<p>当然, 其实上边这些步骤下来, 还是有些麻烦的. 另外还会有一些特殊情况无法使用这种方式:</p>
+<ol>
+<li>如果不方便提供或开放源码, 只能提供二进制包(如war包), 可以使用war包进行. 简单示例如下: <code>$ oc start-build billing-service --from-file=todolist.war</code></li>
+<li>如果自己想通过Docker image方式提供, 可以这么做: <code>$ oc new-app -e MYSQL_USER=product -e MYSQL_PASSWORD=password --docker-image=172.30.182.75:5000/deploy-project/msa-product --name=product-service</code></li>
+<li>如果自己已经通过Jenkins实现了CI/CD自动化流程. 那么也可以结合起来来用. jenkins有openshift插件, 或者也可以在jenkins的slave节点上安装<code>oc</code>客户端.</li>
+<li>最后, 最强大快捷而又为程序员所习惯的方法, 是通过<code>odo</code> 工具. 这是OpenShift 4新发布的专门针对开发人员的 OpenShift 命令行. 使用方式和<code>git push</code>非常像, 封装了很多程序员不太了解的容器和K8S的概念. 你要做的就是类似前面写的: init, commit, push就好了. (以后有时间详细说明下)</li>
+</ol>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/use-subpath-in-k8s.html" title="在K8S Volume中使用 subPath">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/spring-boot-on-k8s-1.html" title="Spring Boot 微服务上容器平台的最佳实践 - 1">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/choose-right-resources-on-k8s-based-your-app-type.html">批处理 有状态等应用类型在K8S上应该如何配置?</a></li>
+      <li><a href="https://www.EWhisper.cn/container-best-practices.html">容器最佳实践</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-5.html">Spring Boot 微服务上容器平台的最佳实践 - 5</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-4.html">Spring Boot 微服务上容器平台的最佳实践 - 4</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-3.html">Spring Boot 微服务上容器平台的最佳实践 - 3</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

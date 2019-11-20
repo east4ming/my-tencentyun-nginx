@@ -94,62 +94,103 @@
 
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/install-gitlab-with-docker.html#install-gitlab-with-docker">使用 Docker 安装 Gitlab</a></h2>
+    <h2><a href="https://www.EWhisper.cn/use-subpath-in-k8s.html#use-subpath-in-k8s">在K8S Volume中使用 subPath</a></h2>
     <p>
-      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+      在 2019-11-07 Thursday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/git.html">git</a>
-        &#8226; 2 min read
+              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+        &#8226; 1 min read
     </p>
   </header>
   <div>
-        <img src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/1f4d3.png">
-      <p>在个人电脑或公司测试环境使用docker或OpenShift快速搭建 Gitlab.</p>
+        <img src="/images/kubernetes_logo.png">
+      <p>有时候, 一个pod中会有多个path需要挂载volume, 一个个去挂就很麻烦, 这时候就轮到 subPath 出场了!</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/install-gitlab-with-docker.html#install-gitlab-with-docker">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/use-subpath-in-k8s.html#use-subpath-in-k8s">阅读全文</a>
   </div>
   <hr />
 </article>
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">容器自动伸缩</a></h2>
+    <h2><a href="https://www.EWhisper.cn/choose-right-resources-on-k8s-based-your-app-type.html#choose-right-resources-on-k8s-based-your-app-type">批处理 有状态等应用类型在K8S上应该如何配置?</a></h2>
     <p>
-      在 2019-05-14 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+      在 2019-10-23 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+              <a href="https://www.EWhisper.cn/tag/k8s.html">K8S</a>,              <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+        &#8226; 1 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/Website-Elasticsearch-Kubernetes_Logo.png">
+      <p>众所周知, K8S更适合运行<strong>无状态</strong>应用, 但是除了无状态应用. 我们还会有很多其他应用类型, 如: 有状态应用, 批处理, 监控代理(每台主机上都得跑), 更复杂的应用(如:hadoop生态...). 那么这些应用可以在K8S上运行么? 如何配置?</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/choose-right-resources-on-k8s-based-your-app-type.html#choose-right-resources-on-k8s-based-your-app-type">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/I-was-screwed-by-previous-project.html#I-was-screwed-by-previous-project">今天被前一个项目组埋的雷炸惨了!</a></h2>
+    <p>
+      在 2019-10-17 Thursday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/git.html">git</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/wen-ti-fen-xi.html">问题分析</a>,              <a href="https://www.EWhisper.cn/tag/xiang-mu-guan-li.html">项目管理</a>
+        &#8226; 1 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/20191017183113.png">
+      <p>今天被前一个项目组埋的雷炸惨了! 突然发现SVN仓库变成空的了! 当时就惊出了一身冷汗.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/I-was-screwed-by-previous-project.html#I-was-screwed-by-previous-project">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/how-to-tcpdump-in-k8s.html#how-to-tcpdump-in-k8s">Kubernetes 中分析调试网络流量的4种方式</a></h2>
+    <p>
+      在 2019-10-04 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/xing-neng-diao-you.html">性能调优</a>,              <a href="https://www.EWhisper.cn/tag/wang-luo.html">网络</a>,              <a href="https://www.EWhisper.cn/tag/yi-wen.html">译文</a>
         &#8226; 3 min read
     </p>
   </header>
   <div>
-        <img src="/images/Matrix-agent-Smith-clones.jpg">
-      <p>OpenShift 容器云平台可以对容器进行自动缩放, 当前, 自动缩放只能根据以下2个指标进行判断: CPU使用率和内存使用率.</p>
+        <img src="/images/smartscape-complex-environment-572-9c4b25ca16.png">
+      <p>K8S中的应用出了问题, 往往需要进行网络抓包分析. 本文介绍了在 Kubernetes 中网络调试分析的3种方法.</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/how-to-tcpdump-in-k8s.html#how-to-tcpdump-in-k8s">阅读全文</a>
   </div>
   <hr />
 </article>
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">OpenShift 和 Kubernetes 有什么区别?</a></h2>
+    <h2><a href="https://www.EWhisper.cn/how-to-run-container-with-su-in-openshift.html#how-to-run-container-with-su-in-openshift">如何在 OpenShift 中运行 Collabora Office</a></h2>
     <p>
-      在 2019-05-03 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+      在 2019-10-03 Thursday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/paas.html">PAAS</a>
-        &#8226; 2 min read
+              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/an-quan.html">安全</a>
+        &#8226; 3 min read
     </p>
   </header>
   <div>
-        <img src="./images/openshift-architecture-overview.png">
-      <p>K8S越来越火, 而我们公司使用的是红帽的OpenShift, 它也是基于K8S. 那么, OpenShift 和 K8S 究竟有什么区别?</p>
+        <img src="/images/too-hard.jpg">
+      <p>近期在尝试 office 文档在线编辑和预览的一些解决方案, 目前在使用Collabora Office, 但是在OpenShift中运行不起来, 快看看是怎么解决的吧.</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/how-to-run-container-with-su-in-openshift.html#how-to-run-container-with-su-in-openshift">阅读全文</a>
   </div>
 </article>
 
   <div class="pagination">
+    <a class="btn float-left" href="https://www.EWhisper.cn/tag/k8s3.html">
+      <i class="fa fa-angle-left"></i> 更旧的文章
+    </a>
     <a class="btn float-right" href="https://www.EWhisper.cn/tag/k8s.html">
       更新的文章 <i class="fa fa-angle-right"></i>
     </a>

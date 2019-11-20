@@ -1,0 +1,761 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第三篇, 主要介绍 Zipkin + MySQL部署到容器平台上." />
+<meta name="keywords" content="spring boot, k8s, openshift, 最佳实践, devops">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Spring Boot 微服务上容器平台的最佳实践 - 3"/>
+<meta property="og:description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第三篇, 主要介绍 Zipkin + MySQL部署到容器平台上."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/spring-boot-on-k8s-3.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-11-15 14:10:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="spring boot"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="devops"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Spring Boot 微服务上容器平台的最佳实践 - 3</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="spring-boot-on-k8s-3">Spring Boot 微服务上容器平台的最佳实践 - 3</h1>
+    <p>
+      在 2019-11-15 Friday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 5 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="Spring+K8s" src="./images/spring_k8s.png"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>今天开始第三篇, 主要介绍下 Zipkin + MySQL部署到容器平台上.</p>
+<h3 id="_2">项目克隆<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/RHsyseng/spring-boot-msa-ocp">GitHub 仓库地址</a> 源码在这里. 先下载下来.</p>
+<div class="highlight"><pre><span></span>$ git clone https://github.com/RHsyseng/spring-boot-msa-ocp.git LambdaAir
+</pre></div>
+
+
+<p>然后进入项目目录: <code>cd LambdaAir</code></p>
+<h3 id="_3">几个前提<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ol>
+<li>共享存储. 这个Demo 应用会用到NFS, K8S(或OpenShift)上得有NFS的PV, 且空间充足(至少5G). 共享存储用于: <ol>
+<li>zpikin的mysql数据存储;</li>
+<li>zuul的动态proxy脚本挂载.</li>
+</ol>
+</li>
+<li>K8S (或OpenShift) 得有充足的权限. 至少得拥有以下权限:<ol>
+<li>创建<em>NameSpace</em>(或OpenShift的<em>Project</em>)</li>
+<li>创建<em>PVC</em></li>
+<li>创建<em>Service</em></li>
+<li>创建 <em>Deployment</em></li>
+<li>创建 <em>Ingress</em>(或OpenShift的 <em>Route</em>)</li>
+<li>创建和挂载 <em>ConfigMap</em></li>
+<li>创建<em>Secret</em></li>
+</ol>
+</li>
+</ol>
+<h2 id="namespaceproject">创建 <em>NameSpace</em>(或<em>Project</em>)<a class="headerlink" href="#namespaceproject" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span>$ oc new-project lambdaair --display-name<span class="o">=</span><span class="s2">&quot;Lambda Air&quot;</span> --description<span class="o">=</span><span class="s2">&quot;Spring Boot Microservices on Red Hat OpenShift Container Platform&quot;</span>
+Now using project <span class="s2">&quot;lambdaair&quot;</span> on server <span class="s2">&quot;https://ocp-master1.xxx.example.com:8443&quot;</span>.
+</pre></div>
+
+
+<h2 id="zipkin">部署ZipKin<a class="headerlink" href="#zipkin" title="Permanent link">&para;</a></h2>
+<h3 id="_4">概述<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>全部步骤拆分如下:</p>
+<ol>
+<li>创建<em>secret</em> - 存储数据库账号密码等机要信息</li>
+<li>创建 <em>PVC</em> - <em>zipkin-mysql</em>, 用于申请存储资源, 存放mysql 持久化数据;</li>
+<li>创建 <em>configmap</em> - <em>zipkin-mysql-cnf</em>, 用于挂载mysql的配置;</li>
+<li>创建 <em>configmap</em> - <em>zipkin-mysql-initdb</em>, 用于挂载mysql 初始化脚本;</li>
+<li>创建 <em>deploymentconfig</em> - <em>zipkin-mysql</em>, 用于对<em>zipkin-mysql</em> 的初始化, deployemnt及副本数进行管理.</li>
+<li>创建 <em>service</em> - <em>zipkin-mysql</em>, 用于在集群内提供 <em>zipkin的mysql</em> 服务. zipkin通过这个service连接到mysql.</li>
+<li>创建 <em>deploymentconfig</em> - <em>zipkin</em>. 用于对<em>zipkin</em>的build和deployment以及副本数等进行管理;</li>
+<li>创建 <em>service</em> - <em>zipkin</em>. 用于在集群内提供<em>zipkin</em> 服务;</li>
+<li>创建 <em>route</em> - <em>zipkin</em> , 用于连接<em>service</em> - <em>zipkin</em>, 使得用户可以通过域名访问<em>zipkin</em>.</li>
+</ol>
+<h3 id="mysql">创建 MySQL 数据库<a class="headerlink" href="#mysql" title="Permanent link">&para;</a></h3>
+<p>上面的步骤中, 与创建MySQL 数据库有关的步骤有1-6步. 说明如下:</p>
+<ol>
+<li>创建账号密码等信息;</li>
+<li>申请持久化存储;</li>
+<li>创建MySQL 配置;</li>
+<li>创建MySQL 初始化脚本;</li>
+<li>创建MySQL实例. 会用到<ol>
+<li>账号密码</li>
+<li>持久化存储</li>
+<li>MySQL启动后会执行初始化脚本</li>
+</ol>
+</li>
+<li>创建MySQL服务, 供集群内(项目内)使用.</li>
+</ol>
+<h4>创建 Secret</h4>
+<p><code>zipkin-mysql-secret.yml</code>文件如下:</p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">lambdaair</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>  
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">database-password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">your-password</span>
+  <span class="nt">database-root-password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">root-password</span>
+  <span class="nt">database-user</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">normaluser</span>
+</pre></div>
+
+
+<p>使用<code>oc</code>或<code>kubectl</code>创建:</p>
+<div class="highlight"><pre><span></span><span class="c1"># 先切换到 lambdaair project(后续都在这个项目里, 不在赘述)</span>
+$ oc project lambdaair
+<span class="c1"># 创建 secret</span>
+$ oc create -f zipkin-mysql-secret.yml
+<span class="c1"># 查看创建结果</span>
+$ oc get secret 
+NAME                       TYPE                                  DATA   AGE
+zipkin-mysql               Opaque                                <span class="m">3</span>      2d5h
+</pre></div>
+
+
+<h4>创建 PVC</h4>
+<p>Zipkin使用MySQL数据库进行存储，这反过来又需要创建一个OpenShift 共享存储。假定已经有了:</p>
+<div class="highlight"><pre><span></span>$ oc get pv
+NAME                  CAPACITY   ACCESSMODES   RECLAIMPOLICY   STATUS      CLAIM                           REASON    AGE
+zipkin-mysql-data     1Gi        RWO           Recycle         Available     1m
+</pre></div>
+
+
+<p><code>zipkin-mysql-pvc.yml</code> 内容如下:</p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">lambdaair</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>  
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">accessModes</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ReadWriteOnce</span>
+  <span class="nt">resources</span><span class="p">:</span>
+    <span class="nt">requests</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1Gi</span>
+</pre></div>
+
+
+<p>创建:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-mysql-pvc.yml
+$ oc get pvc
+NAME           STATUS   VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+zipkin-mysql   Bound    zipkin-mysql-data   1Gi        RWO                           2d5h
+</pre></div>
+
+
+<h4>创建 ConfigMap</h4>
+<h5>创建 MySQL 配置的ConfigMap</h5>
+<p><code>zipkin-mysql-cnf.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-cnf</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">lambdaair</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>  
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">custom.cnf</span><span class="p">:</span> <span class="p p-Indicator">|</span>
+    <span class="no">[mysqld]</span>
+    <span class="no">sql-mode=&quot;&quot;</span>
+</pre></div>
+
+
+<p>其实就是示范下, 没配置啥. 接下来创建:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-mysql-cnf.yml
+$ oc get configmap
+NAME                  DATA   AGE
+zipkin-mysql-cnf      <span class="m">1</span>      2d5h
+</pre></div>
+
+
+<h5>创建 MySQL 初始化脚本的ConfigMap</h5>
+<p><code>zipkin-mysql-initdb.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-initdb</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">lambdaair</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>  
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">init.sql</span><span class="p">:</span> <span class="p p-Indicator">&gt;</span>
+    <span class="no">CREATE TABLE IF NOT EXISTS zipkin_spans (</span>
+      <span class="no">`trace_id` BIGINT NOT NULL,</span>
+      <span class="no">`id` BIGINT NOT NULL,</span>
+      <span class="no">`name` VARCHAR(255) NOT NULL,</span>
+      <span class="no">`parent_id` BIGINT,</span>
+      <span class="no">`debug` BIT(1),</span>
+      <span class="no">`start_ts` BIGINT COMMENT &#39;Span.timestamp(): epoch micros used for endTs query and to implement TTL&#39;,</span>
+      <span class="no">`duration` BIGINT COMMENT &#39;Span.duration(): micros used for minDuration and maxDuration query&#39;</span>
+    <span class="no">) ENGINE=InnoDB ROW_FORMAT=COMPRESSED;</span>
+
+
+    <span class="no">ALTER TABLE zipkin_spans ADD UNIQUE KEY(`trace_id`, `id`) COMMENT &#39;ignore</span>
+    <span class="no">insert on duplicate&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_spans ADD INDEX(`trace_id`, `id`) COMMENT &#39;for joining</span>
+    <span class="no">with zipkin_annotations&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_spans ADD INDEX(`trace_id`) COMMENT &#39;for getTracesByIds&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_spans ADD INDEX(`name`) COMMENT &#39;for getTraces and</span>
+    <span class="no">getSpanNames&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_spans ADD INDEX(`start_ts`) COMMENT &#39;for getTraces</span>
+    <span class="no">ordering and range&#39;;</span>
+
+
+    <span class="no">CREATE TABLE IF NOT EXISTS zipkin_annotations (</span>
+      <span class="no">`trace_id` BIGINT NOT NULL COMMENT &#39;coincides with zipkin_spans.trace_id&#39;,</span>
+      <span class="no">`span_id` BIGINT NOT NULL COMMENT &#39;coincides with zipkin_spans.id&#39;,</span>
+      <span class="no">`a_key` VARCHAR(255) NOT NULL COMMENT &#39;BinaryAnnotation.key or Annotation.value if type == -1&#39;,</span>
+      <span class="no">`a_value` BLOB COMMENT &#39;BinaryAnnotation.value(), which must be smaller than 64KB&#39;,</span>
+      <span class="no">`a_type` INT NOT NULL COMMENT &#39;BinaryAnnotation.type() or -1 if Annotation&#39;,</span>
+      <span class="no">`a_timestamp` BIGINT COMMENT &#39;Used to implement TTL; Annotation.timestamp or zipkin_spans.timestamp&#39;,</span>
+      <span class="no">`endpoint_ipv4` INT COMMENT &#39;Null when Binary/Annotation.endpoint is null&#39;,</span>
+      <span class="no">`endpoint_ipv6` BINARY(16) COMMENT &#39;Null when Binary/Annotation.endpoint is null, or no IPv6 address&#39;,</span>
+      <span class="no">`endpoint_port` SMALLINT COMMENT &#39;Null when Binary/Annotation.endpoint is null&#39;,</span>
+      <span class="no">`endpoint_service_name` VARCHAR(255) COMMENT &#39;Null when Binary/Annotation.endpoint is null&#39;</span>
+    <span class="no">) ENGINE=InnoDB ROW_FORMAT=COMPRESSED;</span>
+
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD UNIQUE KEY(`trace_id`, `span_id`,</span>
+    <span class="no">`a_key`, `a_timestamp`) COMMENT &#39;Ignore insert on duplicate&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD INDEX(`trace_id`, `span_id`) COMMENT &#39;for</span>
+    <span class="no">joining with zipkin_spans&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD INDEX(`trace_id`) COMMENT &#39;for</span>
+    <span class="no">getTraces/ByIds&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD INDEX(`endpoint_service_name`) COMMENT</span>
+    <span class="no">&#39;for getTraces and getServiceNames&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD INDEX(`a_type`) COMMENT &#39;for getTraces&#39;;</span>
+
+    <span class="no">ALTER TABLE zipkin_annotations ADD INDEX(`a_key`) COMMENT &#39;for getTraces&#39;;</span>
+
+
+    <span class="no">CREATE TABLE IF NOT EXISTS zipkin_dependencies (</span>
+      <span class="no">`day` DATE NOT NULL,</span>
+      <span class="no">`parent` VARCHAR(255) NOT NULL,</span>
+      <span class="no">`child` VARCHAR(255) NOT NULL,</span>
+      <span class="no">`call_count` BIGINT</span>
+    <span class="no">) ENGINE=InnoDB ROW_FORMAT=COMPRESSED;</span>
+
+
+    <span class="no">ALTER TABLE zipkin_dependencies ADD UNIQUE KEY(`day`, `parent`, `child`);</span>
+</pre></div>
+
+
+<p>创建:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-mysql-initdb.yml
+$ oc get configmap
+NAME                  DATA   AGE
+zipkin-mysql-cnf      <span class="m">1</span>      2d5h
+zipkin-mysql-initdb   <span class="m">1</span>      2d5h
+</pre></div>
+
+
+<h4>创建 MySQL的 DeploymentConfig</h4>
+<p><code>zipkin-mysql-deploymentconfig.yml</code></p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p><a href="https://docs.openshift.com/container-platform/4.2/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are"><code>DeploymentConfig</code></a> 这个resource是OpenShift特有的. 基于K8S的<code>ReplicationControllers</code>, 增加了对软件开发和部署生命周期的扩展支持. 最简单的情况, <code>DeploymentConifg</code>就是创建一个新的<code>ReplicationController</code>并启动<code>pod</code>.</p>
+<p>但是, 它确实增加了一些新功能, 提供了从镜像的现有部署过渡到新镜像的功能, 并且还定义了在创建<code>ReplicationController</code>之前或之后运行的Hook. (mysql初始化sql就是利用这个功能)</p>
+<p>还提供以下功能:</p>
+<ul>
+<li>DeploymentConfig，这是用于运行应用程序的模板。</li>
+<li>触发驱动自动部署以响应事件的触发器(trigger)。</li>
+<li>用户可定制的部署策略，以从先前版本过渡到新版本。策略在通常称为部署过程的Pod中运行。</li>
+<li>一组hooks（lifecycle hooks），用于在部署的生命周期中的不同点执行自定义行为。</li>
+<li>应用程序的版本控制，以便在部署失败的情况下手动或自动支持回滚。</li>
+<li>手动副本缩放和自动缩放。</li>
+</ul>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DeploymentConfig</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps.openshift.io/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">strategy</span><span class="p">:</span>
+    <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Recreate</span>
+    <span class="nt">recreateParams</span><span class="p">:</span>
+      <span class="nt">post</span><span class="p">:</span>
+        <span class="nt">failurePolicy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Abort</span>
+        <span class="nt">execNewPod</span><span class="p">:</span>
+          <span class="nt">containerName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql</span>
+          <span class="nt">command</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">/bin/sh</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">-c</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hostname &amp;&amp; sleep 10 &amp;&amp; /opt/rh/rh-mysql57/root/usr/bin/mysql -h $DATABASE_SERVICE_NAME -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD -P 3306 &lt; /docker-entrypoint-initdb.d/init.sql &amp;&amp; echo Initialized database</span>
+          <span class="nt">env</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DATABASE_SERVICE_NAME</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+          <span class="nt">volumes</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mysql-init-script</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">env</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_USER</span>
+              <span class="nt">valueFrom</span><span class="p">:</span>
+                <span class="nt">secretKeyRef</span><span class="p">:</span>
+                  <span class="nt">key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">database-user</span>
+                  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_PASSWORD</span>
+              <span class="nt">valueFrom</span><span class="p">:</span>
+                <span class="nt">secretKeyRef</span><span class="p">:</span>
+                  <span class="nt">key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">database-password</span>
+                  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_ROOT_PASSWORD</span>
+              <span class="nt">valueFrom</span><span class="p">:</span>
+                <span class="nt">secretKeyRef</span><span class="p">:</span>
+                  <span class="nt">key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">database-root-password</span>
+                  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_DATABASE</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">${MYSQL_DATABASE}</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="s">&quot;</span><span class="nv"> </span><span class="s">&quot;</span>
+          <span class="nt">imagePullPolicy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">IfNotPresent</span>
+          <span class="nt">livenessProbe</span><span class="p">:</span>
+            <span class="nt">initialDelaySeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">30</span>
+            <span class="nt">tcpSocket</span><span class="p">:</span>
+              <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3306</span>
+            <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql</span>
+          <span class="nt">ports</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3306</span>
+          <span class="nt">readinessProbe</span><span class="p">:</span>
+            <span class="nt">exec</span><span class="p">:</span>
+              <span class="nt">command</span><span class="p">:</span>
+                <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">/bin/sh</span>
+                <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">-i</span>
+                <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">-c</span>
+                <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_PWD=&quot;$MYSQL_PASSWORD&quot; mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE</span>
+                  <span class="l l-Scalar l-Scalar-Plain">-e &#39;SELECT 1&#39;</span>
+            <span class="nt">initialDelaySeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+            <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+          <span class="nt">resources</span><span class="p">:</span>
+            <span class="nt">limits</span><span class="p">:</span>
+              <span class="nt">memory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">512Mi</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/var/lib/mysql/data</span>
+              <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-data</span>
+            <span class="p p-Indicator">-</span> <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/docker-entrypoint-initdb.d/</span>
+              <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql-init-script</span>
+            <span class="p p-Indicator">-</span> <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/mysql/conf.d/</span>
+              <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql-confd</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-data</span>
+          <span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+            <span class="nt">claimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+        <span class="p p-Indicator">-</span> <span class="nt">configMap</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-initdb</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql-init-script</span>
+        <span class="p p-Indicator">-</span> <span class="nt">configMap</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql-cnf</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql-confd</span>
+  <span class="nt">triggers</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">imageChangeParams</span><span class="p">:</span>
+        <span class="nt">automatic</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">containerNames</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mysql</span>
+        <span class="nt">from</span><span class="p">:</span>
+          <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ImageStreamTag</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql:5.7</span>
+          <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">openshift</span>
+      <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ImageChange</span>
+    <span class="p p-Indicator">-</span> <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigChange</span>
+</pre></div>
+
+
+<p>这个用到了RedHat提供的<a href="https://github.com/sclorg/mysql-container/blob/master/5.7/README.md"><code>mysql:5.7</code></a>的镜像.</p>
+<p>创建:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-mysql-deploymentconfig.yml
+$ watch oc get pods
+Every <span class="m">2</span>.0s: oc get pods                                                      
+Fri Jul <span class="m">21</span> <span class="m">02</span>:04:15 <span class="m">2017</span>
+NAME                    READY     STATUS              RESTARTS   AGE
+zipkin-mysql-1-deploy   <span class="m">1</span>/1   Running             <span class="m">0</span>          2m
+zipkin-mysql-1-tv2v1    <span class="m">0</span>/1   ContainerCreating   <span class="m">0</span>          1m
+</pre></div>
+
+
+<p>完成部署过程可能需要几分钟，此时应该有1个pod处于<code>Running</code>状态</p>
+<div class="highlight"><pre><span></span>$ oc get pods
+NAME                   READY     STATUS    RESTARTS   AGE
+zipkin-mysql-1-g44s7   <span class="m">1</span>/1       Running   <span class="m">0</span>          4m
+</pre></div>
+
+
+<h4>创建 MySQL 的 Service</h4>
+<p><code>zipkin-mysql-svc.yml</code>:</p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">lambdaair</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3306</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+</pre></div>
+
+
+<p>创建并查看:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-mysql-svc.yml
+$ oc get svc
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>    AGE
+zipkin-mysql   ClusterIP   <span class="m">172</span>.30.241.12   &lt;none&gt;        <span class="m">3306</span>/TCP   2d7h
+</pre></div>
+
+
+<p>这样, zipkin就可以通过 service 来调用mysql了.</p>
+<h3 id="zpikin">创建 Zpikin 应用实例并对外提供服务<a class="headerlink" href="#zpikin" title="Permanent link">&para;</a></h3>
+<p>上面的步骤中, 与创建MySQL 数据库有关的步骤有7-9步. 说明如下:</p>
+<ol>
+<li>创建zipkin实例, 会链接到数据库. 这时候, 集群内外都无法访问该实例, 只能在容器内使用;</li>
+<li>创建zipkin service, 此时, zipkin可以供集群内使用.</li>
+<li>创建zipkin route, 连接到zipkin service, 此时, zipkin可以通过域名被用户访问到.</li>
+</ol>
+<h4>创建 ZipKin的 DeploymentConfig</h4>
+<p>接下来就是重头戏了! 创建Zipkin的运行实例, 并连接数据库. <code>zpikin-deploymentconfig.yml</code>:</p>
+<div class="highlight"><pre><span></span><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DeploymentConfig</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">env</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">STORAGE_PORT_9042_TCP_ADDR</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-cassandra:9411</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">STORAGE_PORT_3306_TCP_ADDR</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql:3306</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_USER</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">normaluser</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MYSQL_PASS</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">your-password</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">STORAGE_TYPE</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysql</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">TRANSPORT_TYPE</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">KUBERNETES_NAMESPACE</span>
+              <span class="nt">valueFrom</span><span class="p">:</span>
+                <span class="nt">fieldRef</span><span class="p">:</span>
+                  <span class="nt">fieldPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">metadata.namespace</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">openzipkin/zipkin:1.19.2</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin</span>
+          <span class="nt">readinessProbe</span><span class="p">:</span>
+            <span class="nt">httpGet</span><span class="p">:</span>
+              <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/api/v1/services</span>
+              <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">9411</span>
+            <span class="nt">initialDelaySeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+          <span class="nt">resources</span><span class="p">:</span>
+            <span class="nt">limits</span><span class="p">:</span>
+              <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;3&quot;</span>
+              <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;1600Mi&quot;</span>
+            <span class="nt">requests</span><span class="p">:</span>
+              <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;200m&quot;</span>
+              <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;200Mi&quot;</span>
+  <span class="nt">triggers</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigChange</span>
+</pre></div>
+
+
+<p>创建并查看进度:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zpikin-deploymentconfig.yml
+$ $ watch oc get pods
+Every <span class="m">2</span>.0s: oc get pods                                                      
+Fri Jul <span class="m">21</span> <span class="m">02</span>:04:15 <span class="m">2017</span>
+NAME                    READY     STATUS              RESTARTS   AGE
+zipkin-1-deploy         <span class="m">1</span>/1   Running             <span class="m">0</span>          2m
+zipkin-1-sclgl          <span class="m">0</span>/1   Running             <span class="m">0</span>          2m
+</pre></div>
+
+
+<p>可能要花费几分钟, 几分钟后再查看, 出于<em>Running</em>状态显示如下:</p>
+<div class="highlight"><pre><span></span>$ oc get pods
+NAME                   READY     STATUS    RESTARTS   AGE
+zipkin-1-k0dv6         <span class="m">1</span>/1       Running   <span class="m">0</span>          5m
+</pre></div>
+
+
+<p>这样实例就创建好了.</p>
+<h4>创建 Zpikin 的 Service</h4>
+<p><code>zipkin-svc.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+      <span class="nt">protocol</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">TCP</span>
+      <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">9411</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">LoadBalancer</span>
+</pre></div>
+
+
+<p>创建并查看:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zipkin-svc.yaml
+$ oc get svc
+NAME     TYPE           CLUSTER-IP       EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>        AGE
+zipkin   LoadBalancer   <span class="m">172</span>.30.140.146   &lt;pending&gt;     <span class="m">80</span>:32395/TCP   2d7h
+</pre></div>
+
+
+<p>容器内的端口是9411, service的对应端口是80. 类型是<code>LoadBalancer</code>. 这里<code>Service</code>就是提供了2个功能:</p>
+<ul>
+<li>服务注册和发现;</li>
+<li>负载均衡</li>
+</ul>
+<h4>创建 Zipkin 的 Route</h4>
+<p><code>zpikin-route.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">route.openshift.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Route</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">project</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin-mysql</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">port</span><span class="p">:</span>
+    <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">9411</span>
+  <span class="nt">to</span><span class="p">:</span>
+    <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin</span>
+</pre></div>
+
+
+<p>创建并查看:</p>
+<div class="highlight"><pre><span></span>$ oc create -f zpikin-route.yml
+$ oc get route
+NAME           HOST/PORT                                              PATH   SERVICES       PORT   TERMINATION   WILDCARD
+zipkin         zipkin-lambdaair.apps.cce-test.ccic-net.com.cn                zipkin         <span class="m">9411</span>                 None
+</pre></div>
+
+
+<p>使用显示的URL从浏览器访问控制台，并验证其工作正常: <img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f389.png" title=":tada:" width="20px"><img align="absmiddle" alt="🎉" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f389.png" title=":tada:" width="20px"></p>
+<p><img alt="zipkin console" src="images/1573808377299.png"></p>
+<h2 id="_5">小结<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>至此, zipkin + mysql 部署完成. 完成后, 拓扑如下:</p>
+<p><img alt="zipkin 拓扑" src="images/1573808497291.png"></p>
+<p>mysql容器上只支持单节点. 如果上生产的话建议还是部署在容器外. zipkin的话, 就可以随意的扩展和调整, 点击如下的向上箭头, 加多少个pod都可以, 因为配置了Liveness 和Readiness Probe, K8S会在Readiness Probe探测ok后, 自动将Service的流量LoadBalance到后端的新增和现有的pod. 同时指向service的route实际上也是由后边的多个pod来承载. 更近一步, 可以通过配置HPA来自动根据CPU, 内存等阈值来自动扩缩容量. 这就是K8S的一大优势 -- <strong>一键秒级扩容, 甚至自动扩容!</strong> <img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4aa.png" title=":muscle:" width="20px"><img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4aa.png" title=":muscle:" width="20px"><img align="absmiddle" alt="💪" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4aa.png" title=":muscle:" width="20px"></p>
+<p><img alt="1573808565527" src="images/1573808565527.png"></p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/spring-boot.html">spring boot</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/spring-boot-on-k8s-2.html" title="Spring Boot 微服务上容器平台的最佳实践 - 2">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/spring-boot-on-k8s-4.html" title="Spring Boot 微服务上容器平台的最佳实践 - 4">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-5.html">Spring Boot 微服务上容器平台的最佳实践 - 5</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-4.html">Spring Boot 微服务上容器平台的最佳实践 - 4</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-2.html">Spring Boot 微服务上容器平台的最佳实践 - 2</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-1.html">Spring Boot 微服务上容器平台的最佳实践 - 1</a></li>
+      <li><a href="https://www.EWhisper.cn/choose-right-resources-on-k8s-based-your-app-type.html">批处理 有状态等应用类型在K8S上应该如何配置?</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

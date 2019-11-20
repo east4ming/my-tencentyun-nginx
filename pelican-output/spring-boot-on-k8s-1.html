@@ -1,0 +1,396 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="今天开始开新坑——把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第一篇, 先介绍Spring Boot微服务组件及其替代品." />
+<meta name="keywords" content="spring boot, k8s, openshift, 最佳实践, devops">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Spring Boot 微服务上容器平台的最佳实践 - 1"/>
+<meta property="og:description" content="今天开始开新坑——把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第一篇, 先介绍Spring Boot微服务组件及其替代品."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/spring-boot-on-k8s-1.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-11-11 19:30:00+08:00"/>
+<meta property="article:modified_time" content="2019-11-15 10:30:00+08:00"/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="spring boot"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="devops"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Spring Boot 微服务上容器平台的最佳实践 - 1</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="spring-boot-on-k8s-1">Spring Boot 微服务上容器平台的最佳实践 - 1</h1>
+    <p>
+      在 2019-11-11 Monday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="Spring+K8s" src="./images/spring_k8s.png"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>今天开始开新坑——把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！</p>
+<p>大概内容会包括这些：</p>
+<ol>
+<li>Spring Boot 全家桶（及其他替代品和K8S的替代品）</li>
+<li>示例程序参考架构</li>
+<li>创建环境</li>
+<li>设计和部署Spring Boot 微服务应用</li>
+<li>总结</li>
+</ol>
+<p>这一次，相关的场景是这样的：</p>
+<p>Spring Cloud 微服务系统已经提前搞好了，并没有运行在容器平台上，而是直接运行在虚机上。这次就是在结合Spring Boot的组件和OpenShift的相关概念和优势，将其迁移部署到容器平台上。</p>
+<h2 id="spring-boot">Spring Boot 全家桶及替代品<a class="headerlink" href="#spring-boot" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>替代品请关注K8S的相关替代品, 本次主要目的是结合Spring Boot的组件和OpenShift的相关概念和优势.<br>
+</p>
+</blockquote>
+<h3 id="_2">框架<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>本系列文章主要关注构建在Spring Boot框架之上的微服务体系结构。Spring Boot 框架可以使用各种版本的Tomcat、Jetty作为它的嵌入式servlet容器。本文只关注在嵌入式Tomcat Server上使用Spring Boot.</p>
+<h3 id="_3">客户端库<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>虽然调用微服务通常是通过HTTP发送JSON或XML payload这样简单的事情，但是各种各样的考虑导致了专用客户端库的流行，特别是在Spring Boot环境中。这些库不仅提供与Spring Boot的集成，还提供与微服务体系结构中经常需要的许多其他工具和库的集成。</p>
+<h4>Ribbon</h4>
+<p><a href="https://github.com/Netflix/ribbon">Ribbon</a>是一个具有内置客户端负载均衡的进程间通信(RPC)库。主要的使用模型包括REST调用和各种序列化方案支持。</p>
+<p>这次的实例程序只使用Ribbon的最基本功能。因为Ribbon 就是Spring Boot框架全家桶的一员. </p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<p>客户端库替代品: <a href="https://grpc.io/">gRPC</a></p>
+<p>使用 Protocol Buffers协议. </p>
+<p>优势:</p>
+<ul>
+<li>更好的性能和安全性</li>
+</ul>
+<p>劣势:</p>
+<ul>
+<li>牺牲了兼容性和工具支持</li>
+</ul>
+</blockquote>
+<h3 id="_4">服务注册<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>微服务体系架构通常意味着在私有、混合或公共云中对单个服务进行动态扩展，其中主机的数量和地址不能总是预先预测或静态配置。(说人话, 微服务经常会横向动态扩展.) 解决方案是使用服务注册中心作为发现每个服务的已部署实例的起点。这通常由客户端库或负载均衡层进行匹配，当发现实例不再存在时，该层会无缝地进行故障转移，并更新服务注册表查找的缓存。更进一步说，客户机库和服务注册中心之间的集成可以使查找和调用过程成为单个步骤，并且对开发人员是透明的。</p>
+<p>在现代云环境中，这种功能通常由平台提供(说人话: 这个应该由我K8S来做! 你框架做的太多了! <img align="absmiddle" alt="😂" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f602.png" title=":joy:" width="20px"> ​)，而服务复制和扩展是一个核心特性。</p>
+<p>这次的示例构建在OpenShift之上，就用K8S的Service来做服务注册。 </p>
+<h4>Eureka</h4>
+<p><a href="https://github.com/Netflix/eureka">Eureka</a>是一种基于REST(REpresentational State Transfer)的服务，主要用于微服务中定位服务，以实现中间层服务器的负载平衡和故障转移。</p>
+<p>Ribbon和Eureka之间的<a href="https://github.com/Netflix/ribbon/wiki/Programmers-Guide#integration-with-eureka">紧密集成</a>允许在调用者使用Ribbon库时声明性地使用Eureka.</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<p>服务注册替代品: </p>
+<ul>
+<li><a href="https://www.consul.io/intro/index.html">Consul</a> - 在Spring Cloud 中与Ribbon集成允许对在 Consul 上注册的服务进行透明和声明性查询。</li>
+<li><a href="https://zookeeper.apache.org/">ZooKeeper</a> - Apache ZooKeeper是一个集中的服务，用于维护配置信息、命名、提供分布式同步和提供组服务. 同样，在Spring Cloud中ZooKeeper的支持以及与Ribbon的集成允许在调用之前声明性地查找服务实例。</li>
+<li><a href="https://kubernetes.io/docs/concepts/services-networking/service/">K8S Service</a> - Kubernetes Service充当内部负载均衡。它标识一组复制的pod，以便代理它接收到的连接。可以在服务本身保持一致可用的情况下，向服务添加或从服务中删除额外的备份pod，从而使依赖于服务的任何东西都可以通过一致的地址引用它。与第三方服务注册中心不同，负责服务复制的平台可以随时提供服务副本的最新准确报告。服务抽象也是与底层平台本身一样可靠的关键平台组件。这意味着客户端不需要为服务注册中心本身的故障保留缓存和帐户。<strong>可以声明性地将Ribbon配置为使用OpenShift而不是服务注册中心，而不需要修改任何代码。</strong> (说人话: 上容器平台后, K8S的Service还是值得一用的)</li>
+</ul>
+</blockquote>
+<h3 id="_5">负载均衡<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>对于客户端对无状态服务的调用，高可用性(HA)意味着需要从服务注册中心查找服务，以及可用实例之间的负载平衡。前面提到的客户端库包括合并这两个步骤的功能，但是容器平台通过在 <em>Service</em> 抽象概念中包含负载平衡功能，使得这两个操作变得多余。OpenShift提供一个单一地址，在这个地址中，调用将被负载平衡并重定向到适当的实例。(说人话: Spring Boot虽然提供了库, 但还是要写代码的; 容器平台直接提供Service, Service自动在实例间负载均衡. 对于开发来说, 就是只用配一个Service地址, 就可以负载均衡).</p>
+<h4>Ribbon</h4>
+<p>Ribbon 允许在声明的静态实例列表之间进行<a href="https://github.com/Netflix/ribbon/wiki/Working-with-load-balancers">负载均衡</a>，或者在注册表查找中发现服务的任意多个实例之间进行负载均衡。</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<p>负载均衡替代品:</p>
+<ul>
+<li>gRPC - <a href="https://github.com/grpc/grpc/blob/master/doc/load-balancing.md">负载均衡能力介绍链接</a></li>
+<li>K8S Service - OpenShift通过其 <em>Service</em>的抽象概念提供<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/architecture/core-concepts#services">负载均衡</a>。Service 所公开的Cluster IP地址是提供服务的任何正在运行的副本pod之间的内部负载均衡。在OpenShift集群中，Service 名称解析为这个Cluster IP地址，并可用于负载均衡。这种只能在内部使用, 对于外部地址不能用.</li>
+</ul>
+</blockquote>
+<h3 id="_6">断路器<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>微服务的高度分布式特性意味着远程调用失败的风险更高，因为此类远程调用的数量增加了。断路器模式可以通过隔离有问题的服务和避免破坏性超时来帮助避免这类故障的级联。</p>
+<h4>Hystrix</h4>
+<p><a href="https://github.com/Netflix/Hystrix">Hystrix</a>是一个延迟处理和故障转移功能库，旨在隔离远程系统、服务和第三方库的访问点，中止级联故障，并在不可避免的复杂分布式系统中启用弹性。</p>
+<p>Hystrix实现了断路器和 bulkhead 模式.</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<p>暂无. </p>
+<ul>
+<li>service mesh算一个. 但是目前用的不多, 也不够稳定.</li>
+</ul>
+</blockquote>
+<h3 id="_7">外部化配置<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>外部化配置管理解决方案可以为<strong>配置文件、命令行参数和环境变量</strong>的典型组合提供一种优雅的替代方案，这些配置文件、命令行参数和环境变量用于使应用程序更加可移植，并减少对外部更改的响应。</p>
+<h4>Spring Cloud Config</h4>
+<p><a href="https://cloud.spring.io/spring-cloud-config/spring-cloud-config.html">Spring Cloud Config</a>为分布式系统中的外部化配置提供了服务器和客户端支持。有了Config Server，您就有了一个中心位置来管理跨所有环境的应用程序的外部属性。</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<ul>
+<li>K8S ConfigMaps - <a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-configmaps">ConfigMaps</a>可以用来存储细粒度的信息，比如单个属性，也可以存储粗粒度的信息，比如整个配置文件或JSON blob。它们提供了将配置数据注入容器的机制，同时保持容器与容器平台无关。(个人体验: 目前还不是非常成熟, 比如版本追溯相关功能就没有. )</li>
+<li>Apollo - <a href="https://github.com/ctripcorp/apollo">Apollo（阿波罗）</a>是携程框架部门研发的分布式配置中心，能够集中化管理应用不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。</li>
+</ul>
+</blockquote>
+<h3 id="tracing">分布式 Tracing<a class="headerlink" href="#tracing" title="Permanent link">&para;</a></h3>
+<p>尽管微服务体系结构有很多优点，但是<strong>很难分析和排除故障</strong>。每个业务请求在不同的层上生成对各个服务的多个调用，以及在各个服务之间的多个调用。分布式 Tracing 将所有单独的服务调用绑定在一起，并通过惟一生成的ID将它们与业务请求关联起来。</p>
+<h4>Sleuth/Zipkin</h4>
+<p><a href="https://cloud.spring.io/spring-cloud-sleuth/">Spring Cloud Sleuth</a>为应用程序中请求点上的每个调用和 <em>span ID</em>生成<em>trace ID</em>。这些信息可以与日志框架集成，通过跟踪日志文件来帮助解决应用程序的故障，或者广播到<a href="http://zipkin.io/">Zipkin</a>服务器并存储分析和报告。</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<ul>
+<li>Jaeger - <a href="https://github.com/uber/jaeger">Jaeger</a>的灵感来自于<a href="https://research.google.com/pubs/pub36356.html">Dapper</a>和<a href="http://zipkin.io/">OpenZipkin</a>，是一个完全符合云原生基金会(CNCF) <em>OpenTracing</em>标准的开源分布式跟踪系统。它可以用于监视基于微服务的体系结构，并提供分布式上下文传播和事务监视，以及服务依赖性分析和性能/延迟优化。(关键字: CNCF 标准)</li>
+<li>Dynatrace - APM行业排行第一的商业产品, 贵, 但好用.</li>
+<li>pinpoint - 类似的开源分布式Tracing</li>
+<li>... - 这类产品还挺多的. Skywalking, New Relic, Appdynamics, Datadog...</li>
+</ul>
+</blockquote>
+<h3 id="_8">代理/路由<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>在每个服务调用之前添加代理，可以在调用之前和之后应用各种 filters，以及微服务体系结构中的许多常见模式，比如A/B测试。静态和动态路由规则可以帮助选择所需的服务版本。</p>
+<h4>Zuul</h4>
+<p>Zuul是一种边缘服务，提供<strong>动态路由、监视、弹性、安全性</strong>等。</p>
+<p>Zuul支持多种路由模型，</p>
+<ul>
+<li>映射到目的地的声明式URL模式，</li>
+<li>驻留在应用程序 archive之外并动态确定路由的groovy脚本</li>
+</ul>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 替代品:</p>
+<ul>
+<li>Istio - <a href="https://istio.io/faq/">Istio</a>是一个开放的独立于平台的service mesh，它提供流量管理、策略执行和遥测数据收集。Istio旨在管理微服务和应用程序之间的通信.</li>
+</ul>
+</blockquote>
+<h2 id="_9">小结<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<p>话不多说, 看表:</p>
+<table>
+<thead>
+<tr>
+<th>Spring Boot 全家桶</th>
+<th>Spring Boot 全家桶</th>
+<th>K8S上替代品</th>
+<th>其他替代品</th>
+<th>个人建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端库</td>
+<td>Ribbon</td>
+<td>无</td>
+<td>gRPC</td>
+<td>Ribbon好用; gRPC性能好</td>
+</tr>
+<tr>
+<td>服务注册</td>
+<td>Eureka</td>
+<td>Service</td>
+<td>Consul和ZooKeeper</td>
+<td>Eureka挺好; 上容器Service亦可</td>
+</tr>
+<tr>
+<td>负载均衡</td>
+<td>Ribbon</td>
+<td>Service</td>
+<td>gRPC</td>
+<td>Ribbon挺好; 上容器Service亦可</td>
+</tr>
+<tr>
+<td>断路器</td>
+<td>Hystrix</td>
+<td>~~Service Mesh~~算半个</td>
+<td>无</td>
+<td>Hystrix</td>
+</tr>
+<tr>
+<td>外部化配置</td>
+<td>Spring Cloud Config</td>
+<td>ConfigMap</td>
+<td>Apollo</td>
+<td>Spring Cloud Config够用就用; 否则推荐Apollo</td>
+</tr>
+<tr>
+<td>分布式 Tracing</td>
+<td>Sleuth/Zipkin</td>
+<td>Jaeger</td>
+<td>Dynatrace; pinpoint...</td>
+<td>无</td>
+</tr>
+<tr>
+<td>代理/路由</td>
+<td>Zuul</td>
+<td>Istio</td>
+<td>略</td>
+<td>Zuul性能够用就用;</td>
+</tr>
+</tbody>
+</table>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/spring-boot.html">spring boot</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/deploy-java-app-on-openshift.html" title="手把手教你在容器云平台上部署Java 应用">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/spring-boot-on-k8s-2.html" title="Spring Boot 微服务上容器平台的最佳实践 - 2">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-5.html">Spring Boot 微服务上容器平台的最佳实践 - 5</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-4.html">Spring Boot 微服务上容器平台的最佳实践 - 4</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-3.html">Spring Boot 微服务上容器平台的最佳实践 - 3</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-2.html">Spring Boot 微服务上容器平台的最佳实践 - 2</a></li>
+      <li><a href="https://www.EWhisper.cn/choose-right-resources-on-k8s-based-your-app-type.html">批处理 有状态等应用类型在K8S上应该如何配置?</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

@@ -1,0 +1,523 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="Ansible 新手向教程. 如何配置免密, 安装ansible, 初步使用; 以及使用ansible 批量安装, 启动, 卸载, 更新NGINX." />
+<meta name="keywords" content="python, devops, ansible, linux">
+
+<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:title" content="Ansible 新手指南 - 如何批量管理 NGINX"/>
+<meta property="og:description" content="Ansible 新手向教程. 如何配置免密, 安装ansible, 初步使用; 以及使用ansible 批量安装, 启动, 卸载, 更新NGINX."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/how-to-manager-nginx-using-ansible.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-10-08 18:30:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="DevOps"/>
+<meta property="article:tag" content="python"/>
+<meta property="article:tag" content="devops"/>
+<meta property="article:tag" content="ansible"/>
+<meta property="article:tag" content="linux"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>东风微鸣 Blog &ndash; Ansible 新手指南 - 如何批量管理 NGINX</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="how-to-manager-nginx-using-ansible">Ansible 新手指南 - 如何批量管理 NGINX</h1>
+    <p>
+      在 2019-10-08 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+        &#8226; 3 min read
+    </p>
+  </header>
+
+
+  <div>
+    <div class="toc">
+<ul>
+<li><a href="#_1">概述</a></li>
+<li><a href="#_2">免密配置</a></li>
+<li><a href="#ansible">安装 Ansible</a></li>
+<li><a href="#ansible_1">使用 Ansible 模块</a><ul>
+<li><a href="#ansible-doc">ansible-doc</a></li>
+<li><a href="#ansible_2">使用 Ansible 模块示例</a></li>
+</ul>
+</li>
+<li><a href="#ansible-playbook">使用 Ansible Playbook</a><ul>
+<li><a href="#nginx">安装并启动NGINX</a></li>
+<li><a href="#nginx_1">停止并卸载NGINX</a></li>
+<li><a href="#nginx_2">配置NGINX 并重启</a></li>
+</ul>
+</li>
+<li><a href="#_3">总结</a></li>
+</ul>
+</div>
+<h2 id="_1">概述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>Ansible是自动化运维工具，基于Python开发，实现了批量系统配置、批量程序部署、批量运行命令等功能。Ansible是基于模块(module)和剧本(playbook)工作。</p>
+<p><img alt="Ansible Logo" src="images/ansible_logo_black-1024x138.png"></p>
+<p>接下来通过以下几个方面来演示 Ansible 的基本使用:</p>
+<ol>
+<li>Linux 配置 SSH 免密</li>
+<li>安装 Ansible</li>
+<li>使用 Ansible 模块</li>
+<li>使用 Ansible Playbook<ol>
+<li>安装并启动 NGINX</li>
+<li>停止并卸载 NGINX</li>
+<li>配置NGINX 并重启</li>
+</ol>
+</li>
+</ol>
+<p>实验环境如下:</p>
+<ol>
+<li>管理端: (安装 Ansible)<ol>
+<li>系统: Debian</li>
+<li>IP: 192.168.1.1</li>
+</ol>
+</li>
+<li>远程主机1和2:<ol>
+<li>系统: Ubuntu</li>
+<li>IP: 192.168.1.106和192.168.1.107</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>为了方便演示, 以下命令都是基于<code>root</code>用户</p>
+</blockquote>
+<h2 id="_2">免密配置<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>即: 基于公钥的登陆</p>
+<div class="highlight"><pre><span></span><span class="c1"># 1. 创建密钥对(创建后默认位于 ~/.ssh)</span>
+ssh-keygen -t ed25519 -C <span class="s2">&quot;Login to nginx lab&quot;</span>
+<span class="c1"># 2. 使用 ssh-copy-id 命令安装公钥</span>
+ssh-copy-id -i /root/.ssh/id_ed25519 root@192.168.1.106
+ssh-copy-id -i /root/.ssh/id_ed25519 root@192.168.1.107
+<span class="c1"># 3. 验证免密是否配置成功: (无需输入密码)</span>
+ssh root@192.168.1.106 -i /root/.ssh/id_ed25519
+ssh root@192.168.1.107 -i /root/.ssh/id_ed25519
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>免密配置有多种情况会导致失败, 本文不一一列举详细失败原因. 如果失败查看远程主机的<code>/var/log/secure</code> 日志.</p>
+</blockquote>
+<h2 id="ansible">安装 Ansible<a class="headerlink" href="#ansible" title="Permanent link">&para;</a></h2>
+<p>APT安装方式如下: (其他类似, 不一一列举)</p>
+<div class="highlight"><pre><span></span>apt install -y ansible
+<span class="c1"># 验证</span>
+ansible --version
+<span class="c1"># 输出如下:</span>
+<span class="c1">#ansible 2.2.1.0</span>
+<span class="c1">#  config file = /etc/ansible/ansible.cfg</span>
+<span class="c1">#  configured module search path = Default w/o overrides</span>
+</pre></div>
+
+
+<h2 id="ansible_1">使用 Ansible 模块<a class="headerlink" href="#ansible_1" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 引用:</p>
+<p>Ansible附带了许多模块（module 称为“module library”），这些模块可以直接在远程主机上或通过playbooks执行。</p>
+<p>用户也可以编写自己的模块。这些模块可以控制系统资源，比如服务、包或文件（实际上是任何东西），或者处理执行系统命令。</p>
+</blockquote>
+<p>先对<code>/etc/ansible/hosts</code>做最基本配置:</p>
+<div class="highlight"><pre><span></span><span class="k">[web]</span>
+<span class="na">192.168.1.106</span>
+<span class="na">192.168.1.107</span>
+</pre></div>
+
+
+<p>上文的web就是一个host group, 可以直接通过<code>web</code>进行引用. </p>
+<h3 id="ansible-doc">ansible-doc<a class="headerlink" href="#ansible-doc" title="Permanent link">&para;</a></h3>
+<p>所有的模块的使用方法可以通过以下命令查询:</p>
+<div class="highlight"><pre><span></span>ansible-doc -s &lt;module_name&gt;
+ansible-doc -s ping
+<span class="c1"># - name: Try to connect to host, verify a usable python and return `pong&#39; on success.</span>
+<span class="c1">#  action: ping</span>
+ansible-doc -s <span class="nb">command</span>
+<span class="c1">#- name: Executes a command on a remote node</span>
+<span class="c1">#  action: command</span>
+<span class="c1">#      chdir                  # cd into this directory before running the command</span>
+<span class="c1">#      creates                # a filename or (since 2.0) glob pattern, when it already #exists, this step will *not* be run.</span>
+<span class="c1">#      executable             # change the shell used to execute the command. Should be #an absolute path to the executable.</span>
+<span class="c1">#      free_form=             # the command module takes a free form command to run.  #There is no parameter actually named &#39;free form&#39;. See the examples!</span>
+<span class="c1">#      removes                # a filename or (since 2.0) glob pattern, when it does not #exist, this step will *not* be run.</span>
+<span class="c1">#      warn                   # if command warnings are on in ansible.cfg, do not warn #about this particular line if set to no/false.</span>
+</pre></div>
+
+
+<h3 id="ansible_2">使用 Ansible 模块示例<a class="headerlink" href="#ansible_2" title="Permanent link">&para;</a></h3>
+<p>下面以 <em>command</em>和<em>ping</em> module为例:</p>
+<div class="highlight"><pre><span></span>ansible web -a <span class="s2">&quot;pwd chdir=/tmp&quot;</span>
+ansible web -m ping
+</pre></div>
+
+
+<p>输出如下:</p>
+<div class="highlight"><pre><span></span><span class="o">#</span> <span class="n">ansible</span> <span class="n">web</span> <span class="o">-</span><span class="n">a</span> <span class="ss">&quot;pwd chdir=/tmp&quot;</span>
+<span class="mi">192</span><span class="p">.</span><span class="mi">168</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span><span class="mi">106</span> <span class="o">|</span> <span class="n">SUCCESS</span> <span class="o">|</span> <span class="n">rc</span><span class="o">=</span><span class="mi">0</span> <span class="o">&gt;&gt;</span>
+<span class="o">/</span><span class="n">tmp</span>
+
+<span class="mi">192</span><span class="p">.</span><span class="mi">168</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span><span class="mi">107</span> <span class="o">|</span> <span class="n">SUCCESS</span> <span class="o">|</span> <span class="n">rc</span><span class="o">=</span><span class="mi">0</span> <span class="o">&gt;&gt;</span>
+<span class="o">/</span><span class="n">tmp</span>
+
+<span class="o">#</span> <span class="n">ansible</span> <span class="n">web</span> <span class="o">-</span><span class="n">m</span> <span class="n">ping</span>
+<span class="mi">192</span><span class="p">.</span><span class="mi">168</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span><span class="mi">106</span> <span class="o">|</span> <span class="n">SUCCESS</span> <span class="o">=&gt;</span> <span class="err">{</span>
+    <span class="ss">&quot;changed&quot;</span><span class="p">:</span> <span class="k">false</span><span class="p">,</span>
+    <span class="ss">&quot;ping&quot;</span><span class="p">:</span> <span class="ss">&quot;pong&quot;</span>
+<span class="err">}</span>
+<span class="mi">192</span><span class="p">.</span><span class="mi">168</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span><span class="mi">107</span> <span class="o">|</span> <span class="n">SUCCESS</span> <span class="o">=&gt;</span> <span class="err">{</span>
+    <span class="ss">&quot;changed&quot;</span><span class="p">:</span> <span class="k">false</span><span class="p">,</span>
+    <span class="ss">&quot;ping&quot;</span><span class="p">:</span> <span class="ss">&quot;pong&quot;</span>
+<span class="err">}</span>
+</pre></div>
+
+
+<p><strong>简单说明:</strong></p>
+<ul>
+<li><code>web</code>: 在<code>/etc/ansible/hosts</code>中配置的 web 主机组. 包含本次实验的: 远程主机1和2</li>
+<li><code>-a "pwd chdir=/tmp"</code>: <code>-a MODULE_ARGS</code> 模块的参数. <ul>
+<li>参数格式为: <code>key=value</code>.  如本例中的: <code>chdir=/tmp</code></li>
+<li><code>pwd</code> 为shell命令.</li>
+</ul>
+</li>
+<li><code>-m ping</code>: ansible命令参数 - 模块, 后跟模块名. (默认为 <code>command</code>). <code>"pong"</code> 表示ping成功, 返回不是<code>"pong"</code>则连接异常.</li>
+</ul>
+<h2 id="ansible-playbook">使用 Ansible Playbook<a class="headerlink" href="#ansible-playbook" title="Permanent link">&para;</a></h2>
+<p><strong>Playbook</strong>(剧本)是使用ansible的一种完全不同的形式，非常强大。</p>
+<p>简单地说，playbook是一个非常简单的配置管理和多机部署系统的基础，不像任何已经存在的系统，它非常适合部署复杂的应用程序。</p>
+<p>在<a href="https://github.com/ansible/ansible-examples">ansible-examples</a> git仓库中, 有一些完整的playbook具体展示了这些技术。建议可以看看。</p>
+<h3 id="nginx">安装并启动NGINX<a class="headerlink" href="#nginx" title="Permanent link">&para;</a></h3>
+<p>创建安装并启动NGINX的 Ansible Playbook YAML文件: <code>vi nginx_install.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="p p-Indicator">-</span> <span class="nt">hosts</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">web</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">tasks</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">install nginx</span>
+      <span class="nt">apt</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">name=nginx state=latest</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">start nginx</span>
+      <span class="nt">service</span><span class="p">:</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+          <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">started</span>
+</pre></div>
+
+
+<p><strong>简单说明:</strong></p>
+<ul>
+<li><code>- hosts: web</code>: 该playbook首先说明应将其应用于inventory 资源中的<code>web</code>主机。</li>
+<li><code>become: true</code>: 告诉Ansible提升权限（如sudo）来执行此playbook中的所有任务。</li>
+<li><code>tasks</code>: 定义实际<strong>tasks</strong>(任务)的部分。第一个任务安装nginx，第二个任务是启动nginx.</li>
+</ul>
+<p>执行:</p>
+<div class="highlight"><pre><span></span>ansible-playbook nginx_install.yml
+</pre></div>
+
+
+<p>输出:</p>
+<div class="highlight"><pre><span></span><span class="n">PLAY</span> <span class="p">[</span><span class="n">all</span><span class="p">]</span> <span class="o">*******************************************************************************************************</span>
+
+<span class="n">TASK</span> <span class="p">[</span><span class="n">Gathering</span> <span class="n">Facts</span><span class="p">]</span> <span class="o">*******************************************************************************************</span>
+<span class="nl">ok</span><span class="p">:</span> <span class="p">[</span><span class="mf">192.168.1.106</span><span class="p">]</span>
+<span class="nl">ok</span><span class="p">:</span> <span class="p">[</span><span class="mf">192.168.1.107</span><span class="p">]</span>
+
+<span class="n">TASK</span> <span class="p">[</span><span class="n">ensure</span> <span class="n">nginx</span> <span class="n">is</span> <span class="n">at</span> <span class="n">the</span> <span class="n">latest</span> <span class="n">version</span><span class="p">]</span> <span class="o">*********************************************************************</span>
+<span class="nl">changed</span><span class="p">:</span> <span class="p">[</span><span class="mf">192.168.1.106</span><span class="p">]</span>
+<span class="nl">changed</span><span class="p">:</span> <span class="p">[</span><span class="mf">192.168.1.107</span><span class="p">]</span>
+
+<span class="n">PLAY</span> <span class="n">RECAP</span> <span class="o">*******************************************************************************************************</span>
+<span class="mf">192.168.1.106</span>              <span class="o">:</span> <span class="n">ok</span><span class="o">=</span><span class="mi">2</span>    <span class="n">changed</span><span class="o">=</span><span class="mi">1</span>    <span class="n">unreachable</span><span class="o">=</span><span class="mi">0</span>    <span class="n">failed</span><span class="o">=</span><span class="mi">0</span>
+<span class="mf">192.168.1.107</span>              <span class="o">:</span> <span class="n">ok</span><span class="o">=</span><span class="mi">2</span>    <span class="n">changed</span><span class="o">=</span><span class="mi">1</span>    <span class="n">unreachable</span><span class="o">=</span><span class="mi">0</span>    <span class="n">failed</span><span class="o">=</span><span class="mi">0</span>
+</pre></div>
+
+
+<p>这时NGINX已经安装并启动完毕.</p>
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>下面几个小章节的<code>ansible-playbook</code> 执行结果类似, 就不一一贴出来了.</p>
+</blockquote>
+<h3 id="nginx_1">停止并卸载NGINX<a class="headerlink" href="#nginx_1" title="Permanent link">&para;</a></h3>
+<p>创建停止并卸载NGINX的 Ansible Playbook YAML文件: <code>vi nginx_uninstall.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="p p-Indicator">-</span> <span class="nt">hosts</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">web</span>
+  <span class="nt">tasks</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">stop nginx</span>
+      <span class="nt">service</span><span class="p">:</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+          <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">stopped</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">uninstall nginx</span>
+      <span class="nt">apt</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">name=nginx state=absent</span>
+</pre></div>
+
+
+<p>再次执行并查看结果.</p>
+<h3 id="nginx_2">配置NGINX 并重启<a class="headerlink" href="#nginx_2" title="Permanent link">&para;</a></h3>
+<p><strong>步骤如下:</strong></p>
+<ol>
+<li>创建一个nginx conf的模板文件: <code>vi static_site.conf.tpl</code></li>
+</ol>
+<div class="highlight"><pre><span></span><span class="k">server</span> <span class="p">{</span>
+        <span class="kn">listen</span> <span class="mi">80</span> <span class="s">default_server</span><span class="p">;</span>
+        <span class="kn">listen</span> <span class="s">[::]:80</span> <span class="s">default_server</span><span class="p">;</span>
+        <span class="kn">root</span> <span class="s">/usr/share/nginx/html</span><span class="p">;</span>
+        <span class="kn">server_name</span> <span class="s">_</span><span class="p">;</span>
+        <span class="kn">location</span> <span class="s">/</span> <span class="p">{</span>
+                    <span class="kn">index.html</span> <span class="s">index.htm</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<ol start="2">
+<li>把以上文件放到<code>/etc/nginx/sites-available/</code></li>
+<li>在<code>/etc/nginx/sites-enabled/</code>里创建个软链接指向该文件.</li>
+<li>创建一个<code>index.html</code>页面: </li>
+</ol>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Hello ansible<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Hello World Ansible<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Running on {{ inventory_hostname }}<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre></div>
+
+
+<ol start="5">
+<li>重启NGINX.</li>
+</ol>
+<p><strong>完整Ansible Playbook</strong></p>
+<p>整合之前的安装, 完整的Ansible Playbook 如下: <code>vi nginx.yml</code></p>
+<div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="p p-Indicator">-</span> <span class="nt">hosts</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">web</span>
+  <span class="nt">vars</span><span class="p">:</span>
+    <span class="nt">src_root</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/tmp</span>
+  <span class="nt">tasks</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">install nginx</span>
+      <span class="nt">apt</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">name=nginx state=latest</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">start nginx</span>
+      <span class="nt">service</span><span class="p">:</span>
+          <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+          <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">started</span>
+      <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">copy nginx conf</span>
+      <span class="nt">copy</span><span class="p">:</span>
+        <span class="nt">src</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">src_root</span> <span class="p p-Indicator">}}</span><span class="l l-Scalar l-Scalar-Plain">/static_site.conf.tpl</span>
+        <span class="nt">dest</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/nginx/sites-available/static_site.conf</span>
+      <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">create symlink</span>
+      <span class="nt">file</span><span class="p">:</span>
+        <span class="nt">src</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/nginx/sites-available/static_site.conf</span>
+        <span class="nt">dest</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/nginx/sites-enabled/000-default.conf</span>
+        <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">link</span>
+      <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">copy the html</span>
+      <span class="nt">copy</span><span class="p">:</span>
+        <span class="nt">src</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">src_root</span> <span class="p p-Indicator">}}</span><span class="l l-Scalar l-Scalar-Plain">/index.html</span>
+        <span class="nt">dest</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/usr/share/nginx/html/index.html</span>
+      <span class="nt">notify</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">restart nginx</span>
+  <span class="nt">handlers</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">restart nginx</span>
+      <span class="nt">service</span><span class="p">:</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+        <span class="nt">state</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">restarted</span>
+      <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+</pre></div>
+
+
+<p>再次执行并查看结果. 分别访问: <a href="http://192.168.1.106/">http://192.168.1.106/</a> 和 &lt;<a href="http://192.168.1.107/">http://192.168.1.107/</a> 查看NGINX运行状态.</p>
+<p><strong>简单说明:</strong></p>
+<p><code>index.html</code>页面, 可以通过<code>{{ vars }}</code> 来使用一些变量. 可以使用ansible已有的, 也可以使用后续自定义的. 本例中使用的<code>inventory_hostname</code> 为ansible自带的变量.</p>
+<p>Ansible Playbook  - <code>nginx.yml</code>:</p>
+<ul>
+<li><code>vars</code>: 定义变量，<code>src_root</code>以后在任务中使用。</li>
+<li><code>tasks</code>: 分别为:<ul>
+<li>安装</li>
+<li>启动</li>
+<li>复制NGINX配置文件</li>
+<li>创建软链接</li>
+<li>复制html文件</li>
+</ul>
+</li>
+<li><code>nofity</code>和<code>handlers</code>: 用<code>notify</code>触发一个在Ansible中称为<strong>处理程序</strong> - <code>handler</code>的事件，该事件将在下面用于重启nginx。<code>notify</code>引发事件后，将触发相应的处理程序（<code>restart nginx</code>）。</li>
+</ul>
+<h2 id="_3">总结<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>本文通过批量管理NGINX这样一个实际案例, 介绍了Ansible的基本用法. 你可以在工作中使用类似的语法来创建属于你自己的剧本(playbook). <img align="absmiddle" alt="😆" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f606.png" title=":laughing:" width="20px"><img align="absmiddle" alt="😆" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f606.png" title=":laughing:" width="20px"><img align="absmiddle" alt="😆" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f606.png" title=":laughing:" width="20px"></p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/python.html">python</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+      <a href="https://www.EWhisper.cn/tag/ansible.html">ansible</a>
+      <a href="https://www.EWhisper.cn/tag/linux.html">linux</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/how-to-tcpdump-in-k8s.html" title="Kubernetes 中分析调试网络流量的4种方式">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/how-to-copy-files-and-directories-in-ansible.html" title="如何在Ansible中复制多个文件和目录">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/how-to-copy-files-and-directories-in-ansible.html">如何在Ansible中复制多个文件和目录</a></li>
+      <li><a href="https://www.EWhisper.cn/use-ansible-manage-multi-windows.html">使用 Ansible 批量管理 Windows</a></li>
+      <li><a href="https://www.EWhisper.cn/container-best-practices.html">容器最佳实践</a></li>
+      <li><a href="https://www.EWhisper.cn/build-ide-on-tencentyun.html">在云服务器上搭建集成开发环境</a></li>
+      <li><a href="https://www.EWhisper.cn/write-python-framework-part-three.html">如何编写Python Web框架（三）</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 东风微鸣 Blog ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>
