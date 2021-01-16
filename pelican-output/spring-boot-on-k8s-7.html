@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="个人技术分享 RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第七篇, 主要介绍 spring微服务的相关设计和开发思路。" />
+<meta name="keywords" content="spring boot, k8s, openshift, 最佳实践, devops, java">
+
+<meta property="og:site_name" content="个人技术分享"/>
+<meta property="og:title" content="Spring Boot 微服务上容器平台的最佳实践 - 7"/>
+<meta property="og:description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第七篇, 主要介绍 spring微服务的相关设计和开发思路。"/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/spring-boot-on-k8s-7.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-11-20 10:30:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="spring boot"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="devops"/>
+<meta property="article:tag" content="java"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>个人技术分享 &ndash; Spring Boot 微服务上容器平台的最佳实践 - 7</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="个人技术分享" title="个人技术分享">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">个人技术分享</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="spring-boot-on-k8s-7">Spring Boot 微服务上容器平台的最佳实践 - 7</h1>
+    <p>
+      在 2019-11-20 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="Spring+K8s" src="./images/spring_k8s.png"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>今天开始第七篇, 主要介绍 spring微服务的相关设计和开发思路。</p>
+<p>在第六篇, Spring Boot 微服务部署到容器平台已经完工. 接下来我们就会对Spring 微服务的相关设计和开发, 以及K8S(或OpenShift)与Spring Boot之间的协作进行更深一层的设计和开发.</p>
+<p>今天先开个头, 先介绍下K8S的<code>Resource Limits</code>概念, 通过这个概念可以对每个微服务的资源用量进行控制. 防止单个有问题微服务吃光全部资源导致雪崩效应.</p>
+<h2 id="resource-limits">RESOURCE LIMITS<a class="headerlink" href="#resource-limits" title="Permanent link">&para;</a></h2>
+<p>OpenShift<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-compute-resources">允许</a>管理员设置约束来限制每个项目中使用的对象的数量或计算资源的数量。虽然这些约束总体上适用于项目(即namespace)，但<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-compute-resources#dev-compute-resources">每个pod</a>也可以请求最小的资源和/或受到内存和CPU使用限制的约束。</p>
+<p>项目存储库中提供的OpenShift template使用此功能请求至少20%的CPU内核和200MB内存可用于其容器。如果需要并且可用，可以向容器提供两倍的处理能力和四倍的内存，但再超过就不会分配了。</p>
+<div class="highlight"><pre><span></span><span class="nt">resources</span><span class="p">:</span>
+  <span class="nt">limits</span><span class="p">:</span>
+    <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;400m&quot;</span>
+    <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;800Mi&quot;</span>
+  <span class="nt">requests</span><span class="p">:</span>
+    <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;200m&quot;</span>
+    <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;200Mi&quot;</span>
+</pre></div>
+
+
+<blockquote>
+<p><img align="absmiddle" alt="📓" class="emojione" height="20px" src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/64/1f4d3.png" title=":notebook:" width="20px"> 备注:</p>
+<p>根据我之前的文章: <a href="https://www.ewhisper.cn/container-best-practices.html#java">《容器最佳实践》</a></p>
+<p>JAVA程序都有一个启动阶段，启动阶段也会大量消耗CPU, CPU使用越多, 启动阶段越短.<br>
+下面是一个表，总结了不同CPU限制下的spring boot 示例应用启动时间(m表示millicore):</p>
+<ul>
+<li>500m — 80 seconds</li>
+<li>1000m — 35 seconds</li>
+<li>1500m — 22 seconds</li>
+<li>2500m — 17 seconds</li>
+<li>3000m — 12 seconds</li>
+</ul>
+<p>根据以上情况, 容器平台管理员考虑对JAVA容器做如下限制:</p>
+<ul>
+<li>使用CPU requests, 不设置cpu limit (Kubernetes功能) (或者限制到3000m)</li>
+</ul>
+<p><code>yaml
+resources:
+  requests:
+    memory: "1024Mi"
+    cpu: "500m"
+  limits:
+    memory: "1024Mi"</code></p>
+</blockquote>
+<p>当使用fabric8 Maven插件创建镜像并直接编辑<em>deployment config</em>不方便时，可以使用<a href="https://maven.fabric8.io/#configuration">资源片段(<em>resource fragments</em>)</a>来提供所需的片段。此应用程序提供<a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/src/main/fabric8/deployment.yml">deployment.yml</a>文件来利用这个功能，并在Spring启动项目上设置资源请求和限制.</p>
+<div class="highlight"><pre><span></span><span class="nt">spec</span><span class="p">:</span>
+   <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+   <span class="nt">template</span><span class="p">:</span>
+     <span class="nt">spec</span><span class="p">:</span>
+       <span class="nt">containers</span><span class="p">:</span>
+         <span class="p p-Indicator">-</span> <span class="nt">resources</span><span class="p">:</span>
+             <span class="nt">requests</span><span class="p">:</span>
+               <span class="nt">cpu</span><span class="p">:</span> <span class="s">&#39;200m&#39;</span>
+               <span class="nt">memory</span><span class="p">:</span> <span class="s">&#39;400Mi&#39;</span>
+             <span class="nt">limits</span><span class="p">:</span>
+               <span class="nt">cpu</span><span class="p">:</span> <span class="s">&#39;400m&#39;</span>
+               <span class="nt">memory</span><span class="p">:</span> <span class="s">&#39;800Mi&#39;</span>
+</pre></div>
+
+
+<p>对各个服务的内存和CPU使用的控制通常是关键的。如上所述，这些值的正确配置与部署和管理过程是无缝衔接的。在项目中设置<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-compute-resources#dev-quotas">资源配额</a>以<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-compute-resources#dev-requests-vs-limits">强制</a>将它们包含在pod部署配置中是有帮助的。</p>
+<h2 id="_2">小结<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>通过K8S的<em>Resource Limits</em>的概念, 可以对容器(以及其中的微服务)进行内存和CPU的resource request和limit的配置. 允许根据需求分配容器到满足条件的机器, 同时限制容器的最大资源使用.</p>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/spring-boot.html">spring boot</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+      <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/spring-boot-on-k8s-5.html" title="Spring Boot 微服务上容器平台的最佳实践 - 5">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/spring-boot-on-k8s-6.html" title="Spring Boot 微服务上容器平台的最佳实践 - 6">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-11.html">Spring Boot 微服务上容器平台的最佳实践 - 11 - ZUUL</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-10.html">Spring Boot 微服务上容器平台的最佳实践 - 10 - Zipkin</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-9.html">Spring Boot 微服务上容器平台的最佳实践 - 9 - Ribbon和负载均衡</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-8.html">Spring Boot 微服务上容器平台的最佳实践 - 8 - Rest Service</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-6.html">Spring Boot 微服务上容器平台的最佳实践 - 6</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2020 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="个人技术分享 Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="个人技术分享 Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 个人技术分享 ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

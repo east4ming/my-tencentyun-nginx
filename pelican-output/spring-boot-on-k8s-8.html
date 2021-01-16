@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="zh_cn">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/stylesheet/style.min.css">
+
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/pygments/monokai.min.css">
+  <link rel="stylesheet" type="text/css" href="https://www.EWhisper.cn/theme/font-awesome/css/font-awesome.min.css">
+
+    <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
+
+
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="个人技术分享 RSS">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#333333">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#333333">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Microsoft EDGE -->
+    <meta name="msapplication-TileColor" content="#333333">
+
+<meta name="author" content="东风微鸣" />
+<meta name="description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第八篇, 主要介绍 spring微服务的相关设计和开发思路, 这次介绍REST服务的实现." />
+<meta name="keywords" content="spring boot, k8s, openshift, 最佳实践, devops, java">
+
+<meta property="og:site_name" content="个人技术分享"/>
+<meta property="og:title" content="Spring Boot 微服务上容器平台的最佳实践 - 8 - Rest Service"/>
+<meta property="og:description" content="把Spring Boot 微服务部署到容器平台（K8S，OpenShift）上！这是第八篇, 主要介绍 spring微服务的相关设计和开发思路, 这次介绍REST服务的实现."/>
+<meta property="og:locale" content="zh_CN"/>
+<meta property="og:url" content="https://www.EWhisper.cn/spring-boot-on-k8s-8.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-11-21 14:40:00+08:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://www.EWhisper.cn/author/dong-feng-wei-ming.html">
+<meta property="article:section" content="Java"/>
+<meta property="article:tag" content="spring boot"/>
+<meta property="article:tag" content="k8s"/>
+<meta property="article:tag" content="openshift"/>
+<meta property="article:tag" content="最佳实践"/>
+<meta property="article:tag" content="devops"/>
+<meta property="article:tag" content="java"/>
+<meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
+
+  <title>个人技术分享 &ndash; Spring Boot 微服务上容器平台的最佳实践 - 8 - Rest Service</title>
+
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://www.EWhisper.cn">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="个人技术分享" title="个人技术分享">
+      </a>
+      <h1><a href="https://www.EWhisper.cn">个人技术分享</a></h1>
+
+<p>Focus on Python/Java/DevOps/Observability</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
+          <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
+
+          <li><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></li>
+        </ul>
+      </nav>
+
+      <ul class="social">
+        <li><a class="sc-wechat" href="/images/wechat_paycode.png" target="_blank"><i class="fa fa-wechat"></i></a></li>
+        <li><a class="sc-envelope-o" href="mailto:cuikaidong@foxmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
+        <li><a class="sc-reddit" href="https://www.jianshu.com/u/0f08daeaa5a9" target="_blank"><i class="fa fa-reddit"></i></a></li>
+        <li><a class="sc-linkedin" href="https://www.linkedin.com/in/凯东-崔-136128116/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+        <li><a class="sc-weibo" href="https://weibo.com/long5to2gf" target="_blank"><i class="fa fa-weibo"></i></a></li>
+      </ul>
+    </div>
+
+
+  </aside>
+  <main>
+
+    <nav>
+      <a href="https://www.EWhisper.cn">主页</a>
+
+      <a href="/archives/index.html">存档</a>
+      <a href="/categories.html">类别</a>
+      <a href="/tags.html">标签</a>
+      <a href="/authors.html">作者</a>
+
+
+      <a href="https://www.EWhisper.cn/feeds/all.rss.xml">RSS订阅</a>
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="spring-boot-on-k8s-8">Spring Boot 微服务上容器平台的最佳实践 - 8 - Rest Service</h1>
+    <p>
+      在 2019-11-21 Thursday 发布于 <a href="https://www.EWhisper.cn/category/java.html">Java</a> 分类
+
+        &#8226; 1 min read
+    </p>
+  </header>
+
+
+  <div>
+    <p><img alt="Spring+K8s" src="./images/spring_k8s.png"></p>
+<h2 id="_1">前言<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>今天开始第八篇, 主要介绍 spring微服务的相关设计和开发思路, 这次介绍REST服务的实现.</p>
+<p><a href="https://github.com/RHsyseng/spring-boot-msa-ocp/tree/master/Airports"><em>Airports</em></a> 服务是应用程序中最简单的微服务，这为构建基本的Spring Boot REST服务提供了很好的参考。</p>
+<h2 id="spring-boot-rest-service">Spring Boot Rest Service<a class="headerlink" href="#spring-boot-rest-service" title="Permanent link">&para;</a></h2>
+<h3 id="spring-boot-application-class">Spring Boot Application Class<a class="headerlink" href="#spring-boot-application-class" title="Permanent link">&para;</a></h3>
+<p>要将Java项目指定为Spring Boot应用程序，需要包含一个用<a href="https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-using-springbootapplication-annotation.html">SpringBootApplication</a>注释的<a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/src/main/java/com/redhat/refarch/obsidian/brownfield/lambdaair/airports/RestApplication.java">Java类</a>，该类实现默认的Java main方法.</p>
+<div class="highlight"><pre><span></span><span class="kn">package</span> <span class="nn">com.redhat.refarch.obsidian.brownfield.lambdaair.airports</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.SpringApplication</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.autoconfigure.SpringBootApplication</span><span class="o">;</span>
+<span class="nd">@SpringBootApplication</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">RestApplication</span>
+<span class="o">{</span>
+ <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+ <span class="o">{</span>
+  <span class="n">SpringApplication</span><span class="o">.</span><span class="na">run</span><span class="o">(</span> <span class="n">RestApplication</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">args</span> <span class="o">);</span>
+ <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<p>声明应用程序名称(application name)也是一种良好的实践，它可以作为<a href="https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html">common application properties</a>的一部分。这个应用程序使用以每个项目的名称开头的<a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/src/main/resources/application.yml">application.yml</a> 文件.</p>
+<div class="highlight"><pre><span></span><span class="nt">spring</span><span class="p">:</span>
+  <span class="nt">application</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">airports</span>
+</pre></div>
+
+
+<h3 id="maven-project-file">Maven Project File<a class="headerlink" href="#maven-project-file" title="Permanent link">&para;</a></h3>
+<p>每个微服务项目都包含一个Maven <a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/pom.xml">POM文件</a>，该文件除了声明模块属性(module properties)和依赖项外，还包含一个配置文件定义(profile definition)，用于使用<a href="https://maven.fabric8.io/">fabric8-maven-plugin</a>创建和部署K8S或OpenShift镜像。</p>
+<p>该POM文件使用一个属性(property)来声明包含操作系统和Java开发工具包(JDK)的基础镜像。此应用程序中的所有服务都构建在Red Hat Enterprise Linux (RHEL)基础镜像之上，其中包含一个受支持的OpenJDK版本:</p>
+<div class="highlight"><pre><span></span><span class="nt">&lt;properties&gt;</span>
+...
+  <span class="nt">&lt;fabric8.generator.from&gt;</span>registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift<span class="nt">&lt;/fabric8.generator.from&gt;</span>
+<span class="nt">&lt;/properties&gt;</span>
+</pre></div>
+
+
+<p>要轻松地包含提供REST服务的简单Spring Boot应用程序的依赖项，请声明以下两个构件(artifacts):</p>
+<div class="highlight"><pre><span></span><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-web<span class="nt">&lt;/artifactId&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-tomcat<span class="nt">&lt;/artifactId&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
+
+
+<p>此应用程序中的每个服务还声明了对<a href="https://github.com/spring-projects/spring-boot/tree/master/spring-boot-actuator">Spring Boot Actuator</a> 组件的依赖关系，其中包括许多附加功能，可以帮助监视和管理应用程序。</p>
+<div class="highlight"><pre><span></span><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-actuator<span class="nt">&lt;/artifactId&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</pre></div>
+
+
+<p><strong>当声明了对<em>Actuator</em>的依赖时，fabric8会生成默认的OpenShift <a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/developer_guide/dev-guide-application-health#container-health-checks-using-probes">health probes</a></strong>，该probes与<em>Actuator</em>服务通信，以确定服务是否正在运行(running)并准备(ready)好为请求提供服务:</p>
+<div class="highlight"><pre><span></span>    <span class="nt">livenessProbe</span><span class="p">:</span>
+      <span class="nt">failureThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+      <span class="nt">httpGet</span><span class="p">:</span>
+        <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/health</span>
+        <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
+        <span class="nt">scheme</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">HTTP</span>
+      <span class="nt">initialDelaySeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">180</span>
+      <span class="nt">periodSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+      <span class="nt">successThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">readinessProbe</span><span class="p">:</span>
+      <span class="nt">failureThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+      <span class="nt">httpGet</span><span class="p">:</span>
+        <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/health</span>
+        <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
+        <span class="nt">scheme</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">HTTP</span>
+      <span class="nt">initialDelaySeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+      <span class="nt">periodSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+      <span class="nt">successThreshold</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+      <span class="nt">timeoutSeconds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+</pre></div>
+
+
+<h3 id="spring-boot-rest-controller">Spring Boot REST Controller<a class="headerlink" href="#spring-boot-rest-controller" title="Permanent link">&para;</a></h3>
+<p>要接收和处理REST请求，需要包含一个用<a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RestController.html">RestController</a>注释的<a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/src/main/java/com/redhat/refarch/obsidian/brownfield/lambdaair/airports/service/Controller.java">Java类</a>.</p>
+<div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
+
+<span class="nd">@RestController</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Controller</span>
+</pre></div>
+
+
+<p>在<a href="https://github.com/RHsyseng/spring-boot-msa-ocp/blob/master/Airports/src/main/resources/application.yml#L10-L11">application properties(应用程序属性)</a>中为该服务指定监听端口:</p>
+<div class="highlight"><pre><span></span><span class="nt">server</span><span class="p">:</span>
+  <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8080</span>
+</pre></div>
+
+
+<p>每个REST操作都由Java方法实现。业务操作通常需要指定<a href="https://github.com/RHsyseng/spring-boot-msa-ocp/blob/master/Airports/src/main/java/com/redhat/refarch/obsidian/brownfield/lambdaair/airports/service/Controller.java#L30-L32">请求参数</a>:</p>
+<div class="highlight"><pre><span></span><span class="nd">@RequestMapping</span><span class="o">(</span> <span class="n">value</span> <span class="o">=</span> <span class="s">&quot;/airports&quot;</span><span class="o">,</span> <span class="n">method</span> <span class="o">=</span> <span class="n">RequestMethod</span><span class="o">.</span><span class="na">GET</span> <span class="o">)</span>
+<span class="kd">public</span> <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Airport</span><span class="o">&gt;</span> <span class="nf">airports</span><span class="o">(</span>
+  <span class="nd">@RequestParam</span><span class="o">(</span> <span class="n">value</span> <span class="o">=</span> <span class="s">&quot;filter&quot;</span><span class="o">,</span> <span class="n">required</span> <span class="o">=</span> <span class="kc">false</span> <span class="o">)</span> <span class="n">String</span> <span class="n">filter</span><span class="o">)</span>
+<span class="o">{</span>
+ <span class="o">...</span>
+</pre></div>
+
+
+<h3 id="_2">启动初始化<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p><em>Airports</em> 服务在启动时使用 eager initialization(即时初始化)将机场数据加载到内存中。这是通过监听特定类型事件的<a href="https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Airports/src/main/java/com/redhat/refarch/obsidian/brownfield/lambdaair/airports/service/ApplicationInitialization.java">ApplicationListener</a>实现的:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">org.springframework.context.ApplicationListener</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.context.event.ContextRefreshedEvent</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Component</span><span class="o">;</span>
+
+<span class="nd">@Component</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ApplicationInitialization</span> <span class="kd">implements</span> 
+<span class="n">ApplicationListener</span><span class="o">&lt;</span><span class="n">ContextRefreshedEvent</span><span class="o">&gt;</span>
+<span class="o">{</span>
+ <span class="nd">@Override</span>
+ <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onApplicationEvent</span><span class="o">(</span><span class="n">ContextRefreshedEvent</span> 
+<span class="n">contextRefreshedEvent</span><span class="o">)</span>
+</pre></div>
+
+
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>这篇有2个知识点:</p>
+<ol>
+<li>当声明了对<em>Actuator</em>的依赖时，fabric8会生成默认的OpenShift health probes. 这也算fabric8的一个优势, 少了人工加probe的步骤;</li>
+<li>能外部化的配置都可以外部化到: application properties里. 它可以是<code>application.yml</code>.</li>
+</ol>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://www.EWhisper.cn/tag/spring-boot.html">spring boot</a>
+      <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+      <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>
+      <a href="https://www.EWhisper.cn/tag/zui-jia-shi-jian.html">最佳实践</a>
+      <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>
+      <a href="https://www.EWhisper.cn/tag/java.html">java</a>
+    </p>
+  </div>
+
+  <div class="center social-share">
+    <p>喜欢这篇文章吗？将它与您的朋友分享吧！</p>
+    <div class="addthis_native_toolbox"></div>
+    <div class="addthis_sharing_toolbox"></div>
+    <div class="addthis_inline_share_toolbox"></div>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://www.EWhisper.cn/spring-boot-on-k8s-6.html" title="Spring Boot 微服务上容器平台的最佳实践 - 6">
+      <i class="fa fa-angle-left"></i> Previous Post
+    </a>
+    <a class="btn float-right" href="https://www.EWhisper.cn/spring-boot-on-k8s-9.html" title="Spring Boot 微服务上容器平台的最佳实践 - 9 - Ribbon和负载均衡">
+      Next Post <i class="fa fa-angle-right"></i>
+    </a>
+  </div>
+
+  <div class="related-posts">
+    <h4>您可能还喜欢</h4>
+    <ul class="related-posts">
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-11.html">Spring Boot 微服务上容器平台的最佳实践 - 11 - ZUUL</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-10.html">Spring Boot 微服务上容器平台的最佳实践 - 10 - Zipkin</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-9.html">Spring Boot 微服务上容器平台的最佳实践 - 9 - Ribbon和负载均衡</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-6.html">Spring Boot 微服务上容器平台的最佳实践 - 6</a></li>
+      <li><a href="https://www.EWhisper.cn/spring-boot-on-k8s-7.html">Spring Boot 微服务上容器平台的最佳实践 - 7</a></li>
+    </ul>
+  </div>
+
+
+</article>
+
+    <footer>
+<p>
+  &copy;  2020 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+</p>
+<p><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></p><p>
+  <a rel="license"
+     href="http://creativecommons.org/licenses/by-sa/4.0/"
+     target="_blank">
+    <img alt="Creative Commons License"
+         title="Creative Commons License"
+         style="border-width:0"
+           src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+         width="80"
+         height="15"/>
+  </a>
+<!-- StatusCake -->
+<a href="https://www.statuscake.com" title="个人技术分享 Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="个人技术分享 Uptime"/>
+</a>
+
+<!-- End StatusCake --></p>    </footer>
+  </main>
+
+
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c98c3e21c4def55" async="async"></script>
+
+
+<script type="application/ld+json">
+{
+  "@context" : "http://schema.org",
+  "@type" : "Blog",
+  "name": " 个人技术分享 ",
+  "url" : "https://www.EWhisper.cn",
+  "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
+  "description": "Focus on Python/Java/DevOps/Observability"
+}
+</script>
+
+<a href="https://github.com/east4ming/my-pelican" class="github-corner" aria-label="View source on Github">
+    <svg width="80"
+         height="80"
+         viewBox="0 0 250 250"
+         style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+         aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor"
+              style="transform-origin: 130px 106px;"
+              class="octo-arm">
+        </path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor"
+              class="octo-body">
+        </path>
+    </svg>
+</a>
+<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style></body>
+</html>

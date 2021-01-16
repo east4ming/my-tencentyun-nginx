@@ -18,7 +18,7 @@
     <link href="https://www.EWhisper.cn/static/custom.css" rel="stylesheet">
 
 
-    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="东风微鸣 Blog RSS">
+    <link href="https://www.EWhisper.cn/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="个人技术分享 RSS">
 
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -34,26 +34,26 @@
     <!-- Microsoft EDGE -->
     <meta name="msapplication-TileColor" content="#333333">
 
-    <meta name="author" content="东风微鸣" />
+    <meta name="author" content="个人技术分享" />
     <meta name="description" content="Focus on Python/Java/DevOps/Observability" />
-<meta property="og:site_name" content="东风微鸣 Blog"/>
+<meta property="og:site_name" content="个人技术分享"/>
 <meta property="og:type" content="blog"/>
-<meta property="og:title" content="东风微鸣 Blog"/>
+<meta property="og:title" content="个人技术分享"/>
 <meta property="og:description" content="Focus on Python/Java/DevOps/Observability"/>
 <meta property="og:locale" content="zh_CN"/>
 <meta property="og:url" content="https://www.EWhisper.cn"/>
 <meta property="og:image" content="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120">
 
-  <title>东风微鸣 Blog</title>
+  <title>个人技术分享</title>
 
 </head>
 <body>
   <aside>
     <div>
       <a href="https://www.EWhisper.cn">
-        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="东风微鸣" title="东风微鸣">
+        <img src="//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120" alt="个人技术分享" title="个人技术分享">
       </a>
-      <h1><a href="https://www.EWhisper.cn">东风微鸣</a></h1>
+      <h1><a href="https://www.EWhisper.cn">个人技术分享</a></h1>
 
 <p>Focus on Python/Java/DevOps/Observability</p>
       <nav>
@@ -61,7 +61,7 @@
           <li><a href="https://www.EWhisper.cn/pages/about.html#about">About</a></li>
           <li><a href="https://www.EWhisper.cn/pages/contact.html#contact">Contact</a></li>
 
-          <li><a href="http://www.miitbeian.gov.cn/" target="_blank">沪ICP备19007314号-1</a></li>
+          <li><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></li>
         </ul>
       </nav>
 
@@ -94,66 +94,47 @@
 
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/binary-builds-with-openshift.html#binary-builds-with-openshift">使用OpenShift进行二进制构建</a></h2>
+    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-23-firewall.html#dynatrace-appmon-handbook-23-firewall">Dynatrace AppMon 实战手册 - 23.相关网络权限</a></h2>
     <p>
-      在 2019-05-08 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/devops.html">devops</a>,              <a href="https://www.EWhisper.cn/tag/git.html">git</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>
+              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
         &#8226; 2 min read
     </p>
   </header>
   <div>
-        <img src="https://cdn.jsdelivr.net/emojione/assets/4.0/png/64/2757.png">
-      <p>OpenShift 推荐和常用的构建方式是: 直接从代码仓库(如GIT 或SVN)中拉取源码进行构建(即源码构建). 但是这一种构建方式并不能满足所有的需求, 所以还有一种构建方式就是: 二进制构建. 二进制构建适用于以下2个场景: 1.开发人员本地开发调试代码并构建; 2. OpenShift和 CI/CD的pipeline进行整合, 获取从前边平台(如自动化开发平台或测试平台)传过来的工件(即二进制包)并构建为镜像.</p>
+        <img src="https://community.dynatrace.com/community/download/thumbnails/221381541/ManageServersServicesAnalysisServer.png?version=1&modificationDate=1398370369357&api=v2">
+      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十三篇, 主要介绍Dynatrace实际使用过程中需要开通哪些网络权限.</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/binary-builds-with-openshift.html#binary-builds-with-openshift">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-23-firewall.html#dynatrace-appmon-handbook-23-firewall">阅读全文</a>
   </div>
   <hr />
 </article>
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">OpenShift 和 Kubernetes 有什么区别?</a></h2>
+    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-24-mobile-adk.html#dynatrace-appmon-handbook-24-mobile-adk">Dynatrace AppMon 实战手册 - 24.手机ADK</a></h2>
     <p>
-      在 2019-05-03 Friday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/paas.html">PAAS</a>
-        &#8226; 2 min read
+              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
+        &#8226; 5 min read
     </p>
   </header>
   <div>
-        <img src="./images/openshift-architecture-overview.png">
-      <p>K8S越来越火, 而我们公司使用的是红帽的OpenShift, 它也是基于K8S. 那么, OpenShift 和 K8S 究竟有什么区别?</p>
+        <img src="http://pic.yupoo.com/east4ming_v/FjNDMj8O/medium.jpg">
+      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十四篇, 主要介绍Dynatrace监控手机APP所用到的应用开发套件(ADK).</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/openshift-and-kubernetes-whats-difference.html#openshift-and-kubernetes-whats-difference">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-24-mobile-adk.html#dynatrace-appmon-handbook-24-mobile-adk">阅读全文</a>
   </div>
   <hr />
 </article>
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/analyze-problems-with-dynatrace.html#analyze-problems-with-dynatrace">Dynatrace 告警简要分析流程</a></h2>
+    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-20-reporting.html#dynatrace-appmon-handbook-20-reporting">Dynatrace AppMon 实战手册 - 20.报告功能</a></h2>
     <p>
-      在 2019-05-03 Friday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
-
-          &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>,              <a href="https://www.EWhisper.cn/tag/xing-neng-diao-you.html">性能调优</a>
-        &#8226; 1 min read
-    </p>
-  </header>
-  <div>
-        <img src="http://pic.yupoo.com/east4ming_v/FCXRay6p/bea1t.jpg">
-      <p>在日常运维工作中, 我们经常会碰到各种各样的应用问题和告警, 如: 应用响应变慢, 应用失败率升高, 应用不可用等等, 本文介绍通过Dynatrace分析这些问题的简要流程.</p>
-      <br>
-      <a class="btn" href="https://www.EWhisper.cn/analyze-problems-with-dynatrace.html#analyze-problems-with-dynatrace">阅读全文</a>
-  </div>
-  <hr />
-</article>
-<article>
-  <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-10-authority-management.html#dynatrace-appmon-handbook-10-authority-management">Dynatrace AppMon 实战手册 - 10.Dynatrace权限管理</a></h2>
-    <p>
-      在 2019-04-10 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+      在 2019-05-26 Sunday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
 
           &#8226; 标签为
               <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
@@ -161,29 +142,48 @@
     </p>
   </header>
   <div>
-        <img src="http://pic.yupoo.com/east4ming_v/FX8vxzug/YnE01.jpg">
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第十篇, 主要是AppMon的权限管理功能介绍和配置.</p>
+        <img src="http://pic.yupoo.com/east4ming_v/FhuunmKR/medium.jpg">
+      <p>Dynatrace AppMon 实战手册系列文章. 本文是第二十篇, 主要介绍如何自动手动生成各类报告.</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-10-authority-management.html#dynatrace-appmon-handbook-10-authority-management">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-20-reporting.html#dynatrace-appmon-handbook-20-reporting">阅读全文</a>
   </div>
   <hr />
 </article>
 <article>
   <header>
-    <h2><a href="https://www.EWhisper.cn/dynatrace-appmon-handbook-11-create-shedule-task.html#dynatrace-appmon-handbook-11-create-shedule-task">Dynatrace AppMon 实战手册 - 11.Dynatrace创建定时任务</a></h2>
+    <h2><a href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html#deploy-app-with-openshift-in-enterprise-env">OpenShift企业测试环境应用部署实战</a></h2>
     <p>
-      在 2019-04-10 Wednesday 发布于 <a href="https://www.EWhisper.cn/category/observability.html">Observability</a> 分类
+      在 2019-05-20 Monday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
 
           &#8226; 标签为
-              <a href="https://www.EWhisper.cn/tag/dynatrace.html">Dynatrace</a>,              <a href="https://www.EWhisper.cn/tag/observability.html">Observability</a>
-        &#8226; 1 min read
+              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>
+        &#8226; 4 min read
     </p>
   </header>
   <div>
-        <img src="http://pic.yupoo.com/east4ming_v/FX9Fcrwn/vbDWA.png">
-      <p>Dynatrace AppMon 实战手册系列文章. 本文是第十一篇, 主要是关于"定时任务"方面的功能介绍以及使用场景.</p>
+        <img src="/images/illustration-com-container-party.png">
+      <p>OpenShift用起来挺爽的. 实战2小时就把禅道开源版部署到测试环境, 无需申请主机、存储、数据库、中间件和域名。部署好了直接域名访问。</p>
       <br>
-      <a class="btn" href="https://www.EWhisper.cn/dynatrace-appmon-handbook-11-create-shedule-task.html#dynatrace-appmon-handbook-11-create-shedule-task">阅读全文</a>
+      <a class="btn" href="https://www.EWhisper.cn/deploy-app-with-openshift-in-enterprise-env.html#deploy-app-with-openshift-in-enterprise-env">阅读全文</a>
+  </div>
+  <hr />
+</article>
+<article>
+  <header>
+    <h2><a href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">容器自动伸缩</a></h2>
+    <p>
+      在 2019-05-14 Tuesday 发布于 <a href="https://www.EWhisper.cn/category/devops.html">DevOps</a> 分类
+
+          &#8226; 标签为
+              <a href="https://www.EWhisper.cn/tag/openshift.html">openshift</a>,              <a href="https://www.EWhisper.cn/tag/containers.html">containers</a>,              <a href="https://www.EWhisper.cn/tag/docker.html">docker</a>,              <a href="https://www.EWhisper.cn/tag/k8s.html">k8s</a>
+        &#8226; 3 min read
+    </p>
+  </header>
+  <div>
+        <img src="/images/Matrix-agent-Smith-clones.jpg">
+      <p>OpenShift 容器云平台可以对容器进行自动缩放, 当前, 自动缩放只能根据以下2个指标进行判断: CPU使用率和内存使用率.</p>
+      <br>
+      <a class="btn" href="https://www.EWhisper.cn/openshift-pod-autoscaling.html#openshift-pod-autoscaling">阅读全文</a>
   </div>
 </article>
 
@@ -201,9 +201,9 @@
 
     <footer>
 <p>
-  &copy;  2019 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
+  &copy;  2020 - This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>
 </p>
-<p>本站由 <a href="http://getpelican.com" target="_blank">Pelican</a> 驱动，并使用了 <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> 开发的 <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> 主题。</p><p>
+<p><a href="http://beian.miit.gov.cn" target="_blank">沪ICP备19007314号-1</a></p><p>
   <a rel="license"
      href="http://creativecommons.org/licenses/by-sa/4.0/"
      target="_blank">
@@ -215,8 +215,8 @@
          height="15"/>
   </a>
 <!-- StatusCake -->
-<a href="https://www.statuscake.com" title="东风微鸣 Blog Uptime">
-  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="东风微鸣 Blog Uptime"/>
+<a href="https://www.statuscake.com" title="个人技术分享 Uptime">
+  <img src="https://app.statuscake.com/button/index.php?Track=CbJdcjmnCx&amp;Days=7&amp;Design=7" alt="个人技术分享 Uptime"/>
 </a>
 
 <!-- End StatusCake --></p>    </footer>
@@ -230,7 +230,7 @@
 {
   "@context" : "http://schema.org",
   "@type" : "Blog",
-  "name": " 东风微鸣 Blog ",
+  "name": " 个人技术分享 ",
   "url" : "https://www.EWhisper.cn",
   "image": "//s.gravatar.com/avatar/7c743bc6ac83171e35a5aa8bd66cc1ea?s=120",
   "description": "Focus on Python/Java/DevOps/Observability"

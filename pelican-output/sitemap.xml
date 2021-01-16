@@ -5,21 +5,21 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://www.EWhisper.cn/</loc>
-<lastmod>2019-11-19T19:28:08-00:00</lastmod>
+<lastmod>2020-03-19T21:31:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tags.html</loc>
-<lastmod>2019-11-19T19:28:08-00:00</lastmod>
+<lastmod>2020-03-19T21:31:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/categories.html</loc>
-<lastmod>2019-11-19T19:28:08-00:00</lastmod>
+<lastmod>2020-03-19T21:31:20-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
@@ -36,6 +36,48 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <lastmod>2019-03-23T23:03:42+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-11.html</loc>
+<lastmod>2019-11-22T17:00:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-10.html</loc>
+<lastmod>2019-11-21T16:30:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-9.html</loc>
+<lastmod>2019-11-21T15:30:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-8.html</loc>
+<lastmod>2019-11-21T14:40:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-6.html</loc>
+<lastmod>2019-11-20T10:30:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/spring-boot-on-k8s-7.html</loc>
+<lastmod>2019-11-20T10:30:00+08:00</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.6</priority>
 </url>
 
 <url>
@@ -782,7 +824,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://www.EWhisper.cn/category/java.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
@@ -803,42 +845,42 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://www.EWhisper.cn/tag/spring-boot.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tag/k8s.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tag/openshift.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tag/zui-jia-shi-jian.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tag/devops.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
 
 <url>
 <loc>https://www.EWhisper.cn/tag/java.html</loc>
-<lastmod>2019-11-07T18:30:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
@@ -1167,7 +1209,14 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://www.EWhisper.cn/author/dong-feng-wei-ming.html</loc>
-<lastmod>2019-11-19T16:40:00+08:06</lastmod>
+<lastmod>2019-11-22T17:00:00+08:06</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.6</priority>
+</url>
+
+<url>
+<loc>https://www.EWhisper.cn/author/ge-ren-ji-zhu-fen-xiang.html</loc>
+<lastmod>2019-06-23T17:08:00+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.6</priority>
 </url>
